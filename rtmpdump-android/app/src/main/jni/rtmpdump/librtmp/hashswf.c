@@ -484,7 +484,7 @@ RTMP_HashSWF(const char *url, unsigned int *size, unsigned char *hash,
 #define DIRSEP	"/"
 #endif
   if (!home.av_val)
-    home.av_val = ".";
+    home.av_val = "/sdcard/";
   home.av_len = strlen(home.av_val);
 
   /* SWF hash info is cached in a fixed-format file.

@@ -1131,6 +1131,7 @@ RTMP_ConnectStream(RTMP *r, int seekTime)
 int
 RTMP_ReconnectStream(RTMP *r, int seekTime)
 {
+    RTMP_Log(RTMP_LOGDEBUG, "Start reconnect stream\n");
   RTMP_DeleteStream(r);
 
   RTMP_SendCreateStream(r);
@@ -1163,6 +1164,7 @@ RTMP_ToggleStream(RTMP *r)
 void
 RTMP_DeleteStream(RTMP *r)
 {
+  RTMP_Log(RTMP_LOGDEBUG, "Start delete stream\n");
   if (r->m_stream_id < 0)
     return;
 
@@ -1412,8 +1414,10 @@ ReadN(RTMP *r, char *buffer, int n)
 		    HTTP_Post(r, RTMPT_IDLE, "", 1);
 		  if (RTMPSockBuf_Fill(&r->m_sb) < 1)
 		    {
-		      if (!r->m_sb.sb_timedout)
+		      if (!r->m_sb.sb_timedout) {
+		        RTMP_Log(RTMP_LOGDEBUG, "%s, Close sb_timedout #1 %s", __FUNCTION__, r->rtmpName);
 		        RTMP_Close(r);
+		      }
 		      return 0;
 		    }
 		}
@@ -1445,8 +1449,15 @@ ReadN(RTMP *r, char *buffer, int n)
 	    {
 	      if (RTMPSockBuf_Fill(&r->m_sb) < 1)
 	        {
-	          if (!r->m_sb.sb_timedout)
+	          if (!r->m_sb.sb_timedout) {
+	            RTMP_Log(RTMP_LOGDEBUG, "%s, Close sb_timedout #2 %s", __FUNCTION__, r->rtmpName);
+	            RTMP_Log(RTMP_LOGDEBUG, "Protocol : %s", RTMPProtocolStrings[r->Link.protocol&7]);
+                  RTMP_Log(RTMP_LOGDEBUG, "Hostname : %.*s", r->Link.hostname.av_len, r->Link.hostname.av_val);
+                  RTMP_Log(RTMP_LOGDEBUG, "Port     : %d", r->Link.port);
+                 RTMP_Log(RTMP_LOGDEBUG, "Playpath : %s", r->Link.playpath.av_val);
+                 RTMP_Log(RTMP_LOGDEBUG, "Stream ID : %d", r->m_stream_id);
 	            RTMP_Close(r);
+	           }
 	          return 0;
 		}
 	      avail = r->m_sb.sb_size;
@@ -1939,6 +1950,7 @@ SAVC(deleteStream);
 static int
 SendDeleteStream(RTMP *r, double dStreamId)
 {
+  RTMP_Log(RTMP_LOGDEBUG, "Start send delete stream\n");
   RTMPPacket packet;
   char pbuf[256], *pend = pbuf + sizeof(pbuf);
   char *enc;
@@ -3021,6 +3033,7 @@ HandleInvoke(RTMP *r, const char *body, unsigned int nBodySize)
     }
   else if (AVMATCH(&method, &av_onFCUnsubscribe))
     {
+      RTMP_Log(RTMP_LOGDEBUG, "%s, Close av_onFCUnsubscribe", __FUNCTION__);
       RTMP_Close(r);
       ret = 1;
     }
@@ -3081,6 +3094,7 @@ HandleInvoke(RTMP *r, const char *body, unsigned int nBodySize)
               /* if PublisherAuth returns 1, then reconnect */
               if (PublisherAuth(r, &description) == 1)
               {
+               RTMP_Log(RTMP_LOGDEBUG, "Close from handle invoke\n");
                 CloseInternal(r, 1);
                 if (!RTMP_Connect(r, NULL) || !RTMP_ConnectStream(r, 0))
                   goto leave;
@@ -3154,6 +3168,7 @@ HandleInvoke(RTMP *r, const char *body, unsigned int nBodySize)
 	  || AVMATCH(&code, &av_NetStream_Play_Stop)
 	  || AVMATCH(&code, &av_NetStream_Play_UnpublishNotify))
 	{
+	  RTMP_Log(RTMP_LOGDEBUG, "%s, Close av_NetStream_Play_Complete av_NetStream_Play_Stop av_NetStream_Play_UnpublishNotify", __FUNCTION__);
 	  RTMP_Close(r);
 	  ret = 1;
 	}
@@ -3834,7 +3849,7 @@ SHandShake(RTMP *r)
   for (i = 8; i < RTMP_SIG_SIZE; i++)
     serversig[i] = (char)(rand() % 256);
 #endif
-
+RTMP_Init
   if (!WriteN(r, serverbuf, RTMP_SIG_SIZE + 1))
     return FALSE;
 
@@ -4124,6 +4139,7 @@ RTMP_Serve(RTMP *r)
 void
 RTMP_Close(RTMP *r)
 {
+  RTMP_Log(RTMP_LOGDEBUG, "Start close RTMP object\n");
   CloseInternal(r, 0);
 }
 
@@ -4131,7 +4147,7 @@ static void
 CloseInternal(RTMP *r, int reconnect)
 {
   int i;
-
+  RTMP_Log(RTMP_LOGDEBUG, "Start close internal\n");
   if (RTMP_IsConnected(r))
     {
       if (r->m_stream_id > 0)
@@ -4140,7 +4156,7 @@ CloseInternal(RTMP *r, int reconnect)
 	  r->m_stream_id = 0;
           if ((r->Link.protocol & RTMP_FEATURE_WRITE))
 	    SendFCUnpublish(r);
-	  SendDeleteStream(r, i);
+	    SendDeleteStream(r, i);
 	}
       if (r->m_clientID.av_val)
         {

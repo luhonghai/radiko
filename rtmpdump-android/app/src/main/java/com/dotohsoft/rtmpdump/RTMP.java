@@ -13,6 +13,6 @@ public class RTMP {
     public static void onMessage(String type, String message) {
 
     }
-	public static native void init(String token, String dest);
-	public static native void stop();
+	public native void init(String token, String dest);
+	public  native void stop();
 }
