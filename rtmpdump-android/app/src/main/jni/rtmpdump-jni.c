@@ -1402,7 +1402,6 @@ JNIEXPORT void JNICALL Java_com_dotohsoft_rtmpdump_RTMP_init(JNIEnv * env, jobje
     RTMP_ctrlC = FALSE;
     const char *nativeToken = (*env)->GetStringUTFChars(env, token, 0);
 	const char *nativeDest = (*env)->GetStringUTFChars(env, dest, 0);
-    RTMP_LogPrintf("Step #1\n");
     char *v[] = {
         "rtmpdump",
         "-r", "rtmpe://f-radiko.smartstream.ne.jp",

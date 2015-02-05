@@ -311,7 +311,6 @@ int i;
          server->rs.Link.timeout = server->timeout;
 
          server->rc.Link.protocol = server->protocol;
-         RTMP_EnableWrite(&server->rc);
               server->rc.Link.hostname = *server->host;
               server->rc.Link.port = server->port;
               server->rc.Link.playpath = *server->playpath;
