@@ -61,7 +61,7 @@ public class Rtmpdump extends Activity {
                                 } catch (IOException e) {
                                     e.printStackTrace();
                                 }
-                                rtmpSuck.init("S:VNsjnxa8rWw5m065ovb1Cg", dest);
+                                rtmpSuck.init("S:exQWfrIkQQYDE1Zd2ZvVrg", dest);
                             } else {
                                 Log.e("RTMTDUMP","Could not found dictionary: " + file.getAbsolutePath());
                             }

@@ -1591,7 +1591,7 @@ SendConnectPacket(RTMP *r, RTMPPacket *cp)
   char *enc;
 
   if (cp)
-    return RTMP_SendPacket(r, cp, TRUE);
+    packet = *cp;
 
   packet.m_nChannel = 0x03;	/* control channel (invoke) */
   packet.m_headerType = RTMP_PACKET_SIZE_LARGE;
@@ -2966,8 +2966,10 @@ HandleInvoke(RTMP *r, const char *body, unsigned int nBodySize)
 
       if (AVMATCH(&methodInvoked, &av_connect))
 	{
+	  RTMP_LogPrintf(" start connection step #1");
 	  if (r->Link.token.av_len)
 	    {
+	        RTMP_LogPrintf(" have token");
 	      AMFObjectProperty p;
 	      if (RTMP_FindFirstMatchingProperty(&obj, &av_secureToken, &p))
 		{
@@ -2977,26 +2979,32 @@ HandleInvoke(RTMP *r, const char *body, unsigned int nBodySize)
 	    }
 	  if (r->Link.protocol & RTMP_FEATURE_WRITE)
 	    {
+	      RTMP_LogPrintf(" have RTMP_FEATURE_WRITE");
 	      SendReleaseStream(r);
 	      SendFCPublish(r);
 	    }
 	  else
 	    {
+	      RTMP_LogPrintf(" send server BW");
 	      RTMP_SendServerBW(r);
 	      RTMP_SendCtrl(r, 3, 0, 300);
 	    }
+	    RTMP_LogPrintf(" send create stream");
 	  RTMP_SendCreateStream(r);
 
 	  if (!(r->Link.protocol & RTMP_FEATURE_WRITE))
 	    {
+	      RTMP_LogPrintf(" prepare for FC Subscribe");
 	      /* Authenticate on Justin.tv legacy servers before sending FCSubscribe */
 	      if (r->Link.usherToken.av_len)
 	        SendUsherToken(r, &r->Link.usherToken);
 	      /* Send the FCSubscribe if live stream or if subscribepath is set */
 	      if (r->Link.subscribepath.av_len)
 	        SendFCSubscribe(r, &r->Link.subscribepath);
-	      else if (r->Link.lFlags & RTMP_LF_LIVE)
+	      else if (r->Link.lFlags & RTMP_LF_LIVE) {
+	        RTMP_LogPrintf(" send FCSubscribe");
 	        SendFCSubscribe(r, &r->Link.playpath);
+	        }
 	    }
 	}
       else if (AVMATCH(&methodInvoked, &av_createStream))

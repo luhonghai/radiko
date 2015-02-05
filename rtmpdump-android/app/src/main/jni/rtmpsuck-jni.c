@@ -54,6 +54,8 @@
 
 #define PACKET_SIZE 1024*1024
 
+#define DEF_BUFTIME	(10 * 60 * 60 * 1000)	/* 10 hours default */
+
 static const AVal av_conn = AVC("conn");
 
 #ifdef WIN32
@@ -309,6 +311,7 @@ int i;
          server->rs.Link.timeout = server->timeout;
 
          server->rc.Link.protocol = server->protocol;
+         RTMP_EnableWrite(&server->rc);
               server->rc.Link.hostname = *server->host;
               server->rc.Link.port = server->port;
               server->rc.Link.playpath = *server->playpath;
@@ -419,8 +422,8 @@ ServeInvoke(STREAMING_SERVER *server, int which, RTMPPacket *pack, const char *b
       AVal pname, pval;
 
       RTMP_LogPrintf("Processing connect\n");
-
-      if (!RTMP_Connect(&server->rc, NULL))
+       RTMP_SetBufferMS(&server->rc, DEF_BUFTIME);
+      if (!RTMP_Connect(&server->rc, pack))
         {
           /* failed */
           return 1;
@@ -890,6 +893,9 @@ TFTYPE doServe(void *arg)	// server socket and state (our listening socket)
       RTMP_Init(&server->rc);
       server->rs.m_sb.sb_socket = sockfd;
       RTMP_Pass_Arg(server, 1);
+      RTMP_SetBufferMS(&server->rc, DEF_BUFTIME);
+      RTMP_SetBufferMS(&server->rs, DEF_BUFTIME);
+
       if (!RTMP_Serve(&server->rs))
         {
           RTMP_Log(RTMP_LOGERROR, "Handshake failed");
@@ -913,8 +919,8 @@ TFTYPE doServe(void *arg)	// server socket and state (our listening socket)
   pc.m_chunk = &rk;
 
   /* We have our own timeout in select() */
-  server->rc.Link.timeout = 10;
-  server->rs.Link.timeout = 10;
+  server->rc.Link.timeout = 10000;
+  server->rs.Link.timeout = 10000;
   while (RTMP_IsConnected(&server->rs) || RTMP_IsConnected(&server->rc))
     {
       int n;
@@ -964,7 +970,12 @@ TFTYPE doServe(void *arg)	// server socket and state (our listening socket)
         }
       if (sr)
         {
-          while (RTMP_ReadPacket(&server->rs, &ps))
+          while (RTMP_ReadPacket(&server->rs, &ps)) {
+           if (server->rc.m_stream_id > 2) {
+                char *ptrs = ps.m_body+2;
+                AMF_EncodeInt32(ptrs, ptrs+4, server->rc.m_stream_id);
+            }
+
             if (RTMPPacket_IsReady(&ps))
               {
                 /* change chunk size */
@@ -999,18 +1010,19 @@ TFTYPE doServe(void *arg)	// server socket and state (our listening socket)
                         int id;
                         int len;
                         id = AMF_DecodeInt32(ptr);
+                       // id = server->rc.m_stream_id;
+
                         /* Assume the interesting media is on a non-zero stream */
+                        RTMP_LogPrintf( "Client id %d request new buffer time", id);
                         if (id)
                           {
                             len = AMF_DecodeInt32(ptr+4);
-#if 1
                             /* request a big buffer */
                             if (len < BUFFERTIME)
                               {
                                 AMF_EncodeInt32(ptr+4, ptr+8, BUFFERTIME);
                               }
-#endif
-                            RTMP_Log(RTMP_LOGDEBUG, "%s, client: BufferTime change in stream %d to %d", __FUNCTION__,
+                            RTMP_LogPrintf("%s, client: BufferTime change in stream %d to %d", __FUNCTION__,
                                 id, len);
                           }
                       }
@@ -1028,6 +1040,7 @@ TFTYPE doServe(void *arg)	// server socket and state (our listening socket)
                 RTMP_SendPacket(&server->rc, &ps, FALSE);
                 RTMPPacket_Free(&ps);
                 break;
+              }
               }
         }
       if (cr)
@@ -1057,19 +1070,19 @@ TFTYPE doServe(void *arg)	// server socket and state (our listening socket)
                     }
                   else if (pc.m_packetType == RTMP_PACKET_TYPE_CONTROL)
                     {
-                      short nType = AMF_DecodeInt16(pc.m_body);
-                      /* SWFverification */
-                      if (nType == 0x1a)
-#ifdef CRYPTO
-                        if (server->rc.Link.SWFSize)
-                        {
-                          RTMP_SendCtrl(&server->rc, 0x1b, 0, 0);
-                          sendit = 0;
-                        }
-#else
-                        /* The session will certainly fail right after this */
-                        RTMP_Log(RTMP_LOGERROR, "%s, server requested SWF verification, need CRYPTO support! ", __FUNCTION__);
-#endif
+                          short nType = AMF_DecodeInt16(pc.m_body);
+                          /* SWFverification */
+                          if (nType == 0x1a)
+                        #ifdef CRYPTO
+                                                if (server->rc.Link.SWFSize)
+                                                {
+                                                  RTMP_SendCtrl(&server->rc, 0x1b, 0, 0);
+                                                  sendit = 0;
+                                                }
+                        #else
+                                                /* The session will certainly fail right after this */
+                                                RTMP_Log(RTMP_LOGERROR, "%s, server requested SWF verification, need CRYPTO support! ", __FUNCTION__);
+                        #endif
                     }
                   else if (server->f_cur && (
                        pc.m_packetType == RTMP_PACKET_TYPE_AUDIO ||
@@ -1105,10 +1118,6 @@ TFTYPE doServe(void *arg)	// server socket and state (our listening socket)
         RTMP_Log(RTMP_LOGDEBUG, "Close from end of stream");
         RTMP_Close(&server->rc);
         }
-      if (RTMP_ctrlC) {
-        goto cleanup;
-        break;
-      }
     }
 
 cleanup:
@@ -1356,8 +1365,8 @@ main_rtmpsuck(int argc, char **argv, char *sToken)
 
     char *flvFile = 0;
 
- RTMP_debuglevel = RTMP_LOGALL;
-// RTMP_debuglevel = RTMP_LOGINFO;
+ //RTMP_debuglevel = RTMP_LOGALL;
+  RTMP_debuglevel = RTMP_LOGINFO;
 
  RTMP_LogPrintf("Check all arguments\n");
     int opt;
@@ -1751,8 +1760,6 @@ JNIEXPORT void JNICALL Java_com_dotohsoft_rtmpdump_RTMPSuck_init(JNIEnv * env, j
     	    nativeDest);
     char *v[] = {
             "-v",
-            "-f", "MAC 10,0,32,18",
-            "-W", "http://radiko.jp/player/swf/player_4.1.0.00.swf",
             "-l", "2",
             "-t", "rtmpe://f-radiko.smartstream.ne.jp/TBS/_definst_",
             "-n", "f-radiko.smartstream.ne.jp",
@@ -1761,7 +1768,7 @@ JNIEXPORT void JNICALL Java_com_dotohsoft_rtmpdump_RTMPSuck_init(JNIEnv * env, j
             };
     char **argv = v;
     char *sToken = strdup(nativeToken);
-    int argc = 15;
+    int argc = 11;
     main_rtmpsuck(argc, argv, sToken);
 }
 
