@@ -91,7 +91,6 @@ uint32_t nIgnoredFrameCounter = 0;
 
 FILE *file = 0;
 
-
 void
 sigIntHandler(int sig)
 {
@@ -1375,17 +1374,18 @@ RTMP_LogPrintf("Step #4\n");
     }
   else if (nStatus == RD_INCOMPLETE)
     {
-      RTMP_LogPrintf
-	("Download may be incomplete (downloaded about %.2f%%), try resuming\n",
+      RTMP_LogPrintf("Download may be incomplete (downloaded about %.2f%%), try resuming\n",
 	 percent);
     }
 
 clean:
- optind = 1;
-  RTMP_Log(RTMP_LOGDEBUG, "Closing connection.\n");
+  optind = 1;
+    RTMP_LogPrintf("Closing file.\n");
+  fclose(file);
+  file = 0;
+  RTMP_LogPrintf("Closing connection.\n");
   RTMP_Close(&rtmp);
   CleanupSockets();
-  fclose(file);
 
 #ifdef _DEBUG
   if (netstackdump != 0)
@@ -1403,7 +1403,7 @@ JNIEXPORT void JNICALL Java_com_dotohsoft_rtmpdump_RTMP_init(JNIEnv * env, jobje
     const char *nativeToken = (*env)->GetStringUTFChars(env, token, 0);
 	const char *nativeDest = (*env)->GetStringUTFChars(env, dest, 0);
     char *v[] = {
-        "rtmpdump",
+        "-n", "f-radiko.smartstream.ne.jp",
         "-r", "rtmpe://f-radiko.smartstream.ne.jp",
         "--app", "TBS/_definst_",
         "--playpath", "simul-stream.stream",
@@ -1411,8 +1411,7 @@ JNIEXPORT void JNICALL Java_com_dotohsoft_rtmpdump_RTMP_init(JNIEnv * env, jobje
         "-C", "S:",
         "-C", "S:",
         "-C", nativeToken,
-        "--flv", nativeDest,
-        "-V"};
+        "--flv", nativeDest};
     char **argv = v;
     int argc = 18;
     main_rtmpdump(argc, argv);
@@ -1421,6 +1420,8 @@ JNIEXPORT void JNICALL Java_com_dotohsoft_rtmpdump_RTMP_init(JNIEnv * env, jobje
 JNIEXPORT void JNICALL Java_com_dotohsoft_rtmpdump_RTMP_stop(JNIEnv * env, jobject obj)
 {
 	RTMP_ctrlC = TRUE;
+	signal(SIGINT, SIG_IGN);
+    signal(SIGTERM, SIG_IGN);
 }
 
 

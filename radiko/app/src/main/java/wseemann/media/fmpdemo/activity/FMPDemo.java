@@ -56,8 +56,20 @@ public class FMPDemo extends FragmentActivity implements ServiceConnection {
 
     private EditText uriText;
     private Button btnStart;
+    private Button btnStop;
+
     private Button btnToken;
-    private Button buttonPlay;
+
+    private Button btnRecord;
+    private Button btnPlay;
+
+    enum BUTTON_STAGE {
+        STREAMING,
+        RECORDING,
+        DEFAULT,
+        DISABLED,
+        PLAYING
+    }
 
     private class RTMPRunnable implements Runnable {
         private final String mToken;
@@ -69,7 +81,7 @@ public class FMPDemo extends FragmentActivity implements ServiceConnection {
 
         @Override
         public void run() {
-            RTMP.init("S:" + mToken, mTmpFile.getAbsolutePath());
+           // RTMP.init("S:" + mToken, mTmpFile.getAbsolutePath());
         }
     }
 
@@ -124,23 +136,23 @@ public class FMPDemo extends FragmentActivity implements ServiceConnection {
 		
 		uriText = (EditText) findViewById(R.id.txtToken);
         uriText.setText(getTokenString());
-        buttonPlay = (Button) findViewById(R.id.btnPlay);
-        buttonPlay.setOnClickListener(new View.OnClickListener() {
-            @Override
-            public void onClick(View v) {
-                Log.i("wseemann.media.fmpdemo", "Start stream");
-                buttonPlay.setEnabled(false);
-
-              //  RTMP.stop();
-                try {
-                    long[] list = new long[1];
-                    list[0] = MusicUtils.insert(FMPDemo.this, getTempFile().toURI().toString());
-                    mService.open(list, 0);
-                } catch (RemoteException e) {
-                    e.printStackTrace();
-                }
-            }
-        });
+        btnStop = (Button) findViewById(R.id.btnStop);
+//        buttonPlay.setOnClickListener(new View.OnClickListener() {
+//            @Override
+//            public void onClick(View v) {
+//                Log.i("wseemann.media.fmpdemo", "Start stream");
+//                buttonPlay.setEnabled(false);
+//
+//              //  RTMP.stop();
+//                try {
+//                    long[] list = new long[1];
+//                    list[0] = MusicUtils.insert(FMPDemo.this, getTempFile().toURI().toString());
+//                    mService.open(list, 0);
+//                } catch (RemoteException e) {
+//                    e.printStackTrace();
+//                }
+//            }
+//        });
 		btnToken = (Button) findViewById(R.id.btnGetToken);
         btnToken.setOnClickListener(new View.OnClickListener() {
             @Override
@@ -239,7 +251,7 @@ public class FMPDemo extends FragmentActivity implements ServiceConnection {
         MusicUtils.unbindFromService(mToken);
         mService = null;
         try {
-            RTMP.stop();
+           // RTMP.stop();
 
         } catch (Exception ex) {
             ex.printStackTrace();
@@ -261,21 +273,25 @@ public class FMPDemo extends FragmentActivity implements ServiceConnection {
     public void onBackPressed() {
         MusicUtils.unbindFromService(mToken);
         mService = null;
-        RTMP.stop();
+       // RTMP.stop();
         this.finish();
        // super.onBackPressed();
     }
 
-    private File getTempFile() {
+    private File getTempFile(String fileName) {
         PackageManager m = this.getPackageManager();
         String s = this.getPackageName();
         try {
             PackageInfo p = m.getPackageInfo(s, 0);
             s = p.applicationInfo.dataDir;
-            return new File(s, "dump.flv");
+            return new File(s, fileName);
         } catch (PackageManager.NameNotFoundException e) {
             return null;
         }
+    }
+
+    private File getTempFile() {
+        return getTempFile("dump.flv");
     }
 
     private String getTokenString() {

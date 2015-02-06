@@ -14,5 +14,5 @@ public class RTMP {
 
     }
 	public native void init(String token, String dest);
-	public  native void stop();
+	public native void stop();
 }

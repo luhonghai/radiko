@@ -12,6 +12,8 @@ import org.apache.commons.io.FileUtils;
 
 import java.io.File;
 import java.io.IOException;
+import java.lang.ref.WeakReference;
+import java.util.WeakHashMap;
 
 public class Rtmpdump extends Activity {
     
@@ -22,7 +24,7 @@ public class Rtmpdump extends Activity {
 	
 	private String url;
 	private String dest;
-    private final RTMPSuck rtmpSuck = new RTMPSuck();
+    private final WeakHashMap<String,RTMP> rtmpSuckMap =new WeakHashMap<String, RTMP>();
 	
 	
     @Override
@@ -61,13 +63,14 @@ public class Rtmpdump extends Activity {
                                 } catch (IOException e) {
                                     e.printStackTrace();
                                 }
-                                rtmpSuck.init("S:nco2hYgUPMg9s6VQFbJBlA", dest);
+                                RTMP rtmpSuck = new RTMP();
+                                rtmpSuckMap.put("abc", rtmpSuck);
+                                rtmpSuck.init("S:DiOcbRA9Gg47MvXhySYFww", dest);
                             } else {
                                 Log.e("RTMTDUMP","Could not found dictionary: " + file.getAbsolutePath());
                             }
 						}
 					}).start();
-					
 					run = true;
 				}
 			}
@@ -77,7 +80,11 @@ public class Rtmpdump extends Activity {
 			@Override
 			public void onClick(View v) {
 				progress.setVisibility(View.INVISIBLE);
-                rtmpSuck.stop();
+                RTMP rtmpSuck = rtmpSuckMap.get("abc");
+                if (rtmpSuck != null) {
+                    rtmpSuck.stop();
+                    rtmpSuckMap.remove("abc");
+                }
 				run = false;
 			}
 		});

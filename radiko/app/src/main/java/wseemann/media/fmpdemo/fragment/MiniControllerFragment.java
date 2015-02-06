@@ -174,20 +174,20 @@ public class MiniControllerFragment extends Fragment implements ServiceConnectio
 					}
 				});
 
-				if (mNowPlayingView.getVisibility() != View.VISIBLE) {
-					Animation fade_in = AnimationUtils.loadAnimation(getActivity(), R.anim.player_in);
-					mNowPlayingView.startAnimation(fade_in);
-				}
-
-				mNowPlayingView.setVisibility(View.VISIBLE);
-				mNowPlayingView.setOnClickListener(new View.OnClickListener() {
-
-					@Override
-					public void onClick(View v) {
-						Context c = v.getContext();
-						c.startActivity(new Intent(c, MediaPlayerActivity.class));
-					}
-				});
+//				if (mNowPlayingView.getVisibility() != View.VISIBLE) {
+//					Animation fade_in = AnimationUtils.loadAnimation(getActivity(), R.anim.player_in);
+//					mNowPlayingView.startAnimation(fade_in);
+//				}
+//
+//				mNowPlayingView.setVisibility(View.VISIBLE);
+//				mNowPlayingView.setOnClickListener(new View.OnClickListener() {
+//
+//					@Override
+//					public void onClick(View v) {
+//						Context c = v.getContext();
+//						c.startActivity(new Intent(c, MediaPlayerActivity.class));
+//					}
+//				});
 
 				return;
 			}

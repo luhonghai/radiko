@@ -1774,5 +1774,49 @@ JNIEXPORT void JNICALL Java_com_dotohsoft_rtmpdump_RTMPSuck_init(JNIEnv * env, j
 JNIEXPORT void JNICALL Java_com_dotohsoft_rtmpdump_RTMPSuck_stop(JNIEnv * env, jobject obj)
 {
     RTMP_LogPrintf("Force stop server\n");
-	RTMP_ctrlC = TRUE;
+         RTMP_LogPrintf("Stop streaming... socket %d", rtmpServer->socket);
+        int fd = rtmpServer->socket;
+        //if (fd) continue;
+                rtmpServer->socket = 0;
+                if (rtmpServer->state == STREAMING_IN_PROGRESS)
+                {
+                    rtmpServer->state = STREAMING_STOPPING;
+                    // wait for streaming threads to exit
+                    while (rtmpServer->state != STREAMING_STOPPED)
+                        msleep(1);
+                }
+                RTMP_LogPrintf("Try to close socket %d\n", fd);
+                shutdown(fd,SHUT_RDWR);
+                closesocket(fd);
+    // break;
+        rtmpServer->state = STREAMING_STOPPED;
+        RTMP_LogPrintf("Close RTMP Object ... ");
+        if (&rtmpServer->rs)
+           RTMP_Close(&rtmpServer->rs);
+        if (&rtmpServer->rc)
+           RTMP_Close(&rtmpServer->rc);
+        while (rtmpServer->f_head)
+        {
+          Flist *fl = rtmpServer->f_head;
+          rtmpServer->f_head = fl->f_next;
+          if (fl->f_file)
+             fclose(fl->f_file);
+           free(fl);
+        }
+        rtmpServer->f_tail = NULL;
+        rtmpServer->f_cur = NULL;
+                    /* Should probably be done by RTMP_Close() ... */
+        rtmpServer->rc.Link.hostname.av_val = NULL;
+        rtmpServer->rc.Link.tcUrl.av_val = NULL;
+        rtmpServer->rc.Link.swfUrl.av_val = NULL;
+        rtmpServer->rc.Link.pageUrl.av_val = NULL;
+        rtmpServer->rc.Link.app.av_val = NULL;
+        rtmpServer->rc.Link.auth.av_val = NULL;
+        rtmpServer->rc.Link.flashVer.av_val = NULL;
+
+       // RTMP_LogPrintf("Free object...");
+       // free(rtmpServer);
+        RTMP_LogPrintf("Cleanup socket...");
+        CleanupSockets();
+        RTMP_LogPrintf("Done!");
 }
