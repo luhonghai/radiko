@@ -1,7 +1,7 @@
 <?xml version="1.0" encoding="utf-8"?>
 <resources xmlns:xliff="urn:oasis:names:tc:xliff:document:1.2">
 
-    <string name="app_name">Radiko Demo</string>
+    <string name="app_name">Radiko Server</string>
     <string name="uri_hint">Enter a URI (http/mmsh/file/etc.)</string>
     <string name="uri_error">Enter a token or click get token</string>
     <string name="go">Start</string>
@@ -41,5 +41,25 @@
     <string name="hours"><xliff:g id="hours">%s</xliff:g> hours</string>
     <string name="minute">"1 minute"</string>
     <string name="minutes">"<xliff:g id="minutes">%s</xliff:g> minutes"</string>
-    
+
+    <!-- Tab name -->
+    <string name="tab_home">Home</string>
+    <string name="tab_recorded_program">Recorded Program</string>
+    <string name="tab_library">Library</string>
+    <string name="tab_setting">Setting</string>
+
+    <!-- List action -->
+    <string name="button_delete">Delete</string>
+    <string name="button_edit">Store into Lib</string>
+
+    <!-- Player screen -->
+    <string name="button_slow">Slow</string>
+    <string name="button_fast">Fast</string>
+    <string name="button_play">Play</string>
+    <string name="button_back">Back</string>
+    <string name="button_timer">Timer</string>
+    <string name="button_record">Record</string>
+    <string name="button_repeat">A-B repeat</string>
+    <string name="button_pause">Pause</string>
+    <string name="button_stop">Stop</string>
 </resources>

@@ -1420,8 +1420,8 @@ JNIEXPORT void JNICALL Java_com_dotohsoft_rtmpdump_RTMP_init(JNIEnv * env, jobje
 JNIEXPORT void JNICALL Java_com_dotohsoft_rtmpdump_RTMP_stop(JNIEnv * env, jobject obj)
 {
 	RTMP_ctrlC = TRUE;
-	signal(SIGINT, SIG_IGN);
-    signal(SIGTERM, SIG_IGN);
+	//signal(SIGINT, SIG_IGN);
+    //signal(SIGTERM, SIG_IGN);
 }
 
 

@@ -59,6 +59,12 @@
             android:layout_height="wrap_content"
             android:text="Play record"
             android:layout_weight="1"/>
+        <Button
+            android:id="@+id/btnStopRecord"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:text="Stop"
+            android:layout_weight="1"/>
 
     </LinearLayout>
 
@@ -69,7 +75,7 @@
 
     <fragment
         android:id="@+id/miniController1"
-        android:name="wseemann.media.fmpdemo.fragment.MiniControllerFragment"
+        android:name="com.gmail.radioserver2.fragment.MiniControllerFragment"
        	android:layout_width="fill_parent"
        	android:layout_height="wrap_content"
        	android:visibility="gone" />

@@ -1,0 +1,65 @@
+<?xml version="1.0" encoding="utf-8"?>
+<LinearLayout xmlns:android="http://schemas.android.com/apk/res/android"
+    android:orientation="vertical" android:layout_width="match_parent"
+    android:layout_height="match_parent">
+    <RelativeLayout
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:layout_marginTop="@dimen/default_top_margin"
+        android:paddingLeft="@dimen/title_margin"
+        android:paddingRight="@dimen/title_margin">
+        <LinearLayout
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:orientation="horizontal">
+            <EditText
+                android:layout_width="0dp"
+                android:layout_height="match_parent"
+                android:layout_weight="1"
+                android:padding="6dp"
+                android:textAppearance="?android:attr/textAppearanceSmall"
+                android:background="@android:color/white"/>
+            <Button
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:text="Search"
+                android:textAppearance="?android:attr/textAppearanceButton"
+                android:textColor="@android:color/white"
+                android:background="@color/default_button_color"/>
+            </LinearLayout>
+        </RelativeLayout>
+    <RelativeLayout
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:layout_margin="@dimen/title_margin">
+        <TextView
+            android:layout_width="wrap_content"
+            android:layout_height="36dp"
+            android:textAppearance="?android:attr/textAppearanceButton"
+            android:padding="6dp"
+            android:gravity="center_horizontal|center_vertical"
+            android:textColor="@android:color/white"
+            android:background="@color/default_button_color"
+            android:text="Recorded programs"/>
+        </RelativeLayout>
+
+    <RelativeLayout
+        android:layout_width="match_parent"
+        android:layout_height="0dp"
+        android:layout_weight="1">
+    <com.fortysevendeg.swipelistview.SwipeListView
+        xmlns:swipe="http://schemas.android.com/apk/res-auto"
+
+        android:id="@+id/list_recorded_programs"
+        android:listSelector="#00000000"
+        android:layout_width="fill_parent"
+        android:layout_height="wrap_content"
+        swipe:swipeFrontView="@+id/front"
+        swipe:swipeBackView="@+id/back"
+        swipe:swipeActionLeft="reveal"
+        swipe:swipeMode="left"
+        swipe:swipeOffsetLeft="180dp"
+        />
+    </RelativeLayout>
+
+</LinearLayout>

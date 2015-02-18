@@ -1,12 +1,16 @@
 apply plugin: 'com.android.application'
 
+repositories {
+    maven { url 'http://clinker.47deg.com/nexus/content/groups/public' }
+}
+
 android {
     compileSdkVersion 18
     buildToolsVersion "21.1.2"
 
     defaultConfig {
-        applicationId "wseemann.media.fmpdemo"
-        minSdkVersion 8
+        applicationId "com.gmail.radioserver2"
+        minSdkVersion 11
         targetSdkVersion 21
     }
 
@@ -19,7 +23,12 @@ android {
 }
 
 dependencies {
-    compile 'com.android.support:support-v4:18.0.0'
+    compile 'com.actionbarsherlock:actionbarsherlock:4.4.0@aar'
+    compile 'com.android.support:support-v4:21.0.3'
     compile files('libs/fmp.jar')
     compile 'commons-io:commons-io:2.4'
+    compile ('com.fortysevendeg.swipelistview:swipelistview:1.0-SNAPSHOT@aar') {
+        transitive = true
+        exclude module: 'appcompat-v7'
+    }
 }

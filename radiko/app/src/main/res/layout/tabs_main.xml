@@ -1,0 +1,24 @@
+<?xml version="1.0" encoding="utf-8"?>
+<LinearLayout xmlns:android="http://schemas.android.com/apk/res/android"
+    android:orientation="vertical"
+    android:layout_width="match_parent"
+    android:layout_height="match_parent"
+    android:gravity="center_horizontal"
+    android:background="@color/default_background_color"
+    android:paddingLeft="@dimen/tabs_margin"
+    android:paddingRight="@dimen/tabs_margin"
+    >
+
+    <TextView
+        android:layout_width="match_parent"
+        android:layout_height="match_parent"
+        android:paddingTop="@dimen/tabs_padding"
+        android:paddingBottom="@dimen/tabs_padding"
+        android:background="@color/default_button_color"
+        android:textAppearance="?android:attr/textAppearanceButton"
+        android:text="Home"
+        android:textStyle="bold"
+        android:gravity="center_vertical|center_horizontal"
+        android:id="@+id/txtTabName"
+        android:textColor="@android:color/white"/>
+</LinearLayout>

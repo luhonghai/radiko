@@ -1,0 +1,118 @@
+<?xml version="1.0" encoding="utf-8"?>
+<LinearLayout xmlns:android="http://schemas.android.com/apk/res/android"
+    android:orientation="vertical" android:layout_width="match_parent"
+    android:layout_height="match_parent"
+    android:padding="5dp"
+    android:background="@color/default_background_color">
+    <LinearLayout
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:layout_marginTop="@dimen/default_top_margin">
+        <TextView
+            android:layout_width="wrap_content"
+            android:layout_height="36dp"
+            android:textAppearance="?android:attr/textAppearanceButton"
+            android:padding="6dp"
+            android:textColor="@android:color/white"
+            android:background="@color/default_button_color"
+            android:text="Slow play"
+            android:minWidth="100dp"/>
+        <SeekBar
+            android:layout_width="0dp"
+            android:layout_height="wrap_content"
+            android:layout_weight="1"
+            android:layout_gravity="center_horizontal|center_vertical"
+            android:layout_marginLeft="@dimen/default_top_margin"
+            android:layout_marginRight="@dimen/default_top_margin"
+            android:indeterminate="false" />
+        </LinearLayout>
+    <LinearLayout
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:layout_marginTop="@dimen/default_top_margin">
+        <TextView
+            android:layout_width="wrap_content"
+            android:layout_height="36dp"
+            android:textAppearance="?android:attr/textAppearanceButton"
+            android:padding="6dp"
+            android:textColor="@android:color/white"
+            android:background="@color/default_button_color"
+            android:text="Fast play"
+            android:minWidth="100dp"/>
+        <SeekBar
+            android:layout_width="0dp"
+            android:layout_height="wrap_content"
+            android:id="@+id/seekBarPlayer"
+            android:layout_weight="1"
+            android:layout_marginLeft="@dimen/default_top_margin"
+            android:layout_marginRight="@dimen/default_top_margin"
+            android:layout_gravity="center_horizontal|center_vertical"
+            android:indeterminate="false" />
+    </LinearLayout>
+    <LinearLayout
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:layout_marginTop="@dimen/default_top_margin">
+        <TextView
+            android:layout_width="wrap_content"
+            android:layout_height="36dp"
+            android:textAppearance="?android:attr/textAppearanceButton"
+            android:padding="6dp"
+            android:textColor="@android:color/white"
+            android:background="@color/default_button_color"
+            android:text="Back"
+            android:minWidth="100dp"/>
+        <SeekBar
+            android:layout_width="0dp"
+            android:layout_height="wrap_content"
+            android:layout_weight="1"
+            android:layout_marginLeft="@dimen/default_top_margin"
+            android:layout_marginRight="@dimen/default_top_margin"
+            android:layout_gravity="center_horizontal|center_vertical"
+            android:indeterminate="false" />
+    </LinearLayout>
+    <LinearLayout
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:layout_marginTop="@dimen/default_top_margin">
+        <TextView
+            android:layout_width="wrap_content"
+            android:layout_height="36dp"
+            android:textAppearance="?android:attr/textAppearanceButton"
+            android:padding="6dp"
+            android:textColor="@android:color/white"
+            android:background="@color/default_button_color"
+            android:text="Region"
+            android:minWidth="100dp"/>
+
+        <Switch
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:layout_marginLeft="@dimen/default_top_margin"
+            android:layout_marginRight="@dimen/default_top_margin"
+            android:id="@+id/switch1" />
+
+    </LinearLayout>
+    <TextView
+        android:layout_width="wrap_content"
+        android:layout_height="36dp"
+        android:textAppearance="?android:attr/textAppearanceButton"
+        android:padding="6dp"
+        android:textColor="@android:color/white"
+        android:background="@color/default_button_color"
+        android:layout_marginTop="@dimen/default_top_margin"
+        android:text="Add channel"
+        android:minWidth="100dp"/>
+    <EditText
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:layout_marginTop="@dimen/default_top_margin"
+        android:hint="Channel name"
+        android:background="@android:color/white"/>
+    <EditText
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:layout_marginTop="@dimen/default_top_margin"
+        android:hint="URL"
+        android:background="@android:color/white"/>
+</LinearLayout>

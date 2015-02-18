@@ -1,8 +1,15 @@
 <?xml version="1.0" encoding="utf-8"?>
 <resources>
+
+    <color name="default_background_color">#ffdce6f0</color>
+
+    <color name="default_button_color">#ff6195c5</color>
     
     <color name="blue">#ff00c8ff</color>
     <color name="selection_background_color_light">#FEBB20</color>
-    
+
+    <color name="red_delete">#ffff201a</color>
+
+    <color name="gray_edit">#ff919191</color>
 </resources>
 
