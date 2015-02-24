@@ -18,7 +18,7 @@
             android:layout_marginTop="@dimen/default_top_margin"
             android:gravity="center"
             android:textStyle="bold"
-            android:text="TBS Radio"/>
+            android:text="@string/default_channel_name"/>
         <ScrollView
             android:layout_width="match_parent"
             android:layout_height="match_parent"
@@ -28,7 +28,7 @@
                 android:layout_width="match_parent"
                 android:layout_height="wrap_content"
                 android:textSize="@dimen/font_size_description"
-                android:text="Current program : \n- Japanese classical music   14:30 - 15:00\n\nDescription :\nJapanese folk songs for children."/>
+                android:text="@string/default_channel_description"/>
         </ScrollView>
     </LinearLayout>
     <LinearLayout

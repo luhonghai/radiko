@@ -1,7 +1,8 @@
 <?xml version="1.0" encoding="utf-8"?>
 <LinearLayout xmlns:android="http://schemas.android.com/apk/res/android"
     android:orientation="vertical" android:layout_width="match_parent"
-    android:layout_height="match_parent">
+    android:layout_height="match_parent"
+    android:background="@color/default_background_color">
     <RelativeLayout
         android:layout_width="match_parent"
         android:layout_height="wrap_content"
@@ -22,7 +23,7 @@
             <Button
                 android:layout_width="wrap_content"
                 android:layout_height="wrap_content"
-                android:text="Search"
+                android:text="@string/button_search"
                 android:textAppearance="?android:attr/textAppearanceButton"
                 android:textColor="@android:color/white"
                 android:background="@color/default_button_color"/>
@@ -40,7 +41,7 @@
             android:gravity="center_horizontal|center_vertical"
             android:textColor="@android:color/white"
             android:background="@color/default_button_color"
-            android:text="Recorded programs"/>
+            android:text="@string/label_recorded_programs"/>
         </RelativeLayout>
 
     <RelativeLayout
@@ -58,7 +59,7 @@
         swipe:swipeBackView="@+id/back"
         swipe:swipeActionLeft="reveal"
         swipe:swipeMode="left"
-        swipe:swipeOffsetLeft="180dp"
+        swipe:swipeOffsetLeft="220dp"
         />
     </RelativeLayout>
 

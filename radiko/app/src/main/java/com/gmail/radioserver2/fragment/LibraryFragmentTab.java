@@ -21,11 +21,11 @@ public class LibraryFragmentTab extends FragmentTab {
         View v = inflater.inflate(R.layout.fragment_library_tab, container, false);
         SwipeListView listView = (SwipeListView) v.findViewById(R.id.list_library);
         int count = 15;
-        String[] channels = new String[count];
-        for (int i = 0; i < count - 1; i++) {
-            channels[i] = "Library " + (i + 1);
+        String[] items = new String[count];
+        for (int i = 0; i < count; i++) {
+            items[i] = getResources().getString(R.string.debug_library_name,(i + 1));
         }
-        LibraryAdapter adapter = new LibraryAdapter(getActivity(), channels);
+        LibraryAdapter adapter = new LibraryAdapter(getActivity(), items);
         listView.setAdapter(adapter);
         return v;
     }

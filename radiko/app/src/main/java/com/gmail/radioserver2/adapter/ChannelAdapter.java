@@ -66,7 +66,7 @@ public class ChannelAdapter extends ArrayAdapter<String> {
         holder.btnDelete.setOnClickListener(new View.OnClickListener() {
             @Override
             public void onClick(View v) {
-                Toast.makeText(mContext, "Call delete chanel " + v.getTag(), Toast.LENGTH_SHORT).show();
+                Toast.makeText(mContext, mContext.getResources().getString(R.string.debug_delete,v.getTag()), Toast.LENGTH_SHORT).show();
             }
         });
         return convertView;

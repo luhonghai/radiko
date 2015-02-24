@@ -1148,7 +1148,7 @@ public class MediaPlaybackService extends Service {
                 }).start();
                 Log.i("TESTRTMP", "Wait for 2sec");
                 try {
-                    Thread.sleep(2000);
+                    Thread.sleep(1500);
                 } catch (InterruptedException e) {
                     e.printStackTrace();
                 }

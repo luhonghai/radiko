@@ -53,14 +53,14 @@ public class LibraryAdapter extends ArrayAdapter<String> {
         holder.txtTitle.setOnClickListener(new View.OnClickListener() {
             @Override
             public void onClick(View v) {
-                Toast.makeText(mContext, "Select " + v.getTag(), Toast.LENGTH_SHORT).show();
+                Toast.makeText(mContext, mContext.getResources().getString(R.string.debug_select,v.getTag()), Toast.LENGTH_SHORT).show();
             }
         });
         holder.btnDelete.setTag(channel);
         holder.btnDelete.setOnClickListener(new View.OnClickListener() {
             @Override
             public void onClick(View v) {
-                Toast.makeText(mContext, "Call delete library " + v.getTag(), Toast.LENGTH_SHORT).show();
+                Toast.makeText(mContext, mContext.getResources().getString(R.string.debug_delete,v.getTag()), Toast.LENGTH_SHORT).show();
             }
         });
         return convertView;

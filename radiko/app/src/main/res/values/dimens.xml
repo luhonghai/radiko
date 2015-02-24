@@ -10,6 +10,8 @@
 
     <dimen name="title_margin">8dp</dimen>
 
+    <dimen name="default_screen_padding">5dp</dimen>
+
     <dimen name="tabs_padding">12dp</dimen>
     <dimen name="tabs_margin">1dp</dimen>
 
@@ -25,4 +27,13 @@
 
     <!-- Seekbar -->
     <dimen name="seek_bar_process_height">2dp</dimen>
+
+
+    <!-- Big button -->
+    <dimen name="button_big_size">63dp</dimen>
+    <dimen name="button_big_font_size">26sp</dimen>
+
+    <!-- Setting screen -->
+    <dimen name="layout_item_height">36dp</dimen>
+
 </resources>

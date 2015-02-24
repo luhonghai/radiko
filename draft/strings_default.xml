@@ -1,0 +1,91 @@
+<?xml version="1.0" encoding="utf-8"?>
+<resources>
+    <!-- Tab name -->
+    <string name="tab_home">Home</string>
+    <string name="tab_recorded_program">Recorded Program</string>
+    <string name="tab_library">Library</string>
+    <string name="tab_setting">Setting</string>
+
+    <!-- Action button -->
+    <string name="button_delete">Delete</string>
+    <string name="button_edit">Store</string>
+    <string name="button_search">Search</string>
+    <string name="button_save">Save</string>
+    <string name="button_set">Set</string>
+
+    <!-- Home screen -->
+    <string name="hint_search_channel">Search by channel name or country</string>
+    <string name="label_recent_channels">Recent channels</string>
+
+    <!-- Recorded programs -->
+    <string name="label_recorded_programs">Recorded programs</string>
+
+    <!-- Library list screen -->
+    <string name="label_library_list">Library list</string>
+
+    <!-- Player screen -->
+    <string name="button_slow">Slow</string>
+    <string name="button_fast">Fast</string>
+    <string name="button_play">Play</string>
+    <string name="button_back">Back</string>
+    <string name="button_timer">Timer</string>
+    <string name="button_record">Record</string>
+    <string name="button_repeat">A-B repeat</string>
+    <string name="button_pause">Pause</string>
+    <string name="button_stop">Stop</string>
+
+    <!-- Setting screen -->
+    <string name="label_slow_play">Slow play</string>
+    <string name="label_fast_play">Fast play</string>
+    <string name="label_back">Back</string>
+    <string name="label_region">Region</string>
+    <string name="label_add_channel">Add channel</string>
+
+    <string name="switch_text_on">On</string>
+    <string name="switch_text_off">Off</string>
+
+    <string name="channel_name">Channel name</string>
+    <string name="url">URL</string>
+
+    <!-- Timer setting -->
+    <string name="label_timer_setting">Timer settings</string>
+    <string name="hint_pick_time">Time picker</string>
+    <string name="label_start">Start</string>
+    <string name="label_finish">Finish</string>
+    <string name="label_mode">Mode</string>
+    <string name="button_timer_list">Timer list</string>
+
+    <string-array name="timer_type">
+        <item>Daily</item>
+        <item>Weekly</item>
+        <item>One time</item>
+    </string-array>
+
+    <string-array name="mode_type">
+        <item>Recording</item>
+        <item>Alarm</item>
+        <item>Sleep</item>
+    </string-array>
+
+    <!-- Timer list -->
+    <string name="label_timer_list">Timer list</string>
+    <string name="button_timer_list_back">Back to Timer screen</string>
+
+    <!-- Add recorded file to library -->
+    <string name="label_library_picker_list">Library list</string>
+    <string name="label_create_new_library">Create new library</string>
+    <string name="hint_library_name">Library name</string>
+
+
+    <!-- For debug -->
+    <string name="default_channel_name">TBS Radio</string>
+    <string name="default_channel_description">Current program : \n&#8211; Japanese classical music   14:30 &#8211; 15:00\n\nDescription :\nJapanese folk songs for children.</string>
+
+    <string name="debug_select">Select %1$s</string>
+    <string name="debug_delete">Delete %1$s</string>
+
+    <string name="debug_timer_name">Timer %1$d</string>
+    <string name="debug_library_name">Library %1$d</string>
+    <string name="debug_channel_name">Channel %1$d</string>
+    <string name="debug_recorded_program_name">Recorded program %1$d</string>
+</resources>

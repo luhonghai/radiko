@@ -1,6 +1,7 @@
 package com.gmail.radioserver2.adapter;
 
 import android.content.Context;
+import android.content.Intent;
 import android.view.LayoutInflater;
 import android.view.View;
 import android.view.ViewGroup;
@@ -11,6 +12,8 @@ import android.widget.Toast;
 
 import com.fortysevendeg.swipelistview.SwipeListView;
 import com.gmail.radioserver2.R;
+import com.gmail.radioserver2.activity.LibraryPickerActivity;
+
 /**
  * Created by luhonghai on 2/18/15.
  */
@@ -54,14 +57,23 @@ public class RecordedProgramAdapter extends ArrayAdapter<String> {
         holder.txtTitle.setOnClickListener(new View.OnClickListener() {
             @Override
             public void onClick(View v) {
-                Toast.makeText(mContext, "Select " + v.getTag(), Toast.LENGTH_SHORT).show();
+                Toast.makeText(mContext, mContext.getResources().getString(R.string.debug_select,v.getTag()), Toast.LENGTH_SHORT).show();
             }
         });
         holder.btnDelete.setTag(channel);
         holder.btnDelete.setOnClickListener(new View.OnClickListener() {
             @Override
             public void onClick(View v) {
-                Toast.makeText(mContext, "Call delete recorded program " + v.getTag(), Toast.LENGTH_SHORT).show();
+                Toast.makeText(mContext, mContext.getResources().getString(R.string.debug_delete,v.getTag()), Toast.LENGTH_SHORT).show();
+            }
+        });
+        holder.btnEdit.setTag(channel);
+        holder.btnEdit.setOnClickListener(new View.OnClickListener() {
+            @Override
+            public void onClick(View v) {
+                Intent intent = new Intent();
+                intent.setClass(mContext, LibraryPickerActivity.class);
+                mContext.startActivity(intent);
             }
         });
         return convertView;

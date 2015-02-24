@@ -16,7 +16,6 @@
         android:paddingBottom="@dimen/tabs_padding"
         android:background="@color/default_button_color"
         android:textAppearance="?android:attr/textAppearanceButton"
-        android:text="Home"
         android:textStyle="bold"
         android:gravity="center_vertical|center_horizontal"
         android:id="@+id/txtTabName"

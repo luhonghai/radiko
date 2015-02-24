@@ -9,30 +9,34 @@
         android:tag="back"
         android:layout_height="match_parent"
         android:layout_width="match_parent"
-        android:gravity="right"
+        android:gravity="end"
         >
-        <Button
-            android:id="@+id/btnEdit"
+        <RelativeLayout
             android:layout_width="wrap_content"
-            android:layout_height="wrap_content"
-            android:text="@string/button_edit"
-            android:background="@color/gray_edit"
-            android:paddingTop="@dimen/tabs_padding"
-            android:paddingBottom="@dimen/tabs_padding"
-            android:textColor="@android:color/white"
-            android:textAppearance="?android:attr/textAppearanceButton"
-            android:layout_margin="@dimen/button_media_margin"/>
+            android:layout_height="wrap_content">
+            <Button
+                android:id="@+id/btnEdit"
+                android:layout_width="@dimen/button_big_size"
+                android:layout_height="@dimen/button_big_size"
+                android:text="@string/button_edit"
+                android:background="@color/gray_edit"
+                android:textColor="@android:color/white"
+                android:textSize="12sp"
+                android:layout_margin="@dimen/button_media_margin"/>
+            </RelativeLayout>
+        <RelativeLayout
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content">
         <Button
             android:id="@+id/btnDelete"
-            android:layout_width="wrap_content"
-            android:layout_height="wrap_content"
+            android:layout_width="@dimen/button_big_size"
+            android:layout_height="@dimen/button_big_size"
             android:text="@string/button_delete"
             android:background="@color/red_delete"
-            android:paddingTop="@dimen/tabs_padding"
-            android:paddingBottom="@dimen/tabs_padding"
             android:textColor="@android:color/white"
             android:textAppearance="?android:attr/textAppearanceButton"
             android:layout_margin="@dimen/button_media_margin"/>
+        </RelativeLayout>
     </LinearLayout>
     <RelativeLayout
         android:orientation="vertical"
@@ -46,8 +50,9 @@
             android:id="@+id/txtTitle"
             android:layout_width="match_parent"
             android:layout_height="wrap_content"
+            android:gravity="center_vertical|center_horizontal"
             android:textAppearance="?android:attr/textAppearanceMedium"
-            android:text="TBS Radio"/>
+            android:text="@string/default_channel_name"/>
 
     </RelativeLayout>
 

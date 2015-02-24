@@ -1,0 +1,11 @@
+<?xml version="1.0" encoding="utf-8"?>
+<TextView android:id="@+id/textViewSpinnerItem"
+    android:layout_width="match_parent"
+    android:layout_height="@dimen/layout_item_height"
+    android:textSize="@dimen/button_big_font_size"
+    android:textStyle="bold"
+    android:text="09"
+    android:gravity="center_horizontal|center_vertical"
+    xmlns:android="http://schemas.android.com/apk/res/android">
+
+</TextView>

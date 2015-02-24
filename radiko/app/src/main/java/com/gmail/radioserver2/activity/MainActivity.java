@@ -14,7 +14,6 @@ import android.widget.TabHost;
 import android.widget.TextView;
 
 import com.gmail.radioserver2.R;
-import com.gmail.radioserver2.fragment.FragmentTab;
 import com.gmail.radioserver2.fragment.HomeFragmentTab;
 import com.gmail.radioserver2.fragment.LibraryFragmentTab;
 import com.gmail.radioserver2.fragment.PlayerFragmentTab;
@@ -28,7 +27,7 @@ import java.util.Stack;
 /**
  * Created by luhonghai on 2/16/15.
  */
-public class MainActivity extends BaseActivity {
+public class MainActivity extends BaseFragmentActivity {
     /* Your Tab host */
     private TabHost mTabHost;
 
@@ -108,6 +107,7 @@ public class MainActivity extends BaseActivity {
         });
         spec.setIndicator(createTabView(R.string.tab_setting));
         mTabHost.addTab(spec);
+        setSelectedTabColor();
     }
 
 
@@ -141,6 +141,7 @@ public class MainActivity extends BaseActivity {
            */
                 pushFragments(tabId, mStacks.get(tabId).lastElement(), false,false);
             }
+            setSelectedTabColor();
         }
     };
 
@@ -169,6 +170,19 @@ public class MainActivity extends BaseActivity {
             ft.setCustomAnimations(R.anim.slide_in_right, R.anim.slide_out_left);
         ft.replace(R.id.realtabcontent, fragment);
         ft.commit();
+    }
+
+    /*
+     * Update Tab highlight color
+     */
+    private void setSelectedTabColor() {
+        for(int i=0;i<mTabHost.getTabWidget().getChildCount();i++)
+        {
+            mTabHost.getTabWidget().getChildAt(i).findViewById(R.id.txtTabName)
+                    .setBackgroundColor(getResources().getColor(R.color.default_button_color));
+        }
+        mTabHost.getTabWidget().getChildAt(mTabHost.getCurrentTab()).findViewById(R.id.txtTabName)
+                .setBackgroundColor(getResources().getColor(R.color.default_button_highlight_color));
     }
 
 
@@ -230,11 +244,11 @@ public class MainActivity extends BaseActivity {
                     if(mStacks.get(mCurrentTab).size() > 1) {
                         popFragments();
                     } else {
-                        pushFragments(Constants.TAB_HOME, new HomeFragmentTab(), false, true);
+                        pushFragments(Constants.TAB_HOME, new HomeFragmentTab(), false, false);
                     }
                     break;
                 case Constants.ACTION_SELECT_CHANNEL_ITEM:
-                    pushFragments(Constants.TAB_PLAY_SCREEN, new PlayerFragmentTab(), true,true);
+                    pushFragments(Constants.TAB_PLAY_SCREEN, new PlayerFragmentTab(), true,false);
                     break;
             }
         }

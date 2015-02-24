@@ -44,17 +44,22 @@ import android.widget.Button;
 import android.widget.EditText;
 
 import com.dotohsoft.rtmpdump.RTMP;
+import com.gmail.radioserver2.utils.FileHelper;
 
 import org.apache.commons.io.FileUtils;
 
 public class FMPDemo extends FragmentActivity implements ServiceConnection, View.OnClickListener {
 
     private IMediaPlaybackService mService = null;
+
 	private ServiceToken mToken;
+
     private static final long MAX_WAIT_TIME = 30000;
 
     private EditText uriText;
+
     private Button btnStart;
+
     private Button btnStop;
 
     private Button btnToken;
@@ -73,6 +78,12 @@ public class FMPDemo extends FragmentActivity implements ServiceConnection, View
 
     private final WeakHashMap<String, RTMP> mRTMP = new WeakHashMap<String, RTMP>();
 
+
+
+    private boolean isRecording = false;
+    private boolean isStreaming = false;
+    private boolean isPlaying = false;
+
     enum ButtonStage {
         NO_TOKEN,
         STREAMING,
@@ -81,10 +92,6 @@ public class FMPDemo extends FragmentActivity implements ServiceConnection, View
         DISABLED,
         PLAYING
     }
-
-    private boolean isRecording = false;
-    private boolean isStreaming = false;
-    private boolean isPlaying = false;
 
     private ButtonStage buttonStage = ButtonStage.DEFAULT;
 
@@ -257,7 +264,7 @@ public class FMPDemo extends FragmentActivity implements ServiceConnection, View
                             } catch (Exception ex) {
                             }
                         }
-                        mService.openFile("rtmp://0.0.0.0:1935/TBS/_definst_/simul-stream.stream" + "|S:" + uri);
+                        mService.openFile("rtmp://0.0.0.0:1935/TBS/_definst_/simul-stream.stream|S:" + uri);
                         switchButtonStage(ButtonStage.STREAMING);
                         isStreaming = true;
                     } catch (RemoteException e) {
@@ -272,7 +279,7 @@ public class FMPDemo extends FragmentActivity implements ServiceConnection, View
                     AsyncTask<Void, Void, Void> getTokenTask = new AsyncTask<Void, Void, Void>() {
                         @Override
                         protected Void doInBackground(Void... params) {
-                            final File tmpFile = getTokenFile();
+                            final File tmpFile = fileHelper.getTokenFile();
                             try {
                                 if (tmpFile.exists())
                                     FileUtils.forceDelete(tmpFile);
@@ -310,7 +317,6 @@ public class FMPDemo extends FragmentActivity implements ServiceConnection, View
         }
     }
 
-
     private class RTMPRunnable implements Runnable {
         private final String mToken;
         private final File mTmpFile;
@@ -337,15 +343,18 @@ public class FMPDemo extends FragmentActivity implements ServiceConnection, View
 
     private RTMPRunnable mRTMPRunnable;
 
+    private FileHelper fileHelper;
+
 	@Override
 	protected void onCreate(Bundle savedInstanceState) {
 		super.onCreate(savedInstanceState);
+        fileHelper = new FileHelper(this.getApplicationContext());
 		setContentView(R.layout.activity_fmpdemo);
 
-        recordedFile = getTempFile(TMP_RECORD);
+        recordedFile = fileHelper.getTempFile(TMP_RECORD);
 		
 		uriText = (EditText) findViewById(R.id.txtToken);
-        uriText.setText(getTokenString());
+        uriText.setText(fileHelper.getTokenString());
 
         btnStop = (Button) findViewById(R.id.btnStop);
         btnStop.setOnClickListener(this);
@@ -375,7 +384,7 @@ public class FMPDemo extends FragmentActivity implements ServiceConnection, View
         MusicUtils.unbindFromService(mToken);
         mService = null;
         stopRecording();
-		super.onDestroy();
+        super.onDestroy();
 	}
 
 	@Override
@@ -396,45 +405,4 @@ public class FMPDemo extends FragmentActivity implements ServiceConnection, View
 	public void onServiceDisconnected(ComponentName name) {
 		finish();
 	}
-
-    private File getTempFile(String fileName) {
-        PackageManager m = this.getPackageManager();
-        String s = this.getPackageName();
-        try {
-            PackageInfo p = m.getPackageInfo(s, 0);
-            s = p.applicationInfo.dataDir;
-            return new File(s, fileName);
-        } catch (PackageManager.NameNotFoundException e) {
-            return null;
-        }
-    }
-
-    private File getTempFile() {
-        return getTempFile("dump.flv");
-    }
-
-    private String getTokenString() {
-        String token = "";
-        File tmp = getTokenFile();
-        if (tmp.exists()) {
-            try {
-                token = FileUtils.readFileToString(tmp).trim();
-            } catch (IOException e) {
-                e.printStackTrace();
-            }
-        }
-        return token;
-    }
-
-    private File getTokenFile() {
-        PackageManager m = this.getPackageManager();
-        String s = this.getPackageName();
-        try {
-            PackageInfo p = m.getPackageInfo(s, 0);
-            s = p.applicationInfo.dataDir;
-            return new File(s, "token.txt");
-        } catch (PackageManager.NameNotFoundException e) {
-            return null;
-        }
-    }
 }

@@ -20,11 +20,11 @@ public class RecordedProgramFragmentTab extends FragmentTab {
         View v = inflater.inflate(R.layout.fragment_recorded_program_tab, container, false);
         SwipeListView listView = (SwipeListView) v.findViewById(R.id.list_recorded_programs);
         int count = 15;
-        String[] channels = new String[count];
-        for (int i = 0; i < count - 1; i++) {
-            channels[i] = "Recorded program " + (i + 1);
+        String[] items = new String[count];
+        for (int i = 0; i < count; i++) {
+            items[i] = getResources().getString(R.string.debug_recorded_program_name,(i + 1));
         }
-        RecordedProgramAdapter adapter = new RecordedProgramAdapter(getActivity(), channels);
+        RecordedProgramAdapter adapter = new RecordedProgramAdapter(getActivity(), items);
         listView.setAdapter(adapter);
         return v;
     }

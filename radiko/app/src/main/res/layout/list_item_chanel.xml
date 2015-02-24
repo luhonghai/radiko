@@ -9,12 +9,12 @@
         android:tag="back"
         android:layout_height="match_parent"
         android:layout_width="match_parent"
-        android:gravity="right"
+        android:gravity="end"
         >
         <Button
             android:id="@+id/btnDelete"
-            android:layout_width="wrap_content"
-            android:layout_height="wrap_content"
+            android:layout_width="@dimen/button_big_size"
+            android:layout_height="@dimen/button_big_size"
             android:text="@string/button_delete"
             android:background="@color/red_delete"
             android:paddingTop="@dimen/tabs_padding"
@@ -37,7 +37,7 @@
             android:layout_height="wrap_content"
             android:textSize="@dimen/font_size_title"
             android:gravity="center_vertical|center_horizontal"
-            android:text="TBS Radio"/>
+            android:text="@string/default_channel_name"/>
 
     </RelativeLayout>
 

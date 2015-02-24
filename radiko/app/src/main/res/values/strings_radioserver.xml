@@ -1,0 +1,91 @@
+<?xml version="1.0" encoding="utf-8"?>
+<resources>
+    <!-- Tab name -->
+    <string name="tab_home">ホーム</string>
+    <string name="tab_recorded_program">録音した番組</string>
+    <string name="tab_library">プレイリスト</string>
+    <string name="tab_setting">設定</string>
+
+    <!-- Action button -->
+    <string name="button_delete">削除</string>
+    <string name="button_edit">プレイリストへ保存</string>
+    <string name="button_search">検索</string>
+    <string name="button_save">保存</string>
+    <string name="button_set">設定</string>
+
+    <!-- Home screen -->
+    <string name="hint_search_channel">チャンネル名または国名を入力</string>
+    <string name="label_recent_channels">最近検索したチャネル</string>
+
+    <!-- Recorded programs -->
+    <string name="label_recorded_programs">録音した番組</string>
+
+    <!-- Library list screen -->
+    <string name="label_library_list">プレイリスト</string>
+
+    <!-- Player screen -->
+    <string name="button_slow">遅聞き</string>
+    <string name="button_fast">早聞き</string>
+    <string name="button_play">再生</string>
+    <string name="button_back">少し戻る</string>
+    <string name="button_timer">タイマー</string>
+    <string name="button_record">録音</string>
+    <string name="button_repeat">A-B間リピート</string>
+    <string name="button_pause">一時停止</string>
+    <string name="button_stop">停止</string>
+
+    <!-- Setting screen -->
+    <string name="label_slow_play">遅聞き</string>
+    <string name="label_fast_play">早聞き</string>
+    <string name="label_back">少し戻る</string>
+    <string name="label_region">地域限定</string>
+    <string name="label_add_channel">チャネルの直接追加</string>
+
+    <string name="switch_text_on">オン</string>
+    <string name="switch_text_off">オフ</string>
+
+    <string name="channel_name">チャネル名</string>
+    <string name="url">URL</string>
+
+    <!-- Timer setting -->
+    <string name="label_timer_setting">タイマー設定</string>
+    <string name="hint_pick_time">時刻選択</string>
+    <string name="label_start">タイマー開始時刻</string>
+    <string name="label_finish">タイマー終了時刻</string>
+    <string name="label_mode">タイマー内容</string>
+    <string name="button_timer_list">タイマー一覧</string>
+
+    <string-array name="timer_type">
+        <item>毎日</item>
+        <item>毎週</item>
+        <item>一回だけ</item>
+    </string-array>
+
+    <string-array name="mode_type">
+        <item>録音</item>
+        <item>目覚まし</item>
+        <item>スリープ</item>
+    </string-array>
+
+    <!-- Timer list -->
+    <string name="label_timer_list">タイマー一覧</string>
+    <string name="button_timer_list_back">タイマー設定画面に戻る</string>
+
+    <!-- Add recorded file to library -->
+    <string name="label_library_picker_list">プレイリスト一覧</string>
+    <string name="label_create_new_library">プレイリスト作成</string>
+    <string name="hint_library_name">プレイリスト名</string>
+
+
+    <!-- For debug -->
+    <string name="default_channel_name">TBS ラジオ</string>
+    <string name="default_channel_description">現在のプログラム : \n&#8211; 欧米音楽   14:30 &#8211; 15:00\n\nDescription :\nアメリカ有名の音楽</string>
+
+    <string name="debug_select"> %1$s 選択されたのときの処理呼び出し</string>
+    <string name="debug_delete"> %1$s　を削除処理呼び出し</string>
+
+    <string name="debug_timer_name">タイマー %1$d　処理呼び出し</string>
+    <string name="debug_library_name">プレイリスト %1$d　処理呼び出し</string>
+    <string name="debug_channel_name">チャネル %1$d　処理呼び出し</string>
+    <string name="debug_recorded_program_name">録音した番組 %1$d　処理呼び出し</string>
+</resources>

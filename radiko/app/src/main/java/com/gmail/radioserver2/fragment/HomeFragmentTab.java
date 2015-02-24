@@ -22,8 +22,8 @@ public class HomeFragmentTab extends FragmentTab {
         SwipeListView listView = (SwipeListView) v.findViewById(R.id.list_channel);
         int count = 20;
         String[] channels = new String[count];
-        for (int i = 0; i < count - 1; i++) {
-            channels[i] = "TBS Radio " + (i + 1);
+        for (int i = 0; i < count; i++) {
+            channels[i] = getString(R.string.default_channel_name) + " " + (i + 1);
         }
         ChannelAdapter adapter = new ChannelAdapter(getActivity(), channels);
         listView.setAdapter(adapter);

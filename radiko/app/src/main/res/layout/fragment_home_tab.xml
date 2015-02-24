@@ -1,7 +1,8 @@
 <?xml version="1.0" encoding="utf-8"?>
 <LinearLayout xmlns:android="http://schemas.android.com/apk/res/android"
     android:orientation="vertical" android:layout_width="match_parent"
-    android:layout_height="match_parent">
+    android:layout_height="match_parent"
+    android:background="@color/default_background_color">
     <RelativeLayout
         android:layout_width="match_parent"
         android:layout_height="wrap_content"
@@ -18,12 +19,12 @@
                 android:layout_weight="1"
                 android:padding="6dp"
                 android:textAppearance="?android:attr/textAppearanceSmall"
-                android:hint="Search by channel name or country"
+                android:hint="@string/hint_search_channel"
                 android:background="@android:color/white"/>
             <Button
                 android:layout_width="wrap_content"
                 android:layout_height="wrap_content"
-                android:text="Search"
+                android:text="@string/button_search"
                 android:textAppearance="?android:attr/textAppearanceButton"
                 android:textColor="@android:color/white"
                 android:background="@color/default_button_color"/>
@@ -35,13 +36,13 @@
         android:layout_margin="@dimen/title_margin">
         <TextView
             android:layout_width="wrap_content"
-            android:layout_height="36dp"
+            android:layout_height="@dimen/layout_item_height"
             android:textAppearance="?android:attr/textAppearanceButton"
             android:padding="6dp"
             android:gravity="center_horizontal|center_vertical"
             android:textColor="@android:color/white"
             android:background="@color/default_button_color"
-            android:text="Recent channels"/>
+            android:text="@string/label_recent_channels"/>
         </RelativeLayout>
 
     <RelativeLayout
