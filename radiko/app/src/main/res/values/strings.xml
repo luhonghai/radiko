@@ -42,8 +42,4 @@
     <string name="minute">"1 minute"</string>
     <string name="minutes">"<xliff:g id="minutes">%s</xliff:g> minutes"</string>
 
-    <!-- Play URL -->
-    <string name="radiko_play_url">rtmp://0.0.0.0:1935/TBS/_definst_/simul-stream.stream|S:%1$s</string>
-
-    <string name="radiko_server_token_url">http://stest.dotohsoft.com/~duc/rad/gettoken/getkey.php</string>
 </resources>

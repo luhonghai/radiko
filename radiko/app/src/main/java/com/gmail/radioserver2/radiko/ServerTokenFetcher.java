@@ -24,28 +24,21 @@ public class ServerTokenFetcher extends TokenFetcher {
 
     @Override
     public void fetchRemote() {
-        AsyncTask<Void, Void, Void> getTokenTask = new AsyncTask<Void, Void, Void>() {
-            @Override
-            protected Void doInBackground(Void... params) {
-                final File tmpFile = fileHelper.getTmpTokenFile();
-                try {
-                    if (tmpFile.exists())
-                        FileUtils.forceDelete(tmpFile);
-                    FileUtils.copyURLToFile(new URL(getContext().getString(R.string.radiko_server_token_url)), tmpFile);
-                    if (tmpFile.exists()) {
-                        String token = FileUtils.readFileToString(tmpFile, "UTF-8");
-                        saveToken(token);
-                        onTokenFound(token);
-                    } else {
-                        onTokenFound("");
-                    }
-
-                } catch (IOException e) {
-                    onError("Could not connect to server", e);
-                }
-                return null;
+        final File tmpFile = fileHelper.getTmpTokenFile();
+        try {
+            if (tmpFile.exists())
+                FileUtils.forceDelete(tmpFile);
+            FileUtils.copyURLToFile(new URL(getContext().getString(R.string.radiko_server_token_url)), tmpFile);
+            if (tmpFile.exists()) {
+                String token = FileUtils.readFileToString(tmpFile, "UTF-8");
+                saveToken(token);
+                onTokenFound(token);
+            } else {
+                onTokenFound("");
             }
-        };
-        getTokenTask.execute();
+
+        } catch (IOException e) {
+            onError("Could not connect to server", e);
+        }
     }
 }

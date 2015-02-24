@@ -18,6 +18,7 @@ import android.widget.TextView;
 import com.dotohsoft.rtmpdump.RTMP;
 import com.gmail.radioserver2.R;
 import com.gmail.radioserver2.activity.TimerSettingsActivity;
+import com.gmail.radioserver2.radiko.ClientTokenFetcher;
 import com.gmail.radioserver2.radiko.ServerTokenFetcher;
 import com.gmail.radioserver2.radiko.TokenFetcher;
 import com.gmail.radioserver2.service.IMediaPlaybackService;
@@ -133,7 +134,7 @@ public class PlayerFragmentTab extends FragmentTab implements ServiceConnection,
         isTokenLoaded = false;
         mServiceToken = MusicUtils.bindToService(getActivity(), this);
 
-        TokenFetcher tokenFetcher = new ServerTokenFetcher(getActivity(), new TokenFetcher.OnTokenListener() {
+        TokenFetcher tokenFetcher = new ClientTokenFetcher(getActivity(), new TokenFetcher.OnTokenListener() {
 
             @Override
             public void onTokenFound(final String token) {

@@ -8,6 +8,7 @@ import android.os.Bundle;
 import android.support.v4.app.Fragment;
 import android.support.v4.app.FragmentManager;
 import android.support.v4.app.FragmentTransaction;
+import android.util.Log;
 import android.view.LayoutInflater;
 import android.view.View;
 import android.widget.TabHost;
@@ -19,6 +20,9 @@ import com.gmail.radioserver2.fragment.LibraryFragmentTab;
 import com.gmail.radioserver2.fragment.PlayerFragmentTab;
 import com.gmail.radioserver2.fragment.RecordedProgramFragmentTab;
 import com.gmail.radioserver2.fragment.SettingFragmentTab;
+import com.gmail.radioserver2.radiko.ClientTokenFetcher;
+import com.gmail.radioserver2.radiko.TokenFetcher;
+import com.gmail.radioserver2.radiko.token.TokenRequester;
 import com.gmail.radioserver2.utils.Constants;
 
 import java.util.HashMap;
@@ -43,7 +47,7 @@ public class MainActivity extends BaseFragmentActivity {
 
         /*
          *  Navigation stacks for each tab gets created..
-         *  tab identifier is used as key to get respective stack for each tab
+         *  tab identifier is used as key_bin to get respective stack for each tab
          */
         mStacks             =   new HashMap<String, Stack<Fragment>>();
         mStacks.put(Constants.TAB_HOME, new Stack<Fragment>());
