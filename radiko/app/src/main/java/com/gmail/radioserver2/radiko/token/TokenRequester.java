@@ -72,7 +72,8 @@ public class TokenRequester {
                 httpPost.setHeader("X-Radiko-Device","pc");
                 httpPost.setHeader("X-Radiko-Authtoken",authToken);
                 httpPost.setHeader("X-Radiko-Partialkey",partialKey);
-                httpPost.setEntity(new StringEntity("\r\n","UTF-8"));
+                httpPost.setEntity(new StringEntity("\r\n", "UTF-8"));
+                httpClient = new DefaultHttpClient();
                 response = httpClient.execute(httpPost);
                 String strRes = IOUtils.toString(response.getEntity().getContent());
                 Log.i(TAG, "Response: " + strRes);

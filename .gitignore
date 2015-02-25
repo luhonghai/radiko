@@ -9,4 +9,6 @@
 build/
 app/build/**
 app/src/main/obj/**
+~$**.xlsx
+**.apk
 
