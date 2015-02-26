@@ -10,14 +10,15 @@ import android.widget.Button;
 import android.widget.TextView;
 import android.widget.Toast;
 
-import com.fortysevendeg.swipelistview.SwipeListView;
+import com.gmail.radioserver2.data.Channel;
+import com.gmail.radioserver2.view.swipelistview.SwipeListView;
 import com.gmail.radioserver2.R;
 import com.gmail.radioserver2.utils.Constants;
 
 /**
  * Created by luhonghai on 2/17/15.
  */
-public class ChannelAdapter extends ArrayAdapter<String> {
+public class ChannelAdapter extends ArrayAdapter<Channel> {
 
     static class ViewHolder {
         TextView txtTitle;
@@ -26,9 +27,9 @@ public class ChannelAdapter extends ArrayAdapter<String> {
 
     private Context mContext;
 
-    private String[] objects;
+    private Channel[] objects;
 
-    public ChannelAdapter(Context context, String[] objects) {
+    public ChannelAdapter(Context context, Channel[] objects) {
         super(context, R.layout.list_item_chanel, objects);
         mContext = context;
         this.objects = objects;
@@ -50,8 +51,8 @@ public class ChannelAdapter extends ArrayAdapter<String> {
         if (parent instanceof SwipeListView) {
             ((SwipeListView)parent).recycle(convertView, position);
         }
-        String channel = objects[position];
-        holder.txtTitle.setText(objects[position]);
+        Channel channel = objects[position];
+        holder.txtTitle.setText(channel.toString());
         holder.txtTitle.setTag(channel);
         holder.txtTitle.setOnClickListener(new View.OnClickListener() {
             @Override

@@ -4,9 +4,13 @@ import android.os.Bundle;
 import android.view.View;
 import android.widget.Button;
 
-import com.fortysevendeg.swipelistview.SwipeListView;
+import com.gmail.radioserver2.data.Timer;
+import com.gmail.radioserver2.data.sqlite.ext.TimerDBAdapter;
+import com.gmail.radioserver2.view.swipelistview.SwipeListView;
 import com.gmail.radioserver2.R;
 import com.gmail.radioserver2.adapter.TimerAdapter;
+
+import java.util.Collection;
 
 /**
  * Created by luhonghai on 2/21/15.
@@ -27,13 +31,18 @@ public class TimerListActivity extends BaseActivity implements View.OnClickListe
 
         listView = (SwipeListView) findViewById(R.id.list_timer);
 
-        int count = 15;
-        String[] items = new String[count];
-        for (int i = 0; i < count; i++) {
-            items[i] = getResources().getString(R.string.debug_timer_name, (i + 1));
+        TimerDBAdapter dbAdapter = new TimerDBAdapter(this);
+        try {
+            Collection<Timer> timers = dbAdapter.findAll();
+            if (timers != null && timers.size() > 0) {
+                Timer[] items = new Timer[timers.size()];
+                timers.toArray(items);
+                TimerAdapter adapter = new TimerAdapter(this, items);
+                listView.setAdapter(adapter);
+            }
+        } catch (Exception e) {
+            e.printStackTrace();
         }
-        TimerAdapter adapter = new TimerAdapter(this, items);
-        listView.setAdapter(adapter);
     }
 
     @Override

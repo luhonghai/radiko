@@ -9,13 +9,14 @@ import android.widget.Button;
 import android.widget.TextView;
 import android.widget.Toast;
 
-import com.fortysevendeg.swipelistview.SwipeListView;
+import com.gmail.radioserver2.data.Library;
+import com.gmail.radioserver2.view.swipelistview.SwipeListView;
 import com.gmail.radioserver2.R;
 
 /**
  * Created by luhonghai on 2/17/15.
  */
-public class LibraryAdapter extends ArrayAdapter<String> {
+public class LibraryAdapter extends ArrayAdapter<Library> {
     static class ViewHolder {
         TextView txtTitle;
         Button btnDelete;
@@ -23,9 +24,9 @@ public class LibraryAdapter extends ArrayAdapter<String> {
 
     private Context mContext;
 
-    private String[] objects;
+    private Library[] objects;
 
-    public LibraryAdapter(Context context, String[] objects) {
+    public LibraryAdapter(Context context, Library[] objects) {
         super(context, R.layout.list_item_library, objects);
         mContext = context;
         this.objects = objects;
@@ -47,16 +48,16 @@ public class LibraryAdapter extends ArrayAdapter<String> {
         if (parent instanceof SwipeListView) {
             ((SwipeListView)parent).recycle(convertView, position);
         }
-        String channel = objects[position];
-        holder.txtTitle.setText(objects[position]);
-        holder.txtTitle.setTag(channel);
+        Library object = objects[position];
+        holder.txtTitle.setText(object.toString());
+        holder.txtTitle.setTag(object);
         holder.txtTitle.setOnClickListener(new View.OnClickListener() {
             @Override
             public void onClick(View v) {
                 Toast.makeText(mContext, mContext.getResources().getString(R.string.debug_select,v.getTag()), Toast.LENGTH_SHORT).show();
             }
         });
-        holder.btnDelete.setTag(channel);
+        holder.btnDelete.setTag(object);
         holder.btnDelete.setOnClickListener(new View.OnClickListener() {
             @Override
             public void onClick(View v) {

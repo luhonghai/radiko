@@ -2,6 +2,11 @@ package com.gmail.radioserver2.data;
 
 import android.content.ContentValues;
 
+import com.gmail.radioserver2.data.sqlite.DBAdapter;
+import com.gmail.radioserver2.utils.DateHelper;
+
+import java.util.Date;
+
 /**
  * Created by luhonghai on 25/02/2015.
  */
@@ -14,7 +19,26 @@ public class Channel extends AbstractData<Channel> {
 
     private String type;
 
+    private String description;
+
+    private Date lastPlayedTime;
+
     private String url;
+
+    @Override
+    public ContentValues toContentValues() {
+        ContentValues cv = new ContentValues();
+        cv.put(DBAdapter.KEY_NAME, getName());
+        cv.put(DBAdapter.KEY_CHANNEL_KEY, getKey());
+        cv.put(DBAdapter.KEY_TYPE, getType());
+        cv.put(DBAdapter.KEY_DESCRIPTION, getDescription());
+        cv.put(DBAdapter.KEY_URL, getUrl());
+        if (getLastPlayedTime() != null)
+            cv.put(DBAdapter.KEY_LAST_PLAYED_TIME, DateHelper.convertDateToString(getLastPlayedTime()));
+        if (getCreatedDate() != null)
+            cv.put(DBAdapter.KEY_CREATED_DATE, DateHelper.convertDateToString(getCreatedDate()));
+        return cv;
+    }
 
     public String getName() {
         return name;
@@ -48,8 +72,19 @@ public class Channel extends AbstractData<Channel> {
         this.url = url;
     }
 
-    @Override
-    public ContentValues toContentValues() {
-        return null;
+    public String getDescription() {
+        return description;
+    }
+
+    public void setDescription(String description) {
+        this.description = description;
+    }
+
+    public Date getLastPlayedTime() {
+        return lastPlayedTime;
+    }
+
+    public void setLastPlayedTime(Date lastPlayedTime) {
+        this.lastPlayedTime = lastPlayedTime;
     }
 }

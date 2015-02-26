@@ -10,14 +10,17 @@ import android.widget.Button;
 import android.widget.TextView;
 import android.widget.Toast;
 
-import com.fortysevendeg.swipelistview.SwipeListView;
+import com.gmail.radioserver2.view.swipelistview.SwipeListView;
 import com.gmail.radioserver2.R;
 import com.gmail.radioserver2.activity.LibraryPickerActivity;
+import com.gmail.radioserver2.data.RecordedProgram;
 
 /**
  * Created by luhonghai on 2/18/15.
  */
-public class RecordedProgramAdapter extends ArrayAdapter<String> {
+
+public class RecordedProgramAdapter extends ArrayAdapter<RecordedProgram> {
+
     static class ViewHolder {
         TextView txtTitle;
         Button btnDelete;
@@ -26,9 +29,9 @@ public class RecordedProgramAdapter extends ArrayAdapter<String> {
 
     private Context mContext;
 
-    private String[] objects;
+    private RecordedProgram[] objects;
 
-    public RecordedProgramAdapter(Context context, String[] objects) {
+    public RecordedProgramAdapter(Context context, RecordedProgram[] objects) {
         super(context, R.layout.list_item_recorded_program, objects);
         mContext = context;
         this.objects = objects;
@@ -51,23 +54,23 @@ public class RecordedProgramAdapter extends ArrayAdapter<String> {
         if (parent instanceof SwipeListView) {
             ((SwipeListView)parent).recycle(convertView, position);
         }
-        String channel = objects[position];
-        holder.txtTitle.setText(objects[position]);
-        holder.txtTitle.setTag(channel);
+        RecordedProgram object = objects[position];
+        holder.txtTitle.setText(object.toString());
+        holder.txtTitle.setTag(object);
         holder.txtTitle.setOnClickListener(new View.OnClickListener() {
             @Override
             public void onClick(View v) {
                 Toast.makeText(mContext, mContext.getResources().getString(R.string.debug_select,v.getTag()), Toast.LENGTH_SHORT).show();
             }
         });
-        holder.btnDelete.setTag(channel);
+        holder.btnDelete.setTag(object);
         holder.btnDelete.setOnClickListener(new View.OnClickListener() {
             @Override
             public void onClick(View v) {
                 Toast.makeText(mContext, mContext.getResources().getString(R.string.debug_delete,v.getTag()), Toast.LENGTH_SHORT).show();
             }
         });
-        holder.btnEdit.setTag(channel);
+        holder.btnEdit.setTag(object);
         holder.btnEdit.setOnClickListener(new View.OnClickListener() {
             @Override
             public void onClick(View v) {

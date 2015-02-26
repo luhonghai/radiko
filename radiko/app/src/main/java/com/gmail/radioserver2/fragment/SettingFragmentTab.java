@@ -5,9 +5,7 @@ import android.view.LayoutInflater;
 import android.view.View;
 import android.view.ViewGroup;
 
-import com.fortysevendeg.swipelistview.SwipeListView;
 import com.gmail.radioserver2.R;
-import com.gmail.radioserver2.adapter.ChannelAdapter;
 
 /**
  * Created by luhonghai on 2/17/15.

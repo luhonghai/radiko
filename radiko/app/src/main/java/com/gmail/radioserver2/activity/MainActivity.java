@@ -213,7 +213,12 @@ public class MainActivity extends BaseFragmentActivity {
     public void onBackPressed() {
         if(mStacks.get(mCurrentTab).size() == 1){
             // We are already showing first fragment of current tab, so when back pressed, we will finish this activity..
+            Intent intent = new Intent(Intent.ACTION_MAIN);
+            intent.addCategory(Intent.CATEGORY_HOME);
+            intent.setFlags(Intent.FLAG_ACTIVITY_CLEAR_TOP);
+            startActivity(intent);
             finish();
+            System.exit(0);
             return;
         }
 

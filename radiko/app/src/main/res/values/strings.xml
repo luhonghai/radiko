@@ -2,6 +2,7 @@
 <resources xmlns:xliff="urn:oasis:names:tc:xliff:document:1.2">
 
     <string name="app_name">Radio Server</string>
+    <string name="default_language">JA</string>
     <string name="uri_hint">Enter a URI (http/mmsh/file/etc.)</string>
     <string name="uri_error">Enter a token or click get token</string>
     <string name="go">Start</string>

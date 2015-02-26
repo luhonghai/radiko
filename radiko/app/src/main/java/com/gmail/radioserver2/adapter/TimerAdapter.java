@@ -9,13 +9,14 @@ import android.widget.Button;
 import android.widget.TextView;
 import android.widget.Toast;
 
-import com.fortysevendeg.swipelistview.SwipeListView;
+import com.gmail.radioserver2.data.Timer;
+import com.gmail.radioserver2.view.swipelistview.SwipeListView;
 import com.gmail.radioserver2.R;
 
 /**
  * Created by luhonghai on 2/17/15.
  */
-public class TimerAdapter extends ArrayAdapter<String> {
+public class TimerAdapter extends ArrayAdapter<Timer> {
     static class ViewHolder {
         TextView txtTitle;
         Button btnDelete;
@@ -23,9 +24,9 @@ public class TimerAdapter extends ArrayAdapter<String> {
 
     private Context mContext;
 
-    private String[] objects;
+    private Timer[] objects;
 
-    public TimerAdapter(Context context, String[] objects) {
+    public TimerAdapter(Context context, Timer[] objects) {
         super(context, R.layout.list_item_timer, objects);
         mContext = context;
         this.objects = objects;
@@ -47,16 +48,16 @@ public class TimerAdapter extends ArrayAdapter<String> {
         if (parent instanceof SwipeListView) {
             ((SwipeListView)parent).recycle(convertView, position);
         }
-        String channel = objects[position];
-        holder.txtTitle.setText(objects[position]);
-        holder.txtTitle.setTag(channel);
+        Timer timer = objects[position];
+        holder.txtTitle.setText(timer.toString());
+        holder.txtTitle.setTag(timer);
         holder.txtTitle.setOnClickListener(new View.OnClickListener() {
             @Override
             public void onClick(View v) {
                 Toast.makeText(mContext, mContext.getResources().getString(R.string.debug_select,v.getTag()), Toast.LENGTH_SHORT).show();
             }
         });
-        holder.btnDelete.setTag(channel);
+        holder.btnDelete.setTag(timer);
         holder.btnDelete.setOnClickListener(new View.OnClickListener() {
             @Override
             public void onClick(View v) {

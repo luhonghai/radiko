@@ -10,13 +10,14 @@ import android.widget.RadioButton;
 import android.widget.TextView;
 import android.widget.Toast;
 
-import com.fortysevendeg.swipelistview.SwipeListView;
+import com.gmail.radioserver2.data.Library;
+import com.gmail.radioserver2.view.swipelistview.SwipeListView;
 import com.gmail.radioserver2.R;
 
 /**
  * Created by luhonghai on 2/17/15.
  */
-public class LibraryPickerAdapter extends ArrayAdapter<String> {
+public class LibraryPickerAdapter extends ArrayAdapter<Library> {
 
     public OnRadioItemSelectListener getRadioItemSelectedListener() {
         return radioItemSelectedListener;
@@ -38,13 +39,13 @@ public class LibraryPickerAdapter extends ArrayAdapter<String> {
 
     private Context mContext;
 
-    private String[] objects;
+    private Library[] objects;
 
     private int selectedIndex = 0;
 
     private OnRadioItemSelectListener radioItemSelectedListener;
 
-    public LibraryPickerAdapter(Context context, String[] objects) {
+    public LibraryPickerAdapter(Context context, Library[] objects) {
         super(context, R.layout.list_item_library_picker, objects);
         mContext = context;
         this.objects = objects;
@@ -67,8 +68,8 @@ public class LibraryPickerAdapter extends ArrayAdapter<String> {
         if (parent instanceof SwipeListView) {
             ((SwipeListView)parent).recycle(convertView, position);
         }
-        String channel = objects[position];
-        holder.txtTitle.setText(objects[position]);
+        Library object = objects[position];
+        holder.txtTitle.setText(object.toString());
         holder.txtTitle.setTag(position);
         holder.txtTitle.setOnClickListener(new View.OnClickListener() {
             @Override
@@ -80,7 +81,7 @@ public class LibraryPickerAdapter extends ArrayAdapter<String> {
                 }
             }
         });
-        holder.btnDelete.setTag(channel);
+        holder.btnDelete.setTag(object);
         holder.btnDelete.setOnClickListener(new View.OnClickListener() {
             @Override
             public void onClick(View v) {

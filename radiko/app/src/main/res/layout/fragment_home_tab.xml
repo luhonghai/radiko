@@ -49,7 +49,7 @@
         android:layout_width="match_parent"
         android:layout_height="0dp"
         android:layout_weight="1">
-    <com.fortysevendeg.swipelistview.SwipeListView
+    <com.gmail.radioserver2.view.swipelistview.SwipeListView
         xmlns:swipe="http://schemas.android.com/apk/res-auto"
 
         android:id="@+id/list_channel"

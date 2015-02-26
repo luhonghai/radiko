@@ -12,25 +12,7 @@ import java.util.Collection;
 /**
  * Created by luhonghai on 25/02/2015.
  */
-public abstract class DBAdapter<T> {
-
-    public static final String KEY_ROWID = "_id";
-
-    public static final String KEY_CREATED_DATE = "created_date";
-
-    public static final String KEY_NAME = "name";
-
-    public static final String KEY_CHANNEL_NAME = "channel_name";
-
-    public static final String KEY_CHANNEL_KEY = "channel_key";
-
-    public static final String KEY_FILE_PATH = "file_path";
-
-    public static final String KEY_START_TIME = "start_time";
-
-    public static final String KEY_END_TIME = "end_time";
-
-    public static final String KEY_LAST_PLAYED_TIME = "last_played_time";
+public abstract class DBAdapter<T> implements IDBAdapter<T> {
 
     private static final String TAG = "DBAdapter";
 
@@ -38,15 +20,10 @@ public abstract class DBAdapter<T> {
 
     private static final int DATABASE_VERSION = 1;
 
-    /**
-     *  Recorded program table
-     */
-    protected static final String TABLE_RECORDED_PROGRAM = "recorded_program";
-
     private static final String[] DATABASE_TABLE_CREATE = new String[] {
-                    "create table " + TABLE_RECORDED_PROGRAM
+             "create table " + TABLE_RECORDED_PROGRAM
                         + " ("
-                        + KEY_ROWID +" integer primary key autoincrement, "
+                        + KEY_ROW_ID +" integer primary key autoincrement, "
                         + KEY_NAME + " text not null, "
                         + KEY_CHANNEL_NAME + " text, "
                         + KEY_CHANNEL_KEY + " text, "
@@ -56,6 +33,49 @@ public abstract class DBAdapter<T> {
                         + KEY_LAST_PLAYED_TIME + " date, "
                         + KEY_CREATED_DATE + " date not null"
                         + ");"
+            ,
+            "create table " + TABLE_TIMER
+                    + " ("
+                    + KEY_ROW_ID +" integer primary key autoincrement, "
+                    + KEY_MODE +" integer,"
+                    + KEY_TYPE +" integer,"
+                    + KEY_CHANNEL_NAME + " text, "
+                    + KEY_CHANNEL_KEY + " text, "
+                    + KEY_EVENT_DATE + " date, "
+                    + KEY_START_HOUR +" integer,"
+                    + KEY_START_MINUTE +" integer,"
+                    + KEY_FINISH_HOUR +" integer,"
+                    + KEY_FINISH_MINUTE +" integer,"
+                    + KEY_STATUS +" integer default 1,"
+                    + KEY_CREATED_DATE + " date not null"
+                    + ");"
+            ,
+            "create table " + TABLE_LIBRARY
+                    + " ("
+                    + KEY_ROW_ID +" integer primary key autoincrement, "
+                    + KEY_NAME + " text not null, "
+                    + KEY_CREATED_DATE + " date not null"
+                    + ");"
+            ,
+            "create table " + TABLE_CHANNEL
+                    + " ("
+                    + KEY_ROW_ID +" integer primary key autoincrement, "
+                    + KEY_NAME + " text not null, "
+                    + KEY_CHANNEL_KEY + " text, "
+                    + KEY_TYPE + " text, "
+                    + KEY_DESCRIPTION + " text, "
+                    + KEY_URL + " text, "
+                    + KEY_LAST_PLAYED_TIME + " date, "
+                    + KEY_CREATED_DATE + " date not null"
+                    + ");"
+            ,
+            "create table " + TABLE_RECORDED_PROGRAM_LIBRARY
+                    + " ("
+                    + KEY_ROW_ID +" integer primary key autoincrement, "
+                    + KEY_PRIMARY_MAPPING + " integer not null, "
+                    + KEY_SECONDARY_MAPPING + " integer not null, "
+                    + KEY_CREATED_DATE + " date not null"
+                    + ");"
     };
 
     private final Context context;
@@ -119,14 +139,12 @@ public abstract class DBAdapter<T> {
     //---closes the database---
     public void close()
     {
-        DBHelper.close();
+        try {
+            DBHelper.close();
+        } catch (Exception ex) {
+            ex.printStackTrace();
+        }
     }
-
-    public abstract Cursor getAll() throws Exception;
-
-    public abstract String getTableName();
-
-    public abstract String[] getAllColumns();
 
     public long insert(T obj) throws Exception {
         if (obj instanceof AbstractData) {
@@ -140,7 +158,7 @@ public abstract class DBAdapter<T> {
         if (obj instanceof AbstractData) {
             AbstractData data = (AbstractData) obj;
             return getDB().update(TABLE_RECORDED_PROGRAM, data.toContentValues(),
-                    KEY_ROWID + "=" + data.getId(), null) > 0;
+                    KEY_ROW_ID + "=" + data.getId(), null) > 0;
         } else {
             return false;
         }
@@ -158,13 +176,12 @@ public abstract class DBAdapter<T> {
     public Cursor get(long rowId) throws Exception {
         Cursor mCursor =
                 getDB().query(true, getTableName(), getAllColumns(),
-                        KEY_ROWID + "=" + rowId,
+                        KEY_ROW_ID + "=" + rowId,
                         null,
                         null,
                         null,
                         null,
                         null);
-
         if (mCursor != null) {
             mCursor.moveToFirst();
         }
@@ -172,7 +189,7 @@ public abstract class DBAdapter<T> {
     }
 
     public boolean delete(long rowId) throws Exception {
-        return getDB().delete(TABLE_RECORDED_PROGRAM, KEY_ROWID + "=" + rowId, null) > 0;
+        return getDB().delete(TABLE_RECORDED_PROGRAM, KEY_ROW_ID + "=" + rowId, null) > 0;
     }
 
     public Collection<T> toCollection(Cursor cursor) {
@@ -184,8 +201,6 @@ public abstract class DBAdapter<T> {
         }
         return list;
     }
-
-    public abstract T toObject(Cursor cursor);
 
     public T find(long rowId) throws Exception {
         return toObject(get(rowId));

@@ -4,9 +4,13 @@ import android.os.Bundle;
 import android.view.View;
 import android.widget.Button;
 
-import com.fortysevendeg.swipelistview.SwipeListView;
+import com.gmail.radioserver2.data.Library;
+import com.gmail.radioserver2.data.sqlite.ext.LibraryDBAdapter;
+import com.gmail.radioserver2.view.swipelistview.SwipeListView;
 import com.gmail.radioserver2.R;
 import com.gmail.radioserver2.adapter.LibraryPickerAdapter;
+
+import java.util.Collection;
 
 /**
  * Created by luhonghai on 2/22/15.
@@ -27,22 +31,24 @@ public class LibraryPickerActivity extends BaseActivity implements View.OnClickL
 
         listView = (SwipeListView) findViewById(R.id.list_library);
 
-        int count = 15;
-        String[] items = new String[count];
-        for (int i = 0; i < count; i++) {
-            items[i] = getResources().getString(R.string.debug_library_name,(i + 1));
-        }
-
-        LibraryPickerAdapter adapter = new LibraryPickerAdapter(this, items);
-        adapter.setRadioItemSelectedListener(new LibraryPickerAdapter.OnRadioItemSelectListener() {
-            @Override
-            public void onRadioItemSelected(int position) {
-                listView.setSelection(position);
+        LibraryDBAdapter dbAdapter = new LibraryDBAdapter(this);
+        try {
+            Collection<Library> libraries = dbAdapter.findAll();
+            if (libraries != null && libraries.size() > 0) {
+                Library[] items = new Library[libraries.size()];
+                libraries.toArray(items);
+                LibraryPickerAdapter adapter = new LibraryPickerAdapter(this, items);
+                adapter.setRadioItemSelectedListener(new LibraryPickerAdapter.OnRadioItemSelectListener() {
+                    @Override
+                    public void onRadioItemSelected(int position) {
+                        listView.setSelection(position);
+                    }
+                });
+                listView.setAdapter(adapter);
             }
-        });
-        listView.setAdapter(adapter);
-
-
+        } catch (Exception e) {
+            e.printStackTrace();
+        }
     }
 
     @Override
