@@ -5,6 +5,7 @@ import android.view.LayoutInflater;
 import android.view.View;
 import android.view.ViewGroup;
 
+import com.gmail.radioserver2.adapter.OnListItemActionListener;
 import com.gmail.radioserver2.data.RecordedProgram;
 import com.gmail.radioserver2.data.sqlite.ext.RecoredProgramDBAdapter;
 import com.gmail.radioserver2.view.swipelistview.SwipeListView;
@@ -16,7 +17,7 @@ import java.util.Collection;
 /**
  * Created by luhonghai on 2/17/15.
  */
-public class RecordedProgramFragmentTab extends FragmentTab {
+public class RecordedProgramFragmentTab extends FragmentTab implements OnListItemActionListener<RecordedProgram> {
 
     @Override
     public View onCreateView(LayoutInflater inflater, ViewGroup container, Bundle savedInstanceState) {
@@ -28,7 +29,7 @@ public class RecordedProgramFragmentTab extends FragmentTab {
             if (programs != null && programs.size() > 0) {
                 RecordedProgram[] objects = new RecordedProgram[programs.size()];
                 programs.toArray(objects);
-                RecordedProgramAdapter adapter = new RecordedProgramAdapter(getActivity(), objects);
+                RecordedProgramAdapter adapter = new RecordedProgramAdapter(getActivity(), objects, this);
                 listView.setAdapter(adapter);
             }
         } catch (Exception e) {
@@ -36,5 +37,20 @@ public class RecordedProgramFragmentTab extends FragmentTab {
         }
 
         return v;
+    }
+
+    @Override
+    public void onDeleteItem(RecordedProgram obj) {
+
+    }
+
+    @Override
+    public void onSelectItem(RecordedProgram obj) {
+
+    }
+
+    @Override
+    public void onEditItem(RecordedProgram obj) {
+
     }
 }

@@ -19,7 +19,7 @@ import com.gmail.radioserver2.data.RecordedProgram;
  * Created by luhonghai on 2/18/15.
  */
 
-public class RecordedProgramAdapter extends ArrayAdapter<RecordedProgram> {
+public class RecordedProgramAdapter extends DefaultAdapter<RecordedProgram> {
 
     static class ViewHolder {
         TextView txtTitle;
@@ -27,21 +27,15 @@ public class RecordedProgramAdapter extends ArrayAdapter<RecordedProgram> {
         Button btnEdit;
     }
 
-    private Context mContext;
-
-    private RecordedProgram[] objects;
-
-    public RecordedProgramAdapter(Context context, RecordedProgram[] objects) {
-        super(context, R.layout.list_item_recorded_program, objects);
-        mContext = context;
-        this.objects = objects;
+    public RecordedProgramAdapter(Context context, RecordedProgram[] objects, OnListItemActionListener<RecordedProgram> onListItemActionListener) {
+        super(context, R.layout.list_item_recorded_program, objects, onListItemActionListener);
     }
 
     @Override
     public View getView(int position, View convertView, ViewGroup parent) {
         ViewHolder holder;
         if (convertView == null) {
-            LayoutInflater li = (LayoutInflater) mContext.getSystemService(Context.LAYOUT_INFLATER_SERVICE);
+            LayoutInflater li = (LayoutInflater) getContext().getSystemService(Context.LAYOUT_INFLATER_SERVICE);
             convertView = li.inflate(R.layout.list_item_recorded_program, parent, false);
             holder = new ViewHolder();
             holder.txtTitle = (TextView) convertView.findViewById(R.id.txtTitle);
@@ -54,20 +48,20 @@ public class RecordedProgramAdapter extends ArrayAdapter<RecordedProgram> {
         if (parent instanceof SwipeListView) {
             ((SwipeListView)parent).recycle(convertView, position);
         }
-        RecordedProgram object = objects[position];
+        RecordedProgram object = getObjects()[position];
         holder.txtTitle.setText(object.toString());
         holder.txtTitle.setTag(object);
         holder.txtTitle.setOnClickListener(new View.OnClickListener() {
             @Override
             public void onClick(View v) {
-                Toast.makeText(mContext, mContext.getResources().getString(R.string.debug_select,v.getTag()), Toast.LENGTH_SHORT).show();
+                Toast.makeText(getContext(), getContext().getResources().getString(R.string.debug_select,v.getTag()), Toast.LENGTH_SHORT).show();
             }
         });
         holder.btnDelete.setTag(object);
         holder.btnDelete.setOnClickListener(new View.OnClickListener() {
             @Override
             public void onClick(View v) {
-                Toast.makeText(mContext, mContext.getResources().getString(R.string.debug_delete,v.getTag()), Toast.LENGTH_SHORT).show();
+                Toast.makeText(getContext(), getContext().getResources().getString(R.string.debug_delete,v.getTag()), Toast.LENGTH_SHORT).show();
             }
         });
         holder.btnEdit.setTag(object);
@@ -75,8 +69,8 @@ public class RecordedProgramAdapter extends ArrayAdapter<RecordedProgram> {
             @Override
             public void onClick(View v) {
                 Intent intent = new Intent();
-                intent.setClass(mContext, LibraryPickerActivity.class);
-                mContext.startActivity(intent);
+                intent.setClass(getContext(), LibraryPickerActivity.class);
+                getContext().startActivity(intent);
             }
         });
         return convertView;

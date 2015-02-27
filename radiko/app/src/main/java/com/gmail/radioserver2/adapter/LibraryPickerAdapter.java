@@ -17,7 +17,7 @@ import com.gmail.radioserver2.R;
 /**
  * Created by luhonghai on 2/17/15.
  */
-public class LibraryPickerAdapter extends ArrayAdapter<Library> {
+public class LibraryPickerAdapter extends DefaultAdapter<Library> {
 
     public OnRadioItemSelectListener getRadioItemSelectedListener() {
         return radioItemSelectedListener;
@@ -37,25 +37,19 @@ public class LibraryPickerAdapter extends ArrayAdapter<Library> {
         RadioButton rdSelect;
     }
 
-    private Context mContext;
-
-    private Library[] objects;
-
     private int selectedIndex = 0;
 
     private OnRadioItemSelectListener radioItemSelectedListener;
 
-    public LibraryPickerAdapter(Context context, Library[] objects) {
-        super(context, R.layout.list_item_library_picker, objects);
-        mContext = context;
-        this.objects = objects;
+    public LibraryPickerAdapter(Context context, Library[] objects, OnListItemActionListener<Library> onListItemActionListener) {
+        super(context, R.layout.list_item_library_picker, objects, onListItemActionListener);
     }
 
     @Override
     public View getView(final int position, View convertView, ViewGroup parent) {
         ViewHolder holder;
         if (convertView == null) {
-            LayoutInflater li = (LayoutInflater) mContext.getSystemService(Context.LAYOUT_INFLATER_SERVICE);
+            LayoutInflater li = (LayoutInflater) getContext().getSystemService(Context.LAYOUT_INFLATER_SERVICE);
             convertView = li.inflate(R.layout.list_item_library_picker, parent, false);
             holder = new ViewHolder();
             holder.txtTitle = (TextView) convertView.findViewById(R.id.txtTitle);
@@ -68,7 +62,7 @@ public class LibraryPickerAdapter extends ArrayAdapter<Library> {
         if (parent instanceof SwipeListView) {
             ((SwipeListView)parent).recycle(convertView, position);
         }
-        Library object = objects[position];
+        Library object = getObjects()[position];
         holder.txtTitle.setText(object.toString());
         holder.txtTitle.setTag(position);
         holder.txtTitle.setOnClickListener(new View.OnClickListener() {
@@ -85,7 +79,7 @@ public class LibraryPickerAdapter extends ArrayAdapter<Library> {
         holder.btnDelete.setOnClickListener(new View.OnClickListener() {
             @Override
             public void onClick(View v) {
-                Toast.makeText(mContext, mContext.getResources().getString(R.string.debug_delete,v.getTag()), Toast.LENGTH_SHORT).show();
+                Toast.makeText(getContext(), getContext().getResources().getString(R.string.debug_delete,v.getTag()), Toast.LENGTH_SHORT).show();
             }
         });
         holder.rdSelect.setChecked(position == selectedIndex);

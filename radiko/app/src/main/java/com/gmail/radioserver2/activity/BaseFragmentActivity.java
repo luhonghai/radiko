@@ -4,6 +4,7 @@ import android.content.res.Configuration;
 import android.os.Bundle;
 
 import com.actionbarsherlock.app.SherlockFragmentActivity;
+import com.gmail.radioserver2.utils.AndroidUtil;
 
 import java.util.Locale;
 
@@ -15,8 +16,7 @@ public class BaseFragmentActivity extends SherlockFragmentActivity{
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
-        Configuration c = new Configuration(getResources().getConfiguration());
-        c.locale = Locale.JAPANESE;
-        getResources().updateConfiguration(c, getResources().getDisplayMetrics());
+
+        AndroidUtil.updateLanguage(this);
     }
 }

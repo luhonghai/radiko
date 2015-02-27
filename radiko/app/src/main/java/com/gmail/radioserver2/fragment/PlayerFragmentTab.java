@@ -47,41 +47,12 @@ public class PlayerFragmentTab extends FragmentTab implements ServiceConnection,
     private boolean isPlaying = false;
 
     private boolean isTokenLoaded = false;
+
     private boolean isServiceLoaded = false;
 
     private String radikoToken;
 
-    private static final String W_REF = "W_REF";
-
-    private final WeakHashMap<String, RTMP> mRTMP = new WeakHashMap<String, RTMP>();
-
     private MusicUtils.ServiceToken mServiceToken;
-
-    private class RTMPRunnable implements Runnable {
-        private final String mToken;
-        private final File mTmpFile;
-        private RTMPRunnable(String mToken, File mTmpFile) {
-            this.mToken = mToken;
-            this.mTmpFile = mTmpFile;
-        }
-
-        @Override
-        public void run() {
-            isRecording = true;
-            if (mTmpFile.exists()) {
-                try {
-                    FileUtils.forceDelete(mTmpFile);
-                } catch (IOException e) {
-                    e.printStackTrace();
-                }
-            }
-            RTMP rtmp =  new RTMP();
-            mRTMP.put(W_REF, rtmp);
-            rtmp.init(mToken, mTmpFile.getAbsolutePath());
-        }
-    }
-
-    private RTMPRunnable mRTMPRunnable;
 
     private TextView txtTitle;
 
@@ -157,7 +128,6 @@ public class PlayerFragmentTab extends FragmentTab implements ServiceConnection,
     public void onDestroy() {
         MusicUtils.unbindFromService(mServiceToken);
         mService = null;
-        stopRecording();
         super.onDestroy();
     }
 
@@ -365,20 +335,6 @@ public class PlayerFragmentTab extends FragmentTab implements ServiceConnection,
                 break;
         }
     }
-
-    private void stopRecording() {
-        if (mRTMP.size() == 0) return;
-        RTMP rtmp = mRTMP.get(W_REF);
-        if (rtmp != null) {
-            try {
-                rtmp.stop();
-                mRTMP.remove(W_REF);
-            }  catch (Exception ex) {
-
-            }
-        }
-    }
-
 
     @Override
     public void onServiceConnected(ComponentName name, IBinder service) {

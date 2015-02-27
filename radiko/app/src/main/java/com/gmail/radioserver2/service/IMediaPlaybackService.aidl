@@ -22,6 +22,19 @@ import android.graphics.Bitmap;
 
 interface IMediaPlaybackService
 {
+    // Added by Hai
+    void startRecord(String token, String fileName);
+    void stopRecord();
+    boolean isRecording();
+    void markAB();
+    int getStateAB();
+    void stopAB();
+    void doBack(int length);
+    void doFast(float level);
+    void stopFast();
+    void doSlow(float level);
+    void stopSlow();
+    // Default
     void openFile(String path);
     void open(in long [] list, int position);
     int getQueuePosition();

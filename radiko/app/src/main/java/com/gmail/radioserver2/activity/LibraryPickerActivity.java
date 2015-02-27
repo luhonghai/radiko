@@ -4,6 +4,7 @@ import android.os.Bundle;
 import android.view.View;
 import android.widget.Button;
 
+import com.gmail.radioserver2.adapter.OnListItemActionListener;
 import com.gmail.radioserver2.data.Library;
 import com.gmail.radioserver2.data.sqlite.ext.LibraryDBAdapter;
 import com.gmail.radioserver2.view.swipelistview.SwipeListView;
@@ -15,7 +16,7 @@ import java.util.Collection;
 /**
  * Created by luhonghai on 2/22/15.
  */
-public class LibraryPickerActivity extends BaseActivity implements View.OnClickListener {
+public class LibraryPickerActivity extends BaseActivity implements View.OnClickListener, OnListItemActionListener<Library> {
 
     private SwipeListView listView;
 
@@ -37,7 +38,7 @@ public class LibraryPickerActivity extends BaseActivity implements View.OnClickL
             if (libraries != null && libraries.size() > 0) {
                 Library[] items = new Library[libraries.size()];
                 libraries.toArray(items);
-                LibraryPickerAdapter adapter = new LibraryPickerAdapter(this, items);
+                LibraryPickerAdapter adapter = new LibraryPickerAdapter(this, items, this);
                 adapter.setRadioItemSelectedListener(new LibraryPickerAdapter.OnRadioItemSelectListener() {
                     @Override
                     public void onRadioItemSelected(int position) {
@@ -58,5 +59,20 @@ public class LibraryPickerActivity extends BaseActivity implements View.OnClickL
                 onBackPressed();
                 break;
         }
+    }
+
+    @Override
+    public void onDeleteItem(Library obj) {
+
+    }
+
+    @Override
+    public void onSelectItem(Library obj) {
+
+    }
+
+    @Override
+    public void onEditItem(Library obj) {
+
     }
 }

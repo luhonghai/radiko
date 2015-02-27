@@ -42,10 +42,12 @@ import android.os.Handler;
 import android.os.IBinder;
 import android.os.Message;
 import android.os.PowerManager;
+import android.os.RemoteException;
 import android.os.SystemClock;
 import android.os.PowerManager.WakeLock;
 import android.provider.BaseColumns;
 
+import com.dotohsoft.rtmpdump.RTMP;
 import com.gmail.radioserver2.R;
 import com.gmail.radioserver2.provider.Media;
 import android.util.Log;
@@ -54,6 +56,7 @@ import android.widget.Toast;
 
 import com.dotohsoft.rtmpdump.RTMPSuck;
 
+import java.io.File;
 import java.io.FileDescriptor;
 import java.io.IOException;
 import java.io.PrintWriter;
@@ -65,6 +68,8 @@ import java.util.WeakHashMap;
 import wseemann.media.FFmpegMediaPlayer;
 
 import com.gmail.radioserver2.receiver.MediaButtonIntentReceiver;
+
+import org.apache.commons.io.FileUtils;
 
 /**
  * Provides "background" audio playback capabilities, allowing the
@@ -163,7 +168,145 @@ public class MediaPlaybackService extends Service {
 
     private static final String W_REF = "W_REF";
 
+    // Added by Hai
+
     private final WeakHashMap<String, RTMPSuck> mRTMPSuck = new WeakHashMap<String, RTMPSuck>();
+
+    private final WeakHashMap<String, RTMP> mRTMP = new WeakHashMap<String, RTMP>();
+
+    private class RTMPRunnable implements Runnable {
+        private final String mToken;
+        private final File mTmpFile;
+        private RTMPRunnable(String mToken, File mTmpFile) {
+            this.mToken = mToken;
+            this.mTmpFile = mTmpFile;
+        }
+
+        @Override
+        public void run() {
+            if (mTmpFile.exists()) {
+                try {
+                    FileUtils.forceDelete(mTmpFile);
+                } catch (IOException e) {
+                    e.printStackTrace();
+                }
+            }
+            synchronized (mRTMP) {
+                RTMP rtmp = new RTMP();
+                mRTMP.put(W_REF, rtmp);
+                rtmp.init(mToken, mTmpFile.getAbsolutePath());
+            }
+        }
+    }
+
+    private Handler mRtmpHandler = new Handler();
+
+    private RTMPRunnable rtmpRunnable;
+
+    private boolean isRecording = false;
+
+    public void stopRecord() {
+        if (rtmpRunnable != null) {
+            try {
+                mRtmpHandler.removeCallbacks(rtmpRunnable);
+            } catch (Exception ex) {
+                ex.printStackTrace();
+            }
+        }
+        synchronized (mRTMP) {
+            if (mRTMP.size() > 0 && mRTMP.containsKey(W_REF)) {
+                try {
+                    final RTMP tmp = mRTMP.get(W_REF);
+                    tmp.stop();
+                    mRTMP.remove(W_REF);
+                } catch (Exception ex) {
+                    ex.printStackTrace();
+                }
+            }
+        }
+        isRecording = false;
+    }
+
+    public void startRecord(String token, String filePath) {
+        stopRecord();
+        isRecording = true;
+        rtmpRunnable = new RTMPRunnable(token, new File(filePath));
+        mRtmpHandler.post(rtmpRunnable);
+    }
+
+    public boolean isRecording() {
+        return isRecording;
+    }
+
+    public void doBack(int length) {
+        if (mPlayer.isInitialized()) {
+            long pos = mPlayer.position();
+            long toBackPos = pos - length * 1000;
+            if (toBackPos < 0) toBackPos = 0;
+            seek(toBackPos);
+        }
+    }
+
+    public static class ABState {
+        public static final int ERROR = -1;
+        public static final int STOP = 0;
+        public static final int FLAG = 1;
+        public static final int PLAY = 2;
+    }
+
+    private int stateAB = ABState.STOP;
+    private long posA;
+    private long posB;
+
+    private int getStateAB() {
+        return stateAB;
+    }
+
+    private void stopAB() {
+        stateAB = ABState.STOP;
+        posA = -1;
+        posB = -1;
+    }
+
+    private void checkAB() {
+        if (mPlayer.isInitialized()) {
+            if (stateAB == ABState.PLAY) {
+                long currentPos = mPlayer.position();
+                if (currentPos > posB) {
+                    seek(posA);
+                }
+            }
+        }
+    }
+
+    private void markAB() {
+        if (mPlayer.isInitialized()) {
+            if (stateAB == ABState.STOP) {
+                posA = mPlayer.position();
+                stateAB = ABState.FLAG;
+            } else if (stateAB == ABState.FLAG) {
+                posB = mPlayer.position();
+                stateAB = ABState.PLAY;
+                seek(posA);
+            }
+        }
+    }
+
+    private void doFast(float level) {
+
+    }
+
+    private void stopFast() {
+
+    }
+
+    private void doSlow(float level) {
+
+    }
+
+    private void stopSlow() {
+
+    }
 
     private Handler mMediaplayerHandler = new Handler() {
         float mCurrentVolume = 1.0f;
@@ -2151,7 +2294,62 @@ public class MediaPlaybackService extends Service {
         ServiceStub(MediaPlaybackService service) {
             mService = new WeakReference<MediaPlaybackService>(service);
         }
+        // Added by Hai
+        @Override
+        public void startRecord(String token, String fileName) throws RemoteException {
+            mService.get().startRecord(token, fileName);
+        }
 
+        @Override
+        public void stopRecord() throws RemoteException {
+            mService.get().stopRecord();
+        }
+
+        @Override
+        public boolean isRecording() throws RemoteException {
+            return mService.get().isRecording();
+        }
+
+        @Override
+        public void markAB() throws RemoteException {
+            mService.get().markAB();
+        }
+
+        @Override
+        public int getStateAB() throws RemoteException {
+            return mService.get().getStateAB();
+        }
+
+        @Override
+        public void stopAB() throws RemoteException {
+            mService.get().stopAB();
+        }
+
+        @Override
+        public void doBack(int length) throws RemoteException {
+            mService.get().doBack(length);
+        }
+
+        @Override
+        public void doFast(float level) throws RemoteException {
+            mService.get().doFast( level);
+        }
+
+        @Override
+        public void stopFast() throws RemoteException {
+            mService.get().stopFast();
+        }
+
+        @Override
+        public void doSlow(float level) throws RemoteException {
+            mService.get().doSlow( level);
+        }
+
+        @Override
+        public void stopSlow() throws RemoteException {
+            mService.get().stopSlow();
+        }
+        // Default
         public void openFile(String path)
         {
             mService.get().open(path);

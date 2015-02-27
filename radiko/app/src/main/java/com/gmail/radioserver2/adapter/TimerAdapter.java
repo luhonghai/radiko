@@ -16,27 +16,21 @@ import com.gmail.radioserver2.R;
 /**
  * Created by luhonghai on 2/17/15.
  */
-public class TimerAdapter extends ArrayAdapter<Timer> {
+public class TimerAdapter extends DefaultAdapter<Timer> {
     static class ViewHolder {
         TextView txtTitle;
         Button btnDelete;
     }
 
-    private Context mContext;
-
-    private Timer[] objects;
-
-    public TimerAdapter(Context context, Timer[] objects) {
-        super(context, R.layout.list_item_timer, objects);
-        mContext = context;
-        this.objects = objects;
+    public TimerAdapter(Context context, Timer[] objects, OnListItemActionListener<Timer> onListItemActionListener) {
+        super(context, R.layout.list_item_timer, objects, onListItemActionListener);
     }
 
     @Override
     public View getView(int position, View convertView, ViewGroup parent) {
         ViewHolder holder;
         if (convertView == null) {
-            LayoutInflater li = (LayoutInflater) mContext.getSystemService(Context.LAYOUT_INFLATER_SERVICE);
+            LayoutInflater li = (LayoutInflater) getContext().getSystemService(Context.LAYOUT_INFLATER_SERVICE);
             convertView = li.inflate(R.layout.list_item_timer, parent, false);
             holder = new ViewHolder();
             holder.txtTitle = (TextView) convertView.findViewById(R.id.txtTitle);
@@ -48,20 +42,20 @@ public class TimerAdapter extends ArrayAdapter<Timer> {
         if (parent instanceof SwipeListView) {
             ((SwipeListView)parent).recycle(convertView, position);
         }
-        Timer timer = objects[position];
+        Timer timer = getObjects()[position];
         holder.txtTitle.setText(timer.toString());
         holder.txtTitle.setTag(timer);
         holder.txtTitle.setOnClickListener(new View.OnClickListener() {
             @Override
             public void onClick(View v) {
-                Toast.makeText(mContext, mContext.getResources().getString(R.string.debug_select,v.getTag()), Toast.LENGTH_SHORT).show();
+                Toast.makeText(getContext(), getContext().getResources().getString(R.string.debug_select,v.getTag()), Toast.LENGTH_SHORT).show();
             }
         });
         holder.btnDelete.setTag(timer);
         holder.btnDelete.setOnClickListener(new View.OnClickListener() {
             @Override
             public void onClick(View v) {
-                Toast.makeText(mContext, mContext.getResources().getString(R.string.debug_delete,v.getTag()), Toast.LENGTH_SHORT).show();
+                Toast.makeText(getContext(), getContext().getResources().getString(R.string.debug_delete,v.getTag()), Toast.LENGTH_SHORT).show();
             }
         });
         return convertView;

@@ -5,7 +5,6 @@ import android.content.Intent;
 import android.view.LayoutInflater;
 import android.view.View;
 import android.view.ViewGroup;
-import android.widget.ArrayAdapter;
 import android.widget.Button;
 import android.widget.TextView;
 import android.widget.Toast;
@@ -18,28 +17,22 @@ import com.gmail.radioserver2.utils.Constants;
 /**
  * Created by luhonghai on 2/17/15.
  */
-public class ChannelAdapter extends ArrayAdapter<Channel> {
+public class ChannelAdapter extends DefaultAdapter<Channel> {
 
     static class ViewHolder {
         TextView txtTitle;
         Button btnDelete;
     }
 
-    private Context mContext;
-
-    private Channel[] objects;
-
-    public ChannelAdapter(Context context, Channel[] objects) {
-        super(context, R.layout.list_item_chanel, objects);
-        mContext = context;
-        this.objects = objects;
+    public ChannelAdapter(Context context, Channel[] objects, OnListItemActionListener<Channel> listItemActionListener) {
+        super(context, R.layout.list_item_chanel, objects, listItemActionListener);
     }
 
     @Override
     public View getView(int position, View convertView, ViewGroup parent) {
         ViewHolder holder;
         if (convertView == null) {
-            LayoutInflater li = (LayoutInflater) mContext.getSystemService(Context.LAYOUT_INFLATER_SERVICE);
+            LayoutInflater li = (LayoutInflater) getContext().getSystemService(Context.LAYOUT_INFLATER_SERVICE);
             convertView = li.inflate(R.layout.list_item_chanel, parent, false);
             holder = new ViewHolder();
             holder.txtTitle = (TextView) convertView.findViewById(R.id.txtChannelTitle);
@@ -51,7 +44,7 @@ public class ChannelAdapter extends ArrayAdapter<Channel> {
         if (parent instanceof SwipeListView) {
             ((SwipeListView)parent).recycle(convertView, position);
         }
-        Channel channel = objects[position];
+        Channel channel = getObjects()[position];
         holder.txtTitle.setText(channel.toString());
         holder.txtTitle.setTag(channel);
         holder.txtTitle.setOnClickListener(new View.OnClickListener() {
@@ -60,14 +53,14 @@ public class ChannelAdapter extends ArrayAdapter<Channel> {
                 //Toast.makeText(mContext, "Select chanel " + v.getTag(), Toast.LENGTH_SHORT).show();
                 Intent intent = new Intent(Constants.INTENT_FILTER_FRAGMENT_ACTION);
                 intent.putExtra(Constants.FRAGMENT_ACTION_TYPE, Constants.ACTION_SELECT_CHANNEL_ITEM);
-                mContext.sendBroadcast(intent);
+                getContext().sendBroadcast(intent);
             }
         });
         holder.btnDelete.setTag(channel);
         holder.btnDelete.setOnClickListener(new View.OnClickListener() {
             @Override
             public void onClick(View v) {
-                Toast.makeText(mContext, mContext.getResources().getString(R.string.debug_delete,v.getTag()), Toast.LENGTH_SHORT).show();
+                Toast.makeText(getContext(), getContext().getResources().getString(R.string.debug_delete,v.getTag()), Toast.LENGTH_SHORT).show();
             }
         });
         return convertView;

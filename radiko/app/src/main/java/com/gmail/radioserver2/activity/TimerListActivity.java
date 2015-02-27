@@ -4,6 +4,7 @@ import android.os.Bundle;
 import android.view.View;
 import android.widget.Button;
 
+import com.gmail.radioserver2.adapter.OnListItemActionListener;
 import com.gmail.radioserver2.data.Timer;
 import com.gmail.radioserver2.data.sqlite.ext.TimerDBAdapter;
 import com.gmail.radioserver2.view.swipelistview.SwipeListView;
@@ -15,7 +16,7 @@ import java.util.Collection;
 /**
  * Created by luhonghai on 2/21/15.
  */
-public class TimerListActivity extends BaseActivity implements View.OnClickListener{
+public class TimerListActivity extends BaseActivity implements View.OnClickListener, OnListItemActionListener<Timer> {
 
     private Button btnBack;
 
@@ -37,7 +38,7 @@ public class TimerListActivity extends BaseActivity implements View.OnClickListe
             if (timers != null && timers.size() > 0) {
                 Timer[] items = new Timer[timers.size()];
                 timers.toArray(items);
-                TimerAdapter adapter = new TimerAdapter(this, items);
+                TimerAdapter adapter = new TimerAdapter(this, items, this);
                 listView.setAdapter(adapter);
             }
         } catch (Exception e) {
@@ -52,5 +53,20 @@ public class TimerListActivity extends BaseActivity implements View.OnClickListe
                 onBackPressed();
                 break;
         }
+    }
+
+    @Override
+    public void onDeleteItem(Timer obj) {
+
+    }
+
+    @Override
+    public void onSelectItem(Timer obj) {
+
+    }
+
+    @Override
+    public void onEditItem(Timer obj) {
+
     }
 }
