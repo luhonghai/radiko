@@ -1,10 +1,13 @@
 package com.gmail.radioserver2.data;
 
 import android.content.ContentValues;
+import android.content.Context;
 
+import com.gmail.radioserver2.R;
 import com.gmail.radioserver2.data.sqlite.DBAdapter;
 import com.gmail.radioserver2.utils.DateHelper;
 
+import java.text.SimpleDateFormat;
 import java.util.Date;
 
 /**
@@ -80,6 +83,16 @@ public class RecordedProgram extends AbstractData<RecordedProgram> {
 
     public void setChannelKey(String channelKey) {
         this.channelKey = channelKey;
+    }
+
+    @Override
+    public String toPrettyString(Context context) {
+        StringBuffer sb = new StringBuffer();
+        sb.append(getChannelName()).append(" - ");
+        sb.append(getName()).append(" - ");
+        sb.append(DateHelper.convertDateToString(getStartTime(), context.getString(R.string.default_date_format))).append(" ");
+        sb.append(DateHelper.convertDateToHourMinuteString(getStartTime(), getEndTime()));
+        return sb.toString();
     }
 
     @Override

@@ -1,17 +1,31 @@
 <?xml version="1.0" encoding="utf-8"?>
 <resources>
+    <!-- Datetime -->
+    <string name="default_date_format">yyyy/MM/dd</string>
+    <string-array name="day_of_week">
+        <item>Monday</item>
+        <item>Tuesday</item>
+        <item>Wednesday</item>
+        <item>Thursday</item>
+        <item>Friday</item>
+        <item>Saturday</item>
+        <item>Sunday</item>
+    </string-array>
+
     <!-- Tab name -->
     <string name="tab_home">ホーム</string>
-    <string name="tab_recorded_program">録音した番組</string>
+    <string name="tab_recorded_program">録音した\n番組</string>
     <string name="tab_library">フォルダ</string>
     <string name="tab_setting">設定</string>
 
     <!-- Action button -->
     <string name="button_delete">削除</string>
-    <string name="button_edit">フォルダへ保存</string>
+    <string name="button_edit">フォルダ\nへ保存</string>
     <string name="button_search">検索</string>
     <string name="button_save">保存</string>
-    <string name="button_set">設定</string>
+    <string name="button_save_setting">この条件で設定する</string>
+    <string name="button_pick_library">このフォルダに保存する</string>
+    <string name="button_set_timer">この条件で設定</string>
 
     <!-- Home screen -->
     <string name="hint_search_channel">チャンネル名または国名を入力</string>
@@ -22,6 +36,7 @@
 
     <!-- Library list screen -->
     <string name="label_library_list">フォルダ</string>
+    <string name="hint_search_library">フォルダ名入力</string>
 
     <!-- Player screen -->
     <string name="button_slow">遅聞き</string>
@@ -30,7 +45,7 @@
     <string name="button_back">少し戻る</string>
     <string name="button_timer">タイマー</string>
     <string name="button_record">録音</string>
-    <string name="button_repeat">A-B間リピート</string>
+    <string name="button_repeat">A-B間\nリピート</string>
     <string name="button_pause">一時停止</string>
     <string name="button_stop">停止</string>
 
@@ -78,7 +93,9 @@
 
 
     <!-- For debug -->
+    <string name="ads_place">広　告　枠</string>
     <string name="default_channel_name">TBS ラジオ</string>
+    <string name="default_recorded_program_name">欧米音楽</string>
     <string name="default_channel_description">現在のプログラム : \n&#8211; 欧米音楽   14:30 &#8211; 15:00\n\nDescription :\nアメリカ有名の音楽</string>
 
     <string name="debug_select"> %1$s 選択されたのときの処理呼び出し</string>

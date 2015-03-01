@@ -14,6 +14,7 @@
             android:layout_height="wrap_content"
             android:orientation="horizontal">
             <EditText
+                android:id="@+id/txtSearch"
                 android:layout_width="0dp"
                 android:layout_height="match_parent"
                 android:layout_weight="1"
@@ -22,6 +23,7 @@
                 android:hint="@string/hint_search_channel"
                 android:background="@android:color/white"/>
             <Button
+                android:id="@+id/btnSearch"
                 android:layout_width="wrap_content"
                 android:layout_height="wrap_content"
                 android:text="@string/button_search"
@@ -51,11 +53,11 @@
         android:layout_weight="1">
     <com.gmail.radioserver2.view.swipelistview.SwipeListView
         xmlns:swipe="http://schemas.android.com/apk/res-auto"
-
+        android:background="@android:color/white"
         android:id="@+id/list_channel"
-        android:listSelector="#00000000"
-        android:layout_width="fill_parent"
-        android:layout_height="wrap_content"
+        android:listSelector="@color/default_background_color"
+        android:layout_width="match_parent"
+        android:layout_height="match_parent"
         swipe:swipeFrontView="@+id/front"
         swipe:swipeBackView="@+id/back"
         swipe:swipeActionLeft="reveal"
@@ -63,5 +65,17 @@
         swipe:swipeOffsetLeft="290dp"
         />
     </RelativeLayout>
-
+    <RelativeLayout
+        android:layout_width="match_parent"
+        android:layout_height="@dimen/button_big_size"
+        android:background="@color/red_delete">
+        <TextView
+            android:layout_width="match_parent"
+            android:layout_height="match_parent"
+            android:textSize="@dimen/button_big_font_size"
+            android:text="@string/ads_place"
+            android:gravity="center_vertical|center_horizontal"
+            android:textColor="@android:color/white"
+            android:textStyle="bold"/>
+        </RelativeLayout>
 </LinearLayout>

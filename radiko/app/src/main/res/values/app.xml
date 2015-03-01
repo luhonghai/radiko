@@ -1,0 +1,10 @@
+<?xml version="1.0" encoding="utf-8"?>
+<resources>
+    <string name="app_name">Radio Server</string>
+    <!-- EN : English -->
+    <!-- JA : Japanese -->
+    <string name="default_language">JA</string>
+    <!-- True = get token by user device-->
+    <!-- False = get token from Dotoh server -->
+    <bool name="radiko_token_type">true</bool>
+</resources>

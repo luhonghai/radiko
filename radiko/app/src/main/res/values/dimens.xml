@@ -28,7 +28,8 @@
     <!-- Seekbar -->
     <dimen name="seek_bar_process_height">2dp</dimen>
 
-
+    <!-- Action button size -->
+    <dimen name="button_action_size">69dp</dimen>
     <!-- Big button -->
     <dimen name="button_big_size">63dp</dimen>
     <dimen name="button_big_font_size">26sp</dimen>

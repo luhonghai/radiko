@@ -10,4 +10,6 @@ public interface OnListItemActionListener<T> {
     public void onSelectItem(T obj);
 
     public void onEditItem(T obj);
+
+    public void onSelectIndex(int index);
 }

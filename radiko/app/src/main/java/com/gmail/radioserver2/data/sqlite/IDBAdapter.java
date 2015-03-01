@@ -88,6 +88,8 @@ public interface IDBAdapter<T> {
 
     public boolean delete(long rowId) throws Exception;
 
+    public boolean delete(T obj) throws Exception;
+
     public Collection<T> toCollection(Cursor cursor);
 
     public abstract T toObject(Cursor cursor);
@@ -95,4 +97,6 @@ public interface IDBAdapter<T> {
     public T find(long rowId) throws Exception;
 
     public Collection<T> findAll() throws Exception;
+
+    public Collection<T> search(String s) throws Exception;
 }

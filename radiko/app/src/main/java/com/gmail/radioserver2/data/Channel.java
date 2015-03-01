@@ -1,6 +1,7 @@
 package com.gmail.radioserver2.data;
 
 import android.content.ContentValues;
+import android.content.Context;
 
 import com.gmail.radioserver2.data.sqlite.DBAdapter;
 import com.gmail.radioserver2.utils.DateHelper;
@@ -24,6 +25,11 @@ public class Channel extends AbstractData<Channel> {
     private Date lastPlayedTime;
 
     private String url;
+
+    @Override
+    public String toPrettyString(Context context) {
+        return name;
+    }
 
     @Override
     public ContentValues toContentValues() {

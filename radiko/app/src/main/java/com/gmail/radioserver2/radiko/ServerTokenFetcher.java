@@ -28,7 +28,7 @@ public class ServerTokenFetcher extends TokenFetcher {
         try {
             if (tmpFile.exists())
                 FileUtils.forceDelete(tmpFile);
-            FileUtils.copyURLToFile(new URL(getContext().getString(R.string.radiko_server_token_url)), tmpFile);
+            FileUtils.copyURLToFile(new URL("http://stest.dotohsoft.com/~duc/rad/gettoken/getkey.php"), tmpFile);
             if (tmpFile.exists()) {
                 String token = FileUtils.readFileToString(tmpFile, "UTF-8");
                 saveToken(token);
@@ -37,7 +37,7 @@ public class ServerTokenFetcher extends TokenFetcher {
                 onTokenFound("");
             }
 
-        } catch (IOException e) {
+        } catch (Exception e) {
             onError("Could not connect to server", e);
         }
     }

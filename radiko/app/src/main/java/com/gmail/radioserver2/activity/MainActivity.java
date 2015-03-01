@@ -1,29 +1,35 @@
 package com.gmail.radioserver2.activity;
 
 import android.content.BroadcastReceiver;
+import android.content.ComponentName;
 import android.content.Context;
 import android.content.Intent;
 import android.content.IntentFilter;
+import android.content.ServiceConnection;
 import android.os.Bundle;
+import android.os.IBinder;
+import android.os.RemoteException;
 import android.support.v4.app.Fragment;
 import android.support.v4.app.FragmentManager;
 import android.support.v4.app.FragmentTransaction;
-import android.util.Log;
 import android.view.LayoutInflater;
 import android.view.View;
 import android.widget.TabHost;
 import android.widget.TextView;
 
 import com.gmail.radioserver2.R;
+import com.gmail.radioserver2.data.Library;
+import com.gmail.radioserver2.data.RecordedProgram;
 import com.gmail.radioserver2.fragment.HomeFragmentTab;
 import com.gmail.radioserver2.fragment.LibraryFragmentTab;
 import com.gmail.radioserver2.fragment.PlayerFragmentTab;
 import com.gmail.radioserver2.fragment.RecordedProgramFragmentTab;
 import com.gmail.radioserver2.fragment.SettingFragmentTab;
-import com.gmail.radioserver2.radiko.ClientTokenFetcher;
-import com.gmail.radioserver2.radiko.TokenFetcher;
-import com.gmail.radioserver2.radiko.token.TokenRequester;
+import com.gmail.radioserver2.service.IMediaPlaybackService;
+import com.gmail.radioserver2.service.MusicUtils;
 import com.gmail.radioserver2.utils.Constants;
+import com.gmail.radioserver2.view.ReclickableTabHost;
+import com.google.gson.Gson;
 
 import java.util.HashMap;
 import java.util.Stack;
@@ -31,9 +37,9 @@ import java.util.Stack;
 /**
  * Created by luhonghai on 2/16/15.
  */
-public class MainActivity extends BaseFragmentActivity {
+public class MainActivity extends BaseFragmentActivity implements ServiceConnection {
     /* Your Tab host */
-    private TabHost mTabHost;
+    private ReclickableTabHost mTabHost;
 
     /* A HashMap of stacks, where we use tab identifier as keys..*/
     private HashMap<String, Stack<Fragment>> mStacks;
@@ -41,10 +47,16 @@ public class MainActivity extends BaseFragmentActivity {
     /*Save current tabs identifier in this..*/
     private String mCurrentTab;
 
+    private Library selectedLibrary;
+
+    private IMediaPlaybackService mService = null;
+
+    private MusicUtils.ServiceToken mServiceToken;
+
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
         setContentView(R.layout.activity_main);
-
+        mServiceToken = MusicUtils.bindToService(this, this);
         /*
          *  Navigation stacks for each tab gets created..
          *  tab identifier is used as key_bin to get respective stack for each tab
@@ -56,14 +68,21 @@ public class MainActivity extends BaseFragmentActivity {
         mStacks.put(Constants.TAB_SETTING, new Stack<Fragment>());
         mStacks.put(Constants.TAB_PLAY_SCREEN, new Stack<Fragment>());
 
-        mTabHost                =   (TabHost)findViewById(android.R.id.tabhost);
+        mTabHost                =   (ReclickableTabHost)findViewById(android.R.id.tabhost);
         mTabHost.setOnTabChangedListener(listener);
+        mTabHost.setOnReclickTabListener(reclickTabListener);
         mTabHost.setup();
 
         initializeTabs();
         registerReceiver(mHandleAction, new IntentFilter(Constants.INTENT_FILTER_FRAGMENT_ACTION));
+
     }
 
+    private void showTimer() {
+        Intent intent = new Intent();
+        intent.setClass(this, TimerSettingsActivity.class);
+        startActivity(intent);
+    }
 
     private View createTabView(final int stringId) {
         View view = LayoutInflater.from(this).inflate(R.layout.tabs_main, null);
@@ -114,6 +133,28 @@ public class MainActivity extends BaseFragmentActivity {
         setSelectedTabColor();
     }
 
+    ReclickableTabHost.OnReclickTabListener reclickTabListener = new ReclickableTabHost.OnReclickTabListener() {
+        @Override
+        public void onReclick(int index) {
+            if (index == Constants.TAB_HOME_ID) {
+                if (mStacks.get(Constants.TAB_HOME).size() == 0){
+                    pushFragments(Constants.TAB_HOME, new HomeFragmentTab(), false,true);
+                } else {
+                    pushFragments(Constants.TAB_HOME, mStacks.get(Constants.TAB_HOME).lastElement(), false,false);
+                }
+            } else if (index == Constants.TAB_RECORDED_PROGRAM_ID) {
+                if (mStacks.get(Constants.TAB_RECORDED_PROGRAM).size() == 0){
+                    RecordedProgramFragmentTab recordedProgramFragmentTab = new RecordedProgramFragmentTab();
+                    recordedProgramFragmentTab.setSelectedLibrary(selectedLibrary);
+                    pushFragments(Constants.TAB_RECORDED_PROGRAM, recordedProgramFragmentTab, false, true);
+                } else {
+                    RecordedProgramFragmentTab recordedProgramFragmentTab = (RecordedProgramFragmentTab) mStacks.get(Constants.TAB_RECORDED_PROGRAM).lastElement();
+                    recordedProgramFragmentTab.setSelectedLibrary(selectedLibrary);
+                    pushFragments(Constants.TAB_RECORDED_PROGRAM, recordedProgramFragmentTab, false, false);
+                }
+            }
+        }
+    };
 
     /*Comes here when user switch tab, or we do programmatically*/
     TabHost.OnTabChangeListener listener    =   new TabHost.OnTabChangeListener() {
@@ -130,7 +171,9 @@ public class MainActivity extends BaseFragmentActivity {
                 if(tabId.equals(Constants.TAB_HOME)){
                     pushFragments(tabId, new HomeFragmentTab(), false,true);
                 }else if(tabId.equals(Constants.TAB_RECORDED_PROGRAM)){
-                    pushFragments(tabId, new RecordedProgramFragmentTab(), false,true);
+                    RecordedProgramFragmentTab programFragmentTab = new RecordedProgramFragmentTab();
+                    programFragmentTab.setSelectedLibrary(selectedLibrary);
+                    pushFragments(tabId, programFragmentTab, false, true);
                 }else if(tabId.equals(Constants.TAB_LIBRARY)){
                     pushFragments(tabId, new LibraryFragmentTab(), false,true);
                 }else if(tabId.equals(Constants.TAB_SETTING)){
@@ -139,11 +182,18 @@ public class MainActivity extends BaseFragmentActivity {
                     pushFragments(tabId, new PlayerFragmentTab(), false,true);
                 }
             }else {
-          /*
-           *    We are switching tabs, and target tab is already has atleast one fragment.
-           *    No need of animation, no need of stack pushing. Just show the target fragment
-           */
-                pushFragments(tabId, mStacks.get(tabId).lastElement(), false,false);
+              /*
+               *    We are switching tabs, and target tab is already has atleast one fragment.
+               *    No need of animation, no need of stack pushing. Just show the target fragment
+               */
+                if (tabId.equals(Constants.TAB_RECORDED_PROGRAM) && selectedLibrary != null) {
+                    RecordedProgramFragmentTab programFragmentTab = (RecordedProgramFragmentTab) mStacks.get(tabId).lastElement();
+                    programFragmentTab.setSelectedLibrary(selectedLibrary);
+                   // programFragmentTab.loadData();
+                    pushFragments(tabId, programFragmentTab, false, false);
+                } else {
+                    pushFragments(tabId, mStacks.get(tabId).lastElement(), false, false);
+                }
             }
             setSelectedTabColor();
         }
@@ -252,7 +302,28 @@ public class MainActivity extends BaseFragmentActivity {
                     }
                     break;
                 case Constants.ACTION_SELECT_CHANNEL_ITEM:
+                    try {
+                        String uri = mService.getMediaUri();
+                        if (uri != null && !uri.startsWith("rtmp")) {
+                            if (mService.isPlaying()) {
+                                mService.stop();
+                            }
+                        }
+                    } catch (RemoteException e) {
+                        e.printStackTrace();
+                    }
                     pushFragments(Constants.TAB_PLAY_SCREEN, new PlayerFragmentTab(), true,false);
+                    break;
+                case Constants.ACTION_SELECT_RECORDED_PROGRAM_ITEM:
+                    pushFragments(Constants.TAB_PLAY_SCREEN, new PlayerFragmentTab(), true,false);
+                    break;
+                case Constants.ACTION_CALL_SELECT_TAB:
+                    setCurrentTab(bundle.getInt(Constants.PARAMETER_SELECTED_TAB_ID));
+                    break;
+                case Constants.ACTION_SELECT_LIBRARY_ITEM:
+                    Gson gson = new Gson();
+                    selectedLibrary = gson.fromJson(bundle.getString(Constants.ARG_OBJECT), Library.class);
+                    setCurrentTab(Constants.TAB_RECORDED_PROGRAM_ID);
                     break;
             }
         }
@@ -265,6 +336,19 @@ public class MainActivity extends BaseFragmentActivity {
         } catch ( Exception ex) {
 
         }
+        MusicUtils.unbindFromService(mServiceToken);
+        mService = null;
         super.onDestroy();
+    }
+
+    @Override
+    public void onServiceConnected(ComponentName name, IBinder service) {
+        mService = IMediaPlaybackService.Stub.asInterface(service);
+
+    }
+
+    @Override
+    public void onServiceDisconnected(ComponentName name) {
+        mService = null;
     }
 }

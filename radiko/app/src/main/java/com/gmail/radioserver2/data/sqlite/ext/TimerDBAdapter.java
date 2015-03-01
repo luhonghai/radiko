@@ -7,6 +7,8 @@ import com.gmail.radioserver2.data.Timer;
 import com.gmail.radioserver2.data.sqlite.DBAdapter;
 import com.gmail.radioserver2.utils.DateHelper;
 
+import java.util.Collection;
+
 /**
  * Created by luhonghai on 25/02/2015.
  */
@@ -61,5 +63,10 @@ public class TimerDBAdapter extends DBAdapter<Timer> {
         timer.setEventDate(DateHelper.convertStringToDate(cursor.getString(cursor.getColumnIndex(KEY_EVENT_DATE))));
         timer.setCreatedDate(DateHelper.convertStringToDate(cursor.getString(cursor.getColumnIndex(KEY_CREATED_DATE))));
         return timer;
+    }
+
+    @Override
+    public Collection<Timer> search(String s) throws Exception {
+        return findAll();
     }
 }

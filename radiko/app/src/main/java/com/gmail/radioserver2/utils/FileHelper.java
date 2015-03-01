@@ -14,6 +14,8 @@ import java.io.IOException;
  */
 public class FileHelper {
 
+    private static final String RECORDED_PROGRAM_DIR = "recorded";
+
     private static final String TOKEN_FILE = "token.txt";
     private static final String TOKEN_TMP_FILE = "token.tmp";
 
@@ -26,15 +28,7 @@ public class FileHelper {
     }
 
     public File getTempFile(String fileName) {
-        PackageManager m = context.getPackageManager();
-        String s = context.getPackageName();
-        try {
-            PackageInfo p = m.getPackageInfo(s, 0);
-            s = p.applicationInfo.dataDir;
-            return new File(s, fileName);
-        } catch (PackageManager.NameNotFoundException e) {
-            return null;
-        }
+        return new File(getApplicationDir(), fileName);
     }
 
     public File getTempFile() {
@@ -55,26 +49,26 @@ public class FileHelper {
     }
 
     public File getTokenFile() {
+        return new File(getApplicationDir(), TOKEN_FILE);
+    }
+
+    public File getApplicationDir() {
         PackageManager m = context.getPackageManager();
         String s = context.getPackageName();
         try {
             PackageInfo p = m.getPackageInfo(s, 0);
-            s = p.applicationInfo.dataDir;
-            return new File(s, TOKEN_FILE);
+            return new File(p.applicationInfo.dataDir);
+
         } catch (PackageManager.NameNotFoundException e) {
             return null;
         }
     }
 
     public File getTmpTokenFile() {
-        PackageManager m = context.getPackageManager();
-        String s = context.getPackageName();
-        try {
-            PackageInfo p = m.getPackageInfo(s, 0);
-            s = p.applicationInfo.dataDir;
-            return new File(s, TOKEN_TMP_FILE);
-        } catch (PackageManager.NameNotFoundException e) {
-            return null;
-        }
+        return new File(getApplicationDir(), TOKEN_TMP_FILE);
+    }
+
+    public File getRecordedProgramFolder() {
+        return new File(getApplicationDir(),RECORDED_PROGRAM_DIR);
     }
 }

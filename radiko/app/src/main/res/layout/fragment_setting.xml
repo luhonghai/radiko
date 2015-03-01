@@ -18,6 +18,7 @@
             android:text="@string/label_slow_play"
             android:minWidth="100dp"/>
         <SeekBar
+            android:id="@+id/seekBarSlowLevel"
             android:layout_width="0dp"
             android:layout_height="wrap_content"
             android:layout_weight="1"
@@ -40,9 +41,9 @@
             android:text="@string/label_fast_play"
             android:minWidth="100dp"/>
         <SeekBar
+            android:id="@+id/seekBarFastLevel"
             android:layout_width="0dp"
             android:layout_height="wrap_content"
-            android:id="@+id/seekBarPlayer"
             android:layout_weight="1"
             android:layout_marginLeft="@dimen/default_top_margin"
             android:layout_marginRight="@dimen/default_top_margin"
@@ -63,6 +64,7 @@
             android:text="@string/label_back"
             android:minWidth="100dp"/>
         <SeekBar
+            android:id="@+id/seekBarBackLength"
             android:layout_width="0dp"
             android:layout_height="wrap_content"
             android:layout_weight="1"
@@ -109,26 +111,30 @@
         android:text="@string/label_add_channel"
         android:minWidth="100dp"/>
     <EditText
+        android:id="@+id/txtChannelName"
         android:layout_width="match_parent"
         android:layout_height="@dimen/layout_item_height"
         android:layout_marginTop="@dimen/default_top_margin"
         android:hint="@string/channel_name"
+        android:inputType="text"
         android:background="@android:color/white"/>
     <EditText
+        android:id="@+id/txtChannelURL"
         android:layout_width="match_parent"
         android:layout_height="@dimen/layout_item_height"
         android:layout_marginTop="@dimen/default_top_margin"
         android:hint="@string/url"
+        android:inputType="textUri"
         android:background="@android:color/white"/>
     <RelativeLayout
         android:layout_width="match_parent"
         android:layout_height="match_parent">
         <Button
-            android:id="@+id/btnDelete"
+            android:id="@+id/btnSave"
             android:layout_width="match_parent"
             android:layout_height="@dimen/button_big_size"
             android:textStyle="bold"
-            android:text="@string/button_save"
+            android:text="@string/button_save_setting"
             android:layout_margin="@dimen/title_margin"
             android:background="@drawable/rounded_corner_color_button"
             android:textColor="@android:color/white"

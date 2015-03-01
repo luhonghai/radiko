@@ -43,19 +43,19 @@ public class TimerAdapter extends DefaultAdapter<Timer> {
             ((SwipeListView)parent).recycle(convertView, position);
         }
         Timer timer = getObjects()[position];
-        holder.txtTitle.setText(timer.toString());
+        holder.txtTitle.setText(timer.toPrettyString(getContext()));
         holder.txtTitle.setTag(timer);
         holder.txtTitle.setOnClickListener(new View.OnClickListener() {
             @Override
             public void onClick(View v) {
-                Toast.makeText(getContext(), getContext().getResources().getString(R.string.debug_select,v.getTag()), Toast.LENGTH_SHORT).show();
+                getListItemAction().onSelectItem((Timer) v.getTag());
             }
         });
         holder.btnDelete.setTag(timer);
         holder.btnDelete.setOnClickListener(new View.OnClickListener() {
             @Override
             public void onClick(View v) {
-                Toast.makeText(getContext(), getContext().getResources().getString(R.string.debug_delete,v.getTag()), Toast.LENGTH_SHORT).show();
+                getListItemAction().onDeleteItem((Timer) v.getTag());
             }
         });
         return convertView;

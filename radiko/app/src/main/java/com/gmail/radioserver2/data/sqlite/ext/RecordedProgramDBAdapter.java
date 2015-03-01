@@ -15,7 +15,7 @@ import java.util.Date;
 /**
  * Created by luhonghai on 25/02/2015.
  */
-public class RecoredProgramDBAdapter extends DBAdapter<RecordedProgram>  {
+public class RecordedProgramDBAdapter extends DBAdapter<RecordedProgram>  {
 
     private static final String QUERY_SELECT_RECORDED_PROGRAM_BY_LIBRARY = "select rp." + KEY_ROW_ID
             + ", rp." + KEY_NAME
@@ -33,7 +33,7 @@ public class RecoredProgramDBAdapter extends DBAdapter<RecordedProgram>  {
             " inner join " + TABLE_LIBRARY + " as l on rpl." + KEY_SECONDARY_MAPPING + "=l." + KEY_ROW_ID + ")" +
             " where l." + KEY_ROW_ID + "=?";
 
-    public RecoredProgramDBAdapter(Context ctx) {
+    public RecordedProgramDBAdapter(Context ctx) {
         super(ctx);
     }
 
@@ -62,23 +62,41 @@ public class RecoredProgramDBAdapter extends DBAdapter<RecordedProgram>  {
         return getAll(KEY_LAST_PLAYED_TIME + " DESC, " + KEY_CREATED_DATE + " DESC");
     }
 
-    public Collection<RecordedProgram> findByLibrary(Library library) {
-        return toCollection(getDB().rawQuery(
-                QUERY_SELECT_RECORDED_PROGRAM_BY_LIBRARY,
-                new String[] {
+    public Collection<RecordedProgram> findByLibrary(Library library, String search) throws Exception {
+        String query = QUERY_SELECT_RECORDED_PROGRAM_BY_LIBRARY;
+        String[] args;
+        if (search != null && search.length() > 0) {
+            query += " and (rp." + KEY_NAME + " like ? or rp." + KEY_CHANNEL_NAME + " like ?)";
+            args = new String[] {
+                    Long.toString(library.getId()),
+                    "%" + search + "%",
+                    "%" + search + "%"
+            };
+        } else {
+            args = new String[] {
                     Long.toString(library.getId())
-                }));
+            };
+        }
+        query += " order by rp." + KEY_LAST_PLAYED_TIME + " DESC, rp." + KEY_CREATED_DATE + " DESC";
+        return toCollection(getDB().rawQuery(
+                query,
+                args));
     }
 
-    public boolean addToLibrary(RecordedProgram program, Library library) {
+    public boolean addToLibrary(RecordedProgram program, Library library) throws Exception {
         // Delete old record if exist
         getDB().delete(TABLE_RECORDED_PROGRAM_LIBRARY,
-                KEY_PRIMARY_MAPPING + "=" + program.getId() + " and " + KEY_SECONDARY_MAPPING + "=" +library.getId(),
-                null);
+                KEY_PRIMARY_MAPPING + "=?",
+                new String[] {
+                        Long.toString(program.getId())
+                });
+        //getDB().delete(TABLE_RECORDED_PROGRAM_LIBRARY,
+         //       KEY_PRIMARY_MAPPING + "=" + program.getId() + " and " + KEY_SECONDARY_MAPPING + "=" +library.getId(),
+         //       null);
         // Insert new mapping
         ContentValues cv = new ContentValues();
         cv.put(KEY_PRIMARY_MAPPING, program.getId());
-        cv.put(KEY_PRIMARY_MAPPING, library.getId());
+        cv.put(KEY_SECONDARY_MAPPING, library.getId());
         cv.put(KEY_CREATED_DATE, DateHelper.convertDateToString(new Date(System.currentTimeMillis())));
         return getDB().insert(TABLE_RECORDED_PROGRAM_LIBRARY, null, cv) != -1;
     }
@@ -96,5 +114,19 @@ public class RecoredProgramDBAdapter extends DBAdapter<RecordedProgram>  {
         rp.setEndTime(DateHelper.convertStringToDate(cursor.getString(cursor.getColumnIndex(KEY_END_TIME))));
         rp.setCreatedDate(DateHelper.convertStringToDate(cursor.getString(cursor.getColumnIndex(KEY_CREATED_DATE))));
         return rp;
+    }
+
+    @Override
+    public Collection<RecordedProgram> search(String s) throws Exception {
+        if (s == null || s.length() == 0) return findAll();
+        return toCollection(getDB().query(getTableName(), getAllColumns(),
+                KEY_NAME + " like ? or " + KEY_CHANNEL_NAME + " like ?",
+                new String[] {
+                        "%" + s + "%",
+                        "%" + s + "%"
+                },
+                null,
+                null,
+                KEY_LAST_PLAYED_TIME + " DESC, " + KEY_CREATED_DATE + " DESC"));
     }
 }

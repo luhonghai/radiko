@@ -14,12 +14,7 @@
     <string name="unknown_artist_name">Unknown artist</string>
     <!-- Default name of album that doesn't have a name in the metadata -->
     <string name="unknown_album_name">Unknown album</string>
-    
-    <!-- Do not translate. Duration format for duration < 1 hour -->
-    <string translatable="false" name="durationformatshort"><xliff:g id="format">%2$d:%5$02d</xliff:g></string>
-    <!-- Do not translate. Duration format for duration >= 1 hour -->
-    <string translatable="false" name="durationformatlong"><xliff:g id="format">%1$d:%3$02d:%5$02d</xliff:g></string>
-    
+
     <!-- Shuffle -->
     <string name="shuffle_on_notif">Shuffle is on</string>
     <string name="shuffle_off_notif">Shuffle is off</string>

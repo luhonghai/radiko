@@ -3,7 +3,6 @@ package com.gmail.radioserver2.radiko;
 import android.content.Context;
 import android.os.AsyncTask;
 
-import com.gmail.radioserver2.R;
 import com.gmail.radioserver2.utils.FileHelper;
 import com.google.gson.Gson;
 
@@ -11,7 +10,6 @@ import org.apache.commons.io.FileUtils;
 
 import java.io.File;
 import java.io.IOException;
-import java.net.URL;
 
 /**
  * Created by luhonghai on 2/20/15.

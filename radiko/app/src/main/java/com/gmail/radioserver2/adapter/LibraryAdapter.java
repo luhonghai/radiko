@@ -9,6 +9,7 @@ import android.widget.Button;
 import android.widget.TextView;
 import android.widget.Toast;
 
+import com.gmail.radioserver2.data.Channel;
 import com.gmail.radioserver2.data.Library;
 import com.gmail.radioserver2.view.swipelistview.SwipeListView;
 import com.gmail.radioserver2.R;
@@ -43,19 +44,19 @@ public class LibraryAdapter extends DefaultAdapter<Library> {
             ((SwipeListView)parent).recycle(convertView, position);
         }
         Library object = getObjects()[position];
-        holder.txtTitle.setText(object.toString());
+        holder.txtTitle.setText(object.toPrettyString(getContext()));
         holder.txtTitle.setTag(object);
         holder.txtTitle.setOnClickListener(new View.OnClickListener() {
             @Override
             public void onClick(View v) {
-                Toast.makeText(getContext(), getContext().getResources().getString(R.string.debug_select,v.getTag()), Toast.LENGTH_SHORT).show();
+                getListItemAction().onSelectItem((Library) v.getTag());
             }
         });
         holder.btnDelete.setTag(object);
         holder.btnDelete.setOnClickListener(new View.OnClickListener() {
             @Override
             public void onClick(View v) {
-                Toast.makeText(getContext(), getContext().getResources().getString(R.string.debug_delete,v.getTag()), Toast.LENGTH_SHORT).show();
+                getListItemAction().onDeleteItem((Library) v.getTag());
             }
         });
         return convertView;

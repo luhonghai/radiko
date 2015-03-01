@@ -1,11 +1,14 @@
 package com.gmail.radioserver2.data;
 
 import android.content.ContentValues;
+import android.content.Context;
 
+import com.gmail.radioserver2.R;
 import com.gmail.radioserver2.data.sqlite.DBAdapter;
 import com.gmail.radioserver2.data.sqlite.IDBAdapter;
 import com.gmail.radioserver2.utils.DateHelper;
 
+import java.util.Calendar;
 import java.util.Date;
 
 /**
@@ -44,6 +47,38 @@ public class Timer extends AbstractData<Timer> {
     private int finishMinute;
 
     private boolean status;
+
+    @Override
+    public String toPrettyString(Context context) {
+        StringBuffer sb = new StringBuffer();
+        sb.append(context.getResources().getStringArray(R.array.mode_type)[type]).append(" - ");
+        sb.append(context.getResources().getStringArray(R.array.timer_type)[mode]);
+        if (mode == MODE_ONE_TIME) {
+            sb.append(" ").append(DateHelper.convertDateToString(eventDate, context.getString(R.string.default_date_format)));
+        } else if (mode == MODE_WEEKLY) {
+            Calendar c = Calendar.getInstance();
+            c.setTime(eventDate);
+            int dayOfWeek = c.get(Calendar.DAY_OF_WEEK);
+            int dowIndex = 0;
+            switch (dayOfWeek) {
+                case Calendar.MONDAY: dowIndex = 0; break;
+                case Calendar.TUESDAY: dowIndex = 1; break;
+                case Calendar.WEDNESDAY: dowIndex = 2; break;
+                case Calendar.THURSDAY: dowIndex = 3;  break;
+                case Calendar.FRIDAY: dowIndex = 4; break;
+                case Calendar.SATURDAY: dowIndex = 5; break;
+                case Calendar.SUNDAY: dowIndex = 6; break;
+            }
+            sb.append(" ").append(context.getResources().getStringArray(R.array.day_of_week)[dowIndex]);
+        }
+        sb.append(" ").append(DateHelper.toTimeNumberString(startHour)).append(":").append(DateHelper.toTimeNumberString(startMinute));
+        sb.append(" - ");
+        sb.append(DateHelper.toTimeNumberString(finishHour)).append(":").append(DateHelper.toTimeNumberString(finishHour));
+        sb.append(" ");
+        sb.append(channelName);
+        //sb.append(" | ").append(status ? context.getString(R.string.switch_text_on) : context.getString(R.string.switch_text_off));
+        return sb.toString();
+    }
 
     @Override
     public ContentValues toContentValues() {

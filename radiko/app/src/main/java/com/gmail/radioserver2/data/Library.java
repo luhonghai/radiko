@@ -1,6 +1,7 @@
 package com.gmail.radioserver2.data;
 
 import android.content.ContentValues;
+import android.content.Context;
 
 import com.gmail.radioserver2.data.sqlite.DBAdapter;
 import com.gmail.radioserver2.utils.DateHelper;
@@ -15,6 +16,11 @@ public class Library extends AbstractData<Library> {
     private String name;
 
     private Collection<RecordedProgram> recordedPrograms;
+
+    @Override
+    public String toPrettyString(Context context) {
+        return name;
+    }
 
     @Override
     public ContentValues toContentValues() {

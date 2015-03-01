@@ -1403,6 +1403,7 @@ JNIEXPORT void JNICALL Java_com_dotohsoft_rtmpdump_RTMP_init(JNIEnv * env, jobje
     const char *nativeToken = (*env)->GetStringUTFChars(env, token, 0);
 	const char *nativeDest = (*env)->GetStringUTFChars(env, dest, 0);
     char *v[] = {
+        "-v",
         "-n", "f-radiko.smartstream.ne.jp",
         "-r", "rtmpe://f-radiko.smartstream.ne.jp",
         "--app", "TBS/_definst_",
@@ -1413,7 +1414,7 @@ JNIEXPORT void JNICALL Java_com_dotohsoft_rtmpdump_RTMP_init(JNIEnv * env, jobje
         "-C", nativeToken,
         "--flv", nativeDest};
     char **argv = v;
-    int argc = 18;
+    int argc = 19;
     main_rtmpdump(argc, argv);
 }
 

@@ -8,6 +8,7 @@ import com.gmail.radioserver2.data.AbstractData;
 import java.sql.SQLException;
 import java.util.ArrayList;
 import java.util.Collection;
+import java.util.Date;
 
 /**
  * Created by luhonghai on 25/02/2015.
@@ -148,7 +149,9 @@ public abstract class DBAdapter<T> implements IDBAdapter<T> {
 
     public long insert(T obj) throws Exception {
         if (obj instanceof AbstractData) {
-            return getDB().insert(getTableName(), null, ((AbstractData) obj).toContentValues());
+            AbstractData data = (AbstractData) obj;
+            data.setCreatedDate(new Date(System.currentTimeMillis()));
+            return getDB().insert(getTableName(), null, data.toContentValues());
         } else {
             return -1;
         }
@@ -157,7 +160,7 @@ public abstract class DBAdapter<T> implements IDBAdapter<T> {
     public boolean update(T obj) throws Exception {
         if (obj instanceof AbstractData) {
             AbstractData data = (AbstractData) obj;
-            return getDB().update(TABLE_RECORDED_PROGRAM, data.toContentValues(),
+            return getDB().update(getTableName(), data.toContentValues(),
                     KEY_ROW_ID + "=" + data.getId(), null) > 0;
         } else {
             return false;
@@ -188,8 +191,15 @@ public abstract class DBAdapter<T> implements IDBAdapter<T> {
         return mCursor;
     }
 
+    public boolean delete(T obj) throws Exception {
+        if (obj instanceof AbstractData) {
+            return delete(((AbstractData) obj).getId());
+        }
+        return false;
+    }
+
     public boolean delete(long rowId) throws Exception {
-        return getDB().delete(TABLE_RECORDED_PROGRAM, KEY_ROW_ID + "=" + rowId, null) > 0;
+        return getDB().delete(getTableName(), KEY_ROW_ID + "=" + rowId, null) > 0;
     }
 
     public Collection<T> toCollection(Cursor cursor) {

@@ -1,5 +1,17 @@
 <?xml version="1.0" encoding="utf-8"?>
 <resources>
+    <!-- Datetime -->
+    <string name="default_date_format">dd/MM/yyyy</string>
+    <string-array name="day_of_week">
+        <item>Monday</item>
+        <item>Tuesday</item>
+        <item>Wednesday</item>
+        <item>Thursday</item>
+        <item>Friday</item>
+        <item>Saturday</item>
+        <item>Sunday</item>
+    </string-array>
+
     <!-- Tab name -->
     <string name="tab_home">Home</string>
     <string name="tab_recorded_program">Recorded Program</string>
@@ -11,7 +23,9 @@
     <string name="button_edit">Store</string>
     <string name="button_search">Search</string>
     <string name="button_save">Save</string>
-    <string name="button_set">Set</string>
+    <string name="button_save_setting">Save</string>
+    <string name="button_pick_library">Save</string>
+    <string name="button_set_timer">Set</string>
 
     <!-- Home screen -->
     <string name="hint_search_channel">Search by channel name or country</string>
@@ -22,6 +36,7 @@
 
     <!-- Library list screen -->
     <string name="label_library_list">Library list</string>
+    <string name="hint_search_library">Enter playlist name</string>
 
     <!-- Player screen -->
     <string name="button_slow">Slow</string>
@@ -78,7 +93,9 @@
 
 
     <!-- For debug -->
+    <string name="ads_place">Ads place</string>
     <string name="default_channel_name">TBS Radio</string>
+    <string name="default_recorded_program_name">Japanese classical music</string>
     <string name="default_channel_description">Current program : \n&#8211; Japanese classical music   14:30 &#8211; 15:00\n\nDescription :\nJapanese folk songs for children.</string>
 
     <string name="debug_select">Select %1$s</string>

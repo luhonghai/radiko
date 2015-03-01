@@ -13,15 +13,14 @@
         >
         <Button
             android:id="@+id/btnDelete"
-            android:layout_width="@dimen/button_big_size"
-            android:layout_height="@dimen/button_big_size"
+            android:layout_width="@dimen/button_action_size"
+            android:layout_height="@dimen/button_action_size"
             android:text="@string/button_delete"
             android:background="@color/red_delete"
             android:paddingTop="@dimen/tabs_padding"
             android:paddingBottom="@dimen/tabs_padding"
             android:textColor="@android:color/white"
-            android:textAppearance="?android:attr/textAppearanceButton"
-            android:layout_margin="@dimen/button_media_margin"/>
+            android:textAppearance="?android:attr/textAppearanceButton"/>
     </LinearLayout>
     <RelativeLayout
         android:orientation="vertical"
@@ -34,7 +33,7 @@
         <TextView
             android:id="@+id/txtChannelTitle"
             android:layout_width="match_parent"
-            android:layout_height="wrap_content"
+            android:layout_height="match_parent"
             android:textSize="@dimen/font_size_title"
             android:gravity="center_vertical|center_horizontal"
             android:text="@string/default_channel_name"/>

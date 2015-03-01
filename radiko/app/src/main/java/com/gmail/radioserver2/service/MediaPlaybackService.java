@@ -49,6 +49,8 @@ import android.provider.BaseColumns;
 
 import com.dotohsoft.rtmpdump.RTMP;
 import com.gmail.radioserver2.R;
+import com.gmail.radioserver2.data.RecordedProgram;
+import com.gmail.radioserver2.data.sqlite.ext.RecordedProgramDBAdapter;
 import com.gmail.radioserver2.provider.Media;
 import android.util.Log;
 import android.widget.RemoteViews;
@@ -61,6 +63,7 @@ import java.io.FileDescriptor;
 import java.io.IOException;
 import java.io.PrintWriter;
 import java.lang.ref.WeakReference;
+import java.util.Date;
 import java.util.Random;
 import java.util.Vector;
 import java.util.WeakHashMap;
@@ -68,6 +71,8 @@ import java.util.WeakHashMap;
 import wseemann.media.FFmpegMediaPlayer;
 
 import com.gmail.radioserver2.receiver.MediaButtonIntentReceiver;
+import com.gmail.radioserver2.utils.FileHelper;
+import com.gmail.radioserver2.utils.SimpleAppLog;
 
 import org.apache.commons.io.FileUtils;
 
@@ -174,6 +179,8 @@ public class MediaPlaybackService extends Service {
 
     private final WeakHashMap<String, RTMP> mRTMP = new WeakHashMap<String, RTMP>();
 
+    private Date startRecordingTime;
+
     private class RTMPRunnable implements Runnable {
         private final String mToken;
         private final File mTmpFile;
@@ -191,47 +198,75 @@ public class MediaPlaybackService extends Service {
                     e.printStackTrace();
                 }
             }
-            synchronized (mRTMP) {
-                RTMP rtmp = new RTMP();
-                mRTMP.put(W_REF, rtmp);
-                rtmp.init(mToken, mTmpFile.getAbsolutePath());
-            }
+            RTMP rtmp = new RTMP();
+            mRTMP.put(W_REF, rtmp);
+            startRecordingTime = new Date(System.currentTimeMillis());
+            rtmp.init("S:" + mToken, mTmpFile.getAbsolutePath());
         }
     }
-
-    private Handler mRtmpHandler = new Handler();
 
     private RTMPRunnable rtmpRunnable;
 
     private boolean isRecording = false;
 
-    public void stopRecord() {
-        if (rtmpRunnable != null) {
+    private void stopRecordingProcess() {
+        SimpleAppLog.debug("Try to stop recording");
+        if (mRTMP.size() > 0 && mRTMP.containsKey(W_REF)) {
             try {
-                mRtmpHandler.removeCallbacks(rtmpRunnable);
+                final RTMP tmp = mRTMP.get(W_REF);
+                tmp.stop();
+                mRTMP.remove(W_REF);
             } catch (Exception ex) {
                 ex.printStackTrace();
             }
         }
-        synchronized (mRTMP) {
-            if (mRTMP.size() > 0 && mRTMP.containsKey(W_REF)) {
-                try {
-                    final RTMP tmp = mRTMP.get(W_REF);
-                    tmp.stop();
-                    mRTMP.remove(W_REF);
-                } catch (Exception ex) {
-                    ex.printStackTrace();
-                }
+    }
+
+    public void stopRecord() {
+        SimpleAppLog.debug("Call stop recording");
+        File tmpFile = null;
+        if (rtmpRunnable != null) {
+            tmpFile = rtmpRunnable.mTmpFile;
+        }
+        SimpleAppLog.debug("Tmp recorded file: " + tmpFile);
+        stopRecordingProcess();
+        SimpleAppLog.debug("Save recorded program to database");
+        if (tmpFile != null && tmpFile.exists()) {
+            FileHelper fileHelper = new FileHelper(getApplicationContext());
+
+            RecordedProgramDBAdapter adapter = new RecordedProgramDBAdapter(getApplicationContext());
+            RecordedProgram recordedProgram = new RecordedProgram();
+            recordedProgram.setChannelName(getResources().getString(R.string.default_channel_name));
+            recordedProgram.setName(getResources().getString(R.string.default_recorded_program_name));
+            recordedProgram.setStartTime(startRecordingTime);
+            long endTime = System.currentTimeMillis();
+            recordedProgram.setEndTime(new Date(endTime));
+            File recordedFile = new File(fileHelper.getRecordedProgramFolder(), startRecordingTime.getTime() + "-" + endTime + ".flv");
+            try {
+                FileUtils.copyFile(tmpFile, recordedFile);
+            } catch (IOException e) {
+                SimpleAppLog.error("Could not move recorded file", e);
+            }
+            if (recordedFile.exists())
+                recordedProgram.setFilePath(recordedFile.getPath());
+            try {
+                adapter.open();
+                adapter.insert(recordedProgram);
+                SimpleAppLog.debug("Save recording complete");
+            } catch (Exception e) {
+                SimpleAppLog.error("Could not insert recorded program", e);
+            } finally {
+                adapter.close();
             }
         }
         isRecording = false;
     }
 
     public void startRecord(String token, String filePath) {
-        stopRecord();
+        stopRecordingProcess();
         isRecording = true;
         rtmpRunnable = new RTMPRunnable(token, new File(filePath));
-        mRtmpHandler.post(rtmpRunnable);
+        new Thread(rtmpRunnable).start();
     }
 
     public boolean isRecording() {
@@ -927,7 +962,7 @@ public class MediaPlaybackService extends Service {
      * or that the play-state changed (paused/resumed).
      */
     private void notifyChange(String what) {
-
+        checkAB();
         Intent i = new Intent(what);
         i.putExtra("id", Long.valueOf(getAudioId()));
         i.putExtra("artist", getArtistName());
@@ -1453,14 +1488,18 @@ public class MediaPlaybackService extends Service {
             mIsSupposedToBePlaying = false;
         }
         if (mRTMPSuck.size() > 0) {
-            RTMPSuck rtmpSuck = mRTMPSuck.get(W_REF);
-            if (rtmpSuck!=null) {
-                try {
-                    rtmpSuck.stop();
-                } catch (Exception ex) {
-                    //
+            try {
+                RTMPSuck rtmpSuck = mRTMPSuck.get(W_REF);
+                if (rtmpSuck != null) {
+                    try {
+                        rtmpSuck.stop();
+                    } catch (Exception ex) {
+                        //
+                    }
+                    mRTMPSuck.remove(W_REF);
                 }
-                mRTMPSuck.remove(W_REF);
+            } catch (Exception ex) {
+
             }
         }
     }
@@ -2061,7 +2100,7 @@ public class MediaPlaybackService extends Service {
     public long seek(long pos) {
         if (mPlayer.isInitialized()) {
             if (pos < 0) pos = 0;
-            if (pos > mPlayer.duration()) pos = mPlayer.duration();
+            if (pos > mPlayer.duration() && mPlayer.duration() != 0) pos = mPlayer.duration();
             return mPlayer.seek(pos);
         }
         return -1;

@@ -35,11 +35,28 @@
                 android:layout_marginRight="@dimen/title_margin"
                 android:layout_marginEnd="@dimen/title_margin">
                 <Spinner
+                    android:id="@+id/spinnerTimerType"
                     android:layout_width="match_parent"
                     android:layout_height="match_parent"
                     android:entries="@array/timer_type"
-                    android:spinnerMode="dialog" />
+                    android:spinnerMode="dropdown" />
                 </RelativeLayout>
+            <RelativeLayout
+                android:id="@+id/relativeLayoutTimePicker"
+                android:layout_width="wrap_content"
+                android:layout_height="@dimen/layout_item_height"
+                android:layout_weight="1"
+                android:visibility="gone"
+                android:background="@android:color/white"
+                android:layout_marginRight="@dimen/title_margin"
+                android:layout_marginEnd="@dimen/title_margin">
+                <Spinner
+                    android:id="@+id/spinnerTimePicker"
+                    android:layout_width="match_parent"
+                    android:layout_height="match_parent"
+                    android:entries="@array/day_of_week"
+                    android:spinnerMode="dropdown" />
+            </RelativeLayout>
 
             <EditText
                 android:layout_width="match_parent"
@@ -48,10 +65,10 @@
                 android:background="@android:color/white"
                 android:layout_marginLeft="@dimen/title_margin"
                 android:layout_marginStart="@dimen/title_margin"
+                android:gravity="center_horizontal|center_vertical"
                 android:inputType="none"
                 android:layout_weight="1"
-                android:id="@+id/txtTimePicker"
-                android:enabled="false" />
+                android:id="@+id/txtTimePicker"/>
         </LinearLayout>
      </RelativeLayout>
     <TextView
@@ -83,7 +100,6 @@
                     android:id="@+id/spinnerStartHour"
                     android:layout_width="match_parent"
                     android:layout_height="match_parent"
-                    android:entries="@array/hour_list"
                     android:spinnerMode="dialog" />
             </RelativeLayout>
             <TextView
@@ -105,7 +121,6 @@
                     android:id="@+id/spinnerStartMinute"
                     android:layout_width="match_parent"
                     android:layout_height="match_parent"
-                    android:entries="@array/minute_list"
                     android:spinnerMode="dialog" />
             </RelativeLayout>
         </LinearLayout>
@@ -139,7 +154,6 @@
                     android:id="@+id/spinnerFinishHour"
                     android:layout_width="match_parent"
                     android:layout_height="match_parent"
-                    android:entries="@array/hour_list"
                     android:spinnerMode="dialog" />
             </RelativeLayout>
             <TextView
@@ -161,7 +175,6 @@
                     android:id="@+id/spinnerFinishMinute"
                     android:layout_width="match_parent"
                     android:layout_height="match_parent"
-                    android:entries="@array/minute_list"
                     android:spinnerMode="dialog" />
             </RelativeLayout>
         </LinearLayout>
@@ -194,10 +207,11 @@
                 android:layout_marginRight="@dimen/title_margin"
                 android:layout_marginEnd="@dimen/title_margin">
                 <Spinner
+                    android:id="@+id/spinnerModeType"
                     android:layout_width="match_parent"
                     android:layout_height="match_parent"
                     android:entries="@array/mode_type"
-                    android:spinnerMode="dialog" />
+                    android:spinnerMode="dropdown" />
             </RelativeLayout>
             <FrameLayout
                 android:layout_width="match_parent"
@@ -225,7 +239,7 @@
             android:layout_width="match_parent"
             android:layout_height="@dimen/button_big_size"
             android:textStyle="bold"
-            android:text="@string/button_set"
+            android:text="@string/button_set_timer"
             android:layout_margin="@dimen/title_margin"
             android:background="@drawable/rounded_corner_color_button"
             android:textColor="@android:color/white"

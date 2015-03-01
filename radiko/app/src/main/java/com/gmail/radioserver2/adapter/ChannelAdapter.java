@@ -45,22 +45,19 @@ public class ChannelAdapter extends DefaultAdapter<Channel> {
             ((SwipeListView)parent).recycle(convertView, position);
         }
         Channel channel = getObjects()[position];
-        holder.txtTitle.setText(channel.toString());
+        holder.txtTitle.setText(channel.toPrettyString(getContext()));
         holder.txtTitle.setTag(channel);
         holder.txtTitle.setOnClickListener(new View.OnClickListener() {
             @Override
             public void onClick(View v) {
-                //Toast.makeText(mContext, "Select chanel " + v.getTag(), Toast.LENGTH_SHORT).show();
-                Intent intent = new Intent(Constants.INTENT_FILTER_FRAGMENT_ACTION);
-                intent.putExtra(Constants.FRAGMENT_ACTION_TYPE, Constants.ACTION_SELECT_CHANNEL_ITEM);
-                getContext().sendBroadcast(intent);
+                getListItemAction().onSelectItem((Channel) v.getTag());
             }
         });
         holder.btnDelete.setTag(channel);
         holder.btnDelete.setOnClickListener(new View.OnClickListener() {
             @Override
             public void onClick(View v) {
-                Toast.makeText(getContext(), getContext().getResources().getString(R.string.debug_delete,v.getTag()), Toast.LENGTH_SHORT).show();
+                getListItemAction().onDeleteItem((Channel) v.getTag());
             }
         });
         return convertView;

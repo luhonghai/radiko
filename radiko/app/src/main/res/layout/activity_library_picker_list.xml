@@ -26,15 +26,16 @@
         <com.gmail.radioserver2.view.swipelistview.SwipeListView
             xmlns:swipe="http://schemas.android.com/apk/res-auto"
             android:transcriptMode="alwaysScroll"
+            android:background="@android:color/white"
             android:id="@+id/list_library"
             android:listSelector="@color/default_background_color"
-            android:layout_width="fill_parent"
-            android:layout_height="wrap_content"
+            android:layout_width="match_parent"
+            android:layout_height="match_parent"
             swipe:swipeFrontView="@+id/front"
             swipe:swipeBackView="@+id/back"
             swipe:swipeActionLeft="reveal"
             swipe:swipeMode="left"
-            swipe:swipeOffsetLeft="290dp"
+            swipe:swipeOffsetLeft="280dp"
             />
     </RelativeLayout>
     <TextView
@@ -48,6 +49,7 @@
         android:text="@string/label_create_new_library"
         android:minWidth="100dp"/>
     <EditText
+        android:id="@+id/txtLibraryName"
         android:layout_width="match_parent"
         android:layout_height="@dimen/layout_item_height"
         android:layout_margin="@dimen/title_margin"
@@ -58,7 +60,7 @@
         android:layout_width="match_parent"
         android:layout_height="@dimen/button_big_size"
         android:textStyle="bold"
-        android:text="@string/button_save"
+        android:text="@string/button_pick_library"
         android:layout_margin="@dimen/title_margin"
         android:background="@drawable/rounded_corner_color_button"
         android:textColor="@android:color/white"

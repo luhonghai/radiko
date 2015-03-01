@@ -49,28 +49,26 @@ public class RecordedProgramAdapter extends DefaultAdapter<RecordedProgram> {
             ((SwipeListView)parent).recycle(convertView, position);
         }
         RecordedProgram object = getObjects()[position];
-        holder.txtTitle.setText(object.toString());
+        holder.txtTitle.setText(object.toPrettyString(getContext()));
         holder.txtTitle.setTag(object);
         holder.txtTitle.setOnClickListener(new View.OnClickListener() {
             @Override
             public void onClick(View v) {
-                Toast.makeText(getContext(), getContext().getResources().getString(R.string.debug_select,v.getTag()), Toast.LENGTH_SHORT).show();
+                getListItemAction().onSelectItem((RecordedProgram) v.getTag());
             }
         });
         holder.btnDelete.setTag(object);
         holder.btnDelete.setOnClickListener(new View.OnClickListener() {
             @Override
             public void onClick(View v) {
-                Toast.makeText(getContext(), getContext().getResources().getString(R.string.debug_delete,v.getTag()), Toast.LENGTH_SHORT).show();
+                getListItemAction().onDeleteItem((RecordedProgram) v.getTag());
             }
         });
         holder.btnEdit.setTag(object);
         holder.btnEdit.setOnClickListener(new View.OnClickListener() {
             @Override
             public void onClick(View v) {
-                Intent intent = new Intent();
-                intent.setClass(getContext(), LibraryPickerActivity.class);
-                getContext().startActivity(intent);
+                getListItemAction().onEditItem((RecordedProgram) v.getTag());
             }
         });
         return convertView;

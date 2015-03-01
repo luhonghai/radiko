@@ -10,6 +10,19 @@
         android:orientation="vertical"
         android:background="@android:color/white"
         android:layout_marginTop="@dimen/default_top_margin">
+        <RelativeLayout
+            android:layout_width="match_parent"
+            android:layout_height="@dimen/button_big_size"
+            android:background="@color/red_delete">
+            <TextView
+                android:layout_width="match_parent"
+                android:layout_height="match_parent"
+                android:textSize="@dimen/button_big_font_size"
+                android:text="@string/ads_place"
+                android:gravity="center_vertical|center_horizontal"
+                android:textColor="@android:color/white"
+                android:textStyle="bold"/>
+        </RelativeLayout>
         <TextView
             android:id="@+id/txtTitle"
             android:layout_width="match_parent"
@@ -27,6 +40,7 @@
                 android:id="@+id/txtDescription"
                 android:layout_width="match_parent"
                 android:layout_height="wrap_content"
+                android:gravity="center"
                 android:textSize="@dimen/font_size_description"
                 android:text="@string/default_channel_description"/>
         </ScrollView>
@@ -77,11 +91,11 @@
                 android:orientation="horizontal">
 
                 <Button
-                    android:id="@+id/btnFast"
+                    android:id="@+id/btnSlow"
                     android:layout_width="0dp"
                     android:layout_height="match_parent"
                     android:layout_weight="1"
-                    android:text="@string/button_fast"
+                    android:text="@string/button_slow"
                     android:background="@drawable/rounded_corner_button"
                     android:textAppearance="?android:attr/textAppearanceButton"
                     android:layout_margin="@dimen/button_media_margin"/>
@@ -96,14 +110,15 @@
                     android:textAppearance="?android:attr/textAppearanceButton"
                     android:layout_margin="@dimen/button_media_margin"/>
                 <Button
-                    android:id="@+id/btnSlow"
+                    android:id="@+id/btnFast"
                     android:layout_width="0dp"
                     android:layout_height="match_parent"
                     android:layout_weight="1"
-                    android:text="@string/button_slow"
+                    android:text="@string/button_fast"
                     android:background="@drawable/rounded_corner_button"
                     android:textAppearance="?android:attr/textAppearanceButton"
                     android:layout_margin="@dimen/button_media_margin"/>
+
             </LinearLayout>
         </LinearLayout>
         <LinearLayout
@@ -148,7 +163,7 @@
                 android:text="@string/button_repeat"
                 android:drawableTop="@drawable/icon_repeat"
                 android:background="@drawable/rounded_corner_button"
-                android:textAppearance="?android:attr/textAppearanceButton"
+                android:textAppearance="?android:attr/textAppearanceSmall"
                 android:layout_margin="@dimen/button_media_margin"/>
         </LinearLayout>
     </LinearLayout>

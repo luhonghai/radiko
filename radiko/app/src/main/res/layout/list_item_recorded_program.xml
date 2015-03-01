@@ -16,26 +16,24 @@
             android:layout_height="wrap_content">
             <Button
                 android:id="@+id/btnEdit"
-                android:layout_width="@dimen/button_big_size"
-                android:layout_height="@dimen/button_big_size"
+                android:layout_width="@dimen/button_action_size"
+                android:layout_height="@dimen/button_action_size"
                 android:text="@string/button_edit"
                 android:background="@color/gray_edit"
                 android:textColor="@android:color/white"
-                android:textSize="12sp"
-                android:layout_margin="@dimen/button_media_margin"/>
+                android:textSize="12sp"/>
             </RelativeLayout>
         <RelativeLayout
             android:layout_width="wrap_content"
             android:layout_height="wrap_content">
         <Button
             android:id="@+id/btnDelete"
-            android:layout_width="@dimen/button_big_size"
-            android:layout_height="@dimen/button_big_size"
+            android:layout_width="@dimen/button_action_size"
+            android:layout_height="@dimen/button_action_size"
             android:text="@string/button_delete"
             android:background="@color/red_delete"
             android:textColor="@android:color/white"
-            android:textAppearance="?android:attr/textAppearanceButton"
-            android:layout_margin="@dimen/button_media_margin"/>
+            android:textAppearance="?android:attr/textAppearanceButton"/>
         </RelativeLayout>
     </LinearLayout>
     <RelativeLayout
@@ -49,7 +47,7 @@
         <TextView
             android:id="@+id/txtTitle"
             android:layout_width="match_parent"
-            android:layout_height="wrap_content"
+            android:layout_height="match_parent"
             android:gravity="center_vertical|center_horizontal"
             android:textAppearance="?android:attr/textAppearanceMedium"
             android:text="@string/default_channel_name"/>

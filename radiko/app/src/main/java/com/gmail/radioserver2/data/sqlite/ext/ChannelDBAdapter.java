@@ -7,6 +7,8 @@ import com.gmail.radioserver2.data.Channel;
 import com.gmail.radioserver2.data.sqlite.DBAdapter;
 import com.gmail.radioserver2.utils.DateHelper;
 
+import java.util.Collection;
+
 /**
  * Created by luhonghai on 25/02/2015.
  */
@@ -52,5 +54,19 @@ public class ChannelDBAdapter extends DBAdapter<Channel> {
         channel.setLastPlayedTime(DateHelper.convertStringToDate(cursor.getString(cursor.getColumnIndex(KEY_LAST_PLAYED_TIME))));
         channel.setCreatedDate(DateHelper.convertStringToDate(cursor.getString(cursor.getColumnIndex(KEY_CREATED_DATE))));
         return channel;
+    }
+
+    @Override
+    public Collection<Channel> search(String s) throws Exception {
+        if (s == null || s.length() == 0) return findAll();
+        return toCollection(getDB().query(getTableName(), getAllColumns(),
+                KEY_NAME + " like ? or " + KEY_DESCRIPTION + " like ?",
+                new String[] {
+                    "%" + s + "%",
+                    "%" + s + "%",
+                },
+                null,
+                null,
+                KEY_LAST_PLAYED_TIME + " DESC, " + KEY_NAME + " ASC"));
     }
 }

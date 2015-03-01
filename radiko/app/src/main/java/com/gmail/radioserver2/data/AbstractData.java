@@ -1,6 +1,7 @@
 package com.gmail.radioserver2.data;
 
 import android.content.ContentValues;
+import android.content.Context;
 import android.database.Cursor;
 
 import java.util.Date;
@@ -13,6 +14,8 @@ public abstract class AbstractData<T> {
     private long id;
 
     private Date createdDate;
+
+    public abstract String toPrettyString(Context context);
 
     public abstract ContentValues toContentValues();
 

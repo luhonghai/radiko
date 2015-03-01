@@ -32,6 +32,14 @@ public class Constants {
 
     public static final String TAB_SETTING = "TAB_SETTING";
 
+    public static final int TAB_HOME_ID = 0;
+
+    public static final int TAB_RECORDED_PROGRAM_ID = 1;
+
+    public static final int TAB_LIBRARY_ID = 2;
+
+    public static final int TAB_SETTING_ID = 3;
+
     /**
      *  Fragment action intent
      */
@@ -42,4 +50,16 @@ public class Constants {
     public static final int ACTION_CLICK_BACK_PLAYER = 1;
 
     public static final int ACTION_SELECT_CHANNEL_ITEM = 2;
+
+    public static final int ACTION_CALL_SELECT_TAB = 3;
+
+    public static final int ACTION_SELECT_LIBRARY_ITEM = 4;
+
+    public static final int ACTION_SELECT_RECORDED_PROGRAM_ITEM = 5;
+
+    public static final String PARAMETER_SELECTED_TAB_ID = "PARAMETER_SELECTED_TAB_ID";
+
+    public static final String PARAMETER_SELECTED_TAB = "PARAMETER_SELECTED_TAB";
+
+    public static final String ARG_OBJECT = "ARG_OBJECT";
 }
