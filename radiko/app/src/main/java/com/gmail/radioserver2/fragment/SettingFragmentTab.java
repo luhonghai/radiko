@@ -8,6 +8,7 @@ import android.view.ViewGroup;
 import android.widget.Button;
 import android.widget.EditText;
 import android.widget.SeekBar;
+import android.widget.Spinner;
 import android.widget.Switch;
 
 import com.gmail.radioserver2.R;
@@ -29,6 +30,8 @@ public class SettingFragmentTab extends FragmentTab implements View.OnClickListe
     private EditText txtChannelName;
     private EditText txtChannelURL;
 
+    private Spinner spinnerTokenType;
+
     private Switch switchRegion;
 
     @Override
@@ -41,6 +44,9 @@ public class SettingFragmentTab extends FragmentTab implements View.OnClickListe
         txtChannelName = (EditText) v.findViewById(R.id.txtChannelName);
         txtChannelURL = (EditText) v.findViewById(R.id.txtChannelURL);
         switchRegion = (Switch) v.findViewById(R.id.switchRegion);
+        spinnerTokenType = (Spinner) v.findViewById(R.id.spinnerTokenType);
+        v.findViewById(R.id.lblTokenType).setVisibility(getResources().getBoolean(R.bool.is_debug_mode) ? View.VISIBLE : View.GONE);
+        v.findViewById(R.id.rlTokenType).setVisibility(getResources().getBoolean(R.bool.is_debug_mode) ? View.VISIBLE : View.GONE);
         loadData();
         return v;
     }
@@ -52,6 +58,7 @@ public class SettingFragmentTab extends FragmentTab implements View.OnClickListe
         seekBarSlowLevel.setProgress(setting.getSlowLevelPercent());
         seekBarBackLength.setProgress(setting.getBackLengthPercent());
         switchRegion.setChecked(setting.isRegion());
+        spinnerTokenType.setSelection(setting.getTokenType());
     }
 
     private void saveData() {
@@ -60,6 +67,7 @@ public class SettingFragmentTab extends FragmentTab implements View.OnClickListe
         setting.applySlowLevel(seekBarSlowLevel.getProgress());
         setting.applyBackLength(seekBarBackLength.getProgress());
         setting.setRegion(switchRegion.isChecked());
+        setting.setTokenType(spinnerTokenType.getSelectedItemPosition());
         setting.save();
         String channelName = txtChannelName.getText().toString().trim();
         String channelURL = txtChannelURL.getText().toString().trim();
@@ -91,6 +99,7 @@ public class SettingFragmentTab extends FragmentTab implements View.OnClickListe
         switchRegion = null;
         txtChannelName = null;
         txtChannelURL = null;
+        spinnerTokenType = null;
     }
 
     @Override

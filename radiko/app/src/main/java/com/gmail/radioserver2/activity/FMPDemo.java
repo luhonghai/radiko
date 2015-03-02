@@ -279,7 +279,7 @@ public class FMPDemo extends FragmentActivity implements ServiceConnection, View
                     AsyncTask<Void, Void, Void> getTokenTask = new AsyncTask<Void, Void, Void>() {
                         @Override
                         protected Void doInBackground(Void... params) {
-                            final File tmpFile = fileHelper.getTokenFile();
+                            final File tmpFile = fileHelper.getTokenFile(getClass().getName());
                             try {
                                 if (tmpFile.exists())
                                     FileUtils.forceDelete(tmpFile);

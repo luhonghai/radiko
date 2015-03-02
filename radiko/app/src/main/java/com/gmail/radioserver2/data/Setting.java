@@ -14,6 +14,7 @@ public class Setting {
     private static final String KEY_FAST = "fast";
     private static final String KEY_BACK = "back";
     private static final String KEY_REGION = "region";
+    private static final String KEY_TOKEN_TYPE = "token_type";
 
     public static final float MAX_SLOW_LEVEL = -0.3f;
 
@@ -27,6 +28,10 @@ public class Setting {
 
     public static final float MIN_BACK_LENGTH = 10.0f;
 
+    public static final int TOKEN_TYPE_CLIENT = 0;
+
+    public static final int TOKEN_TYPE_SERVER = 1;
+
     private final Context context;
 
     private float slowLevel = MIN_SLOW_LEVEL;
@@ -36,6 +41,8 @@ public class Setting {
     private float backLength = MIN_BACK_LENGTH;
 
     private boolean isRegion = true;
+
+    private int tokenType;
 
     public Setting(Context context) {
         this.context = context;
@@ -47,6 +54,7 @@ public class Setting {
         this.fastLevel = preferences.getFloat(KEY_FAST, MIN_FAST_LEVEL);
         this.backLength = preferences.getFloat(KEY_BACK, MIN_BACK_LENGTH);
         this.isRegion = preferences.getBoolean(KEY_REGION, true);
+        this.setTokenType(preferences.getInt(KEY_TOKEN_TYPE, TOKEN_TYPE_CLIENT));
     }
 
     public void save() {
@@ -56,6 +64,7 @@ public class Setting {
         editor.putFloat(KEY_FAST, fastLevel);
         editor.putFloat(KEY_BACK, backLength);
         editor.putBoolean(KEY_REGION, isRegion);
+        editor.putInt(KEY_TOKEN_TYPE, getTokenType());
         editor.apply();
     }
 
@@ -113,5 +122,13 @@ public class Setting {
 
     public void setRegion(boolean isRegion) {
         this.isRegion = isRegion;
+    }
+
+    public int getTokenType() {
+        return tokenType;
+    }
+
+    public void setTokenType(int tokenType) {
+        this.tokenType = tokenType;
     }
 }

@@ -65,6 +65,7 @@ import java.io.PrintWriter;
 import java.lang.ref.WeakReference;
 import java.util.Date;
 import java.util.Random;
+import java.util.UUID;
 import java.util.Vector;
 import java.util.WeakHashMap;
 
@@ -177,100 +178,63 @@ public class MediaPlaybackService extends Service {
 
     private final WeakHashMap<String, RTMPSuck> mRTMPSuck = new WeakHashMap<String, RTMPSuck>();
 
-    private final WeakHashMap<String, RTMP> mRTMP = new WeakHashMap<String, RTMP>();
-
     private Date startRecordingTime;
 
-    private class RTMPRunnable implements Runnable {
-        private final String mToken;
-        private final File mTmpFile;
-        private RTMPRunnable(String mToken, File mTmpFile) {
-            this.mToken = mToken;
-            this.mTmpFile = mTmpFile;
+    private FFmpegMediaPlayer.OnRecordingListener recordingListener = new FFmpegMediaPlayer.OnRecordingListener() {
+        @Override
+        public void onCompleted(String filePath) {
+            if (filePath == null || filePath.length() == 0) {
+                SimpleAppLog.error("Recoding could not be completed");
+                return;
+            }
+            File tmpFile = new File(filePath);
+            if (tmpFile.exists()) {
+                FileHelper fileHelper = new FileHelper(getApplicationContext());
+
+                RecordedProgramDBAdapter adapter = new RecordedProgramDBAdapter(getApplicationContext());
+                RecordedProgram recordedProgram = new RecordedProgram();
+                recordedProgram.setChannelName(getResources().getString(R.string.default_channel_name));
+                recordedProgram.setName(getResources().getString(R.string.default_recorded_program_name));
+                recordedProgram.setStartTime(startRecordingTime);
+                long endTime = System.currentTimeMillis();
+                recordedProgram.setEndTime(new Date(endTime));
+                File recordedFile = new File(fileHelper.getRecordedProgramFolder(), startRecordingTime.getTime() + "-" + endTime + ".wav");
+                try {
+                    FileUtils.copyFile(tmpFile, recordedFile);
+                } catch (IOException e) {
+                    SimpleAppLog.error("Could not move recorded file", e);
+                }
+                if (recordedFile.exists())
+                    recordedProgram.setFilePath(recordedFile.getPath());
+                try {
+                    adapter.open();
+                    adapter.insert(recordedProgram);
+                    SimpleAppLog.debug("Save recording complete");
+                } catch (Exception e) {
+                    SimpleAppLog.error("Could not insert recorded program", e);
+                } finally {
+                    adapter.close();
+                }
+            }
         }
 
         @Override
-        public void run() {
-            if (mTmpFile.exists()) {
-                try {
-                    FileUtils.forceDelete(mTmpFile);
-                } catch (IOException e) {
-                    e.printStackTrace();
-                }
-            }
-            RTMP rtmp = new RTMP();
-            mRTMP.put(W_REF, rtmp);
-            startRecordingTime = new Date(System.currentTimeMillis());
-            rtmp.init("S:" + mToken, mTmpFile.getAbsolutePath());
+        public void onError(String message, Throwable e) {
+            SimpleAppLog.error(message, e);
         }
-    }
-
-    private RTMPRunnable rtmpRunnable;
-
-    private boolean isRecording = false;
-
-    private void stopRecordingProcess() {
-        SimpleAppLog.debug("Try to stop recording");
-        if (mRTMP.size() > 0 && mRTMP.containsKey(W_REF)) {
-            try {
-                final RTMP tmp = mRTMP.get(W_REF);
-                tmp.stop();
-                mRTMP.remove(W_REF);
-            } catch (Exception ex) {
-                ex.printStackTrace();
-            }
-        }
-    }
+    };
 
     public void stopRecord() {
-        SimpleAppLog.debug("Call stop recording");
-        File tmpFile = null;
-        if (rtmpRunnable != null) {
-            tmpFile = rtmpRunnable.mTmpFile;
-        }
-        SimpleAppLog.debug("Tmp recorded file: " + tmpFile);
-        stopRecordingProcess();
-        SimpleAppLog.debug("Save recorded program to database");
-        if (tmpFile != null && tmpFile.exists()) {
-            FileHelper fileHelper = new FileHelper(getApplicationContext());
-
-            RecordedProgramDBAdapter adapter = new RecordedProgramDBAdapter(getApplicationContext());
-            RecordedProgram recordedProgram = new RecordedProgram();
-            recordedProgram.setChannelName(getResources().getString(R.string.default_channel_name));
-            recordedProgram.setName(getResources().getString(R.string.default_recorded_program_name));
-            recordedProgram.setStartTime(startRecordingTime);
-            long endTime = System.currentTimeMillis();
-            recordedProgram.setEndTime(new Date(endTime));
-            File recordedFile = new File(fileHelper.getRecordedProgramFolder(), startRecordingTime.getTime() + "-" + endTime + ".flv");
-            try {
-                FileUtils.copyFile(tmpFile, recordedFile);
-            } catch (IOException e) {
-                SimpleAppLog.error("Could not move recorded file", e);
-            }
-            if (recordedFile.exists())
-                recordedProgram.setFilePath(recordedFile.getPath());
-            try {
-                adapter.open();
-                adapter.insert(recordedProgram);
-                SimpleAppLog.debug("Save recording complete");
-            } catch (Exception e) {
-                SimpleAppLog.error("Could not insert recorded program", e);
-            } finally {
-                adapter.close();
-            }
-        }
-        isRecording = false;
+        mPlayer.stopRecording();
     }
 
     public void startRecord(String token, String filePath) {
-        stopRecordingProcess();
-        isRecording = true;
-        rtmpRunnable = new RTMPRunnable(token, new File(filePath));
-        new Thread(rtmpRunnable).start();
+        startRecordingTime = new Date(System.currentTimeMillis());
+        mPlayer.startRecording(new File(FileUtils.getTempDirectory(), UUID.randomUUID().toString() + ".wav").getAbsolutePath());
     }
 
     public boolean isRecording() {
-        return isRecording;
+        return mPlayer.isRecording();
     }
 
     public void doBack(int length) {
@@ -2144,6 +2108,19 @@ public class MediaPlaybackService extends Service {
 
         public MultiPlayer() {
             mCurrentMediaPlayer.setWakeMode(MediaPlaybackService.this, PowerManager.PARTIAL_WAKE_LOCK);
+            mCurrentMediaPlayer.setOnRecordingListener(recordingListener);
+        }
+
+        public void startRecording(String path) {
+            mCurrentMediaPlayer.startRecording(path);
+        }
+
+        public void stopRecording() {
+            mCurrentMediaPlayer.stopRecording();
+        }
+
+        public boolean isRecording() {
+            return mCurrentMediaPlayer.isRecording();
         }
 
         public void setDataSource(String path) {

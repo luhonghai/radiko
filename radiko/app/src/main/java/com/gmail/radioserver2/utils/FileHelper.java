@@ -7,6 +7,8 @@ import android.content.pm.PackageManager;
 import org.apache.commons.io.FileUtils;
 
 import java.io.File;
+import java.io.FileInputStream;
+import java.io.FileOutputStream;
 import java.io.IOException;
 
 /**
@@ -37,7 +39,7 @@ public class FileHelper {
 
     public String getTokenString() {
         String token = "";
-        File tmp = getTokenFile();
+        File tmp = getTokenFile("");
         if (tmp.exists()) {
             try {
                 token = FileUtils.readFileToString(tmp).trim();
@@ -48,8 +50,8 @@ public class FileHelper {
         return token;
     }
 
-    public File getTokenFile() {
-        return new File(getApplicationDir(), TOKEN_FILE);
+    public File getTokenFile(String prefix) {
+        return new File(getApplicationDir(), prefix + TOKEN_FILE);
     }
 
     public File getApplicationDir() {
@@ -71,4 +73,6 @@ public class FileHelper {
     public File getRecordedProgramFolder() {
         return new File(getApplicationDir(),RECORDED_PROGRAM_DIR);
     }
+
+
 }

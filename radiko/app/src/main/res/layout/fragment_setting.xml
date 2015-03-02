@@ -100,6 +100,36 @@
             android:id="@+id/switchRegion" />
 
     </LinearLayout>
+    <LinearLayout
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:layout_marginTop="@dimen/default_top_margin">
+        <TextView
+            android:id="@+id/lblTokenType"
+            android:layout_width="wrap_content"
+            android:layout_height="@dimen/layout_item_height"
+            android:textAppearance="?android:attr/textAppearanceButton"
+            android:padding="6dp"
+            android:textColor="@android:color/white"
+            android:background="@color/default_button_color"
+            android:text="@string/label_token_type"
+            android:minWidth="100dp"/>
+        <RelativeLayout
+            android:id="@+id/rlTokenType"
+            android:layout_width="wrap_content"
+            android:layout_height="@dimen/layout_item_height"
+            android:layout_marginLeft="@dimen/default_top_margin"
+            android:layout_marginRight="@dimen/default_top_margin"
+            android:background="@android:color/white"
+            android:layout_marginEnd="@dimen/title_margin">
+            <Spinner
+                android:id="@+id/spinnerTokenType"
+                android:layout_width="wrap_content"
+                android:layout_height="match_parent"
+                android:entries="@array/token_type_list"
+                android:spinnerMode="dropdown" />
+        </RelativeLayout>
+    </LinearLayout>
     <TextView
         android:layout_width="wrap_content"
         android:layout_height="@dimen/layout_item_height"

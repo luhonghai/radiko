@@ -120,7 +120,9 @@ public class PlayerFragmentTab extends FragmentTab implements ServiceConnection,
         mServiceToken = MusicUtils.bindToService(getActivity(), this);
 
         TokenFetcher tokenFetcher;
-        if (getResources().getBoolean(R.bool.radiko_token_type)) {
+        Setting setting = new Setting(getActivity());
+        setting.load();
+        if (setting.getTokenType() == Setting.TOKEN_TYPE_CLIENT) {
             tokenFetcher  = new ClientTokenFetcher(getActivity(),onTokenListener);
         } else {
             tokenFetcher  = new ServerTokenFetcher(getActivity(),onTokenListener);
@@ -427,7 +429,9 @@ public class PlayerFragmentTab extends FragmentTab implements ServiceConnection,
                     isRecording = true;
                     switchButtonStage(ButtonStage.DISABLED);
                     TokenFetcher tokenFetcher;
-                    if (getResources().getBoolean(R.bool.radiko_token_type)) {
+                    Setting setting = new Setting(getActivity());
+                    setting.load();
+                    if (setting.getTokenType() == Setting.TOKEN_TYPE_CLIENT) {
                         tokenFetcher  = new ClientTokenFetcher(getActivity(),onTokenRecordingListener);
                     } else {
                         tokenFetcher  = new ServerTokenFetcher(getActivity(),onTokenRecordingListener);

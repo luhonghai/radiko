@@ -4,7 +4,13 @@
     <!-- EN : English -->
     <!-- JA : Japanese -->
     <string name="default_language">JA</string>
-    <!-- True = get token by user device-->
-    <!-- False = get token from Dotoh server -->
-    <bool name="radiko_token_type">true</bool>
+
+    <string name="label_token_type">Token type</string>
+
+    <bool name="is_debug_mode">true</bool>
+
+    <string-array name="token_type_list">
+        <item>Device</item>
+        <item>Server</item>
+    </string-array>
 </resources>
