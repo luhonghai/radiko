@@ -672,7 +672,7 @@ public class FFmpegMediaPlayer
         /* Native setup requires a weak reference to our object.
          * It's easier to create it here than in C++.
          */
-        mBuffer = new byte[200000];
+        mBuffer = new byte[AVCODEC_MAX_AUDIO_FRAME_SIZE];
         native_setup(new WeakReference<FFmpegMediaPlayer>(this), mBuffer);
     }
 
@@ -1311,6 +1311,58 @@ public class FFmpegMediaPlayer
         mEventHandler.removeCallbacksAndMessages(null);
         stopRecording(true);
     }
+
+    /**
+     * Gets the media metadata.
+     *
+     * update_only controls whether the full set of available
+     * metadata is returned or just the set that changed since the
+     * last call. See {@see #METADATA_UPDATE_ONLY} and {@see
+     * #METADATA_ALL}.
+     *
+     * apply_filter if true only metadata that matches the
+     * filter is returned. See {@see #APPLY_METADATA_FILTER} and {@see
+     * #BYPASS_METADATA_FILTER}.
+     *
+     * @return The metadata, possibly empty. null if an error occured.
+    // FIXME: unhide.
+     * {@hide}
+     */
+    public Metadata getMetadata() {//final boolean update_only,
+        //	final boolean apply_filter) {
+        boolean update_only = false;
+        boolean apply_filter = false;
+
+        Metadata data = new Metadata();
+        HashMap<String, String> metadata = null;
+        if ((metadata = native_getMetadata(update_only, apply_filter, metadata)) == null) {
+            return null;
+        }
+
+        // Metadata takes over the parcel, don't recycle it unless
+        // there is an error.
+        if (!data.parse(metadata)) {
+            return null;
+        }
+        return data;
+    }
+
+    /**
+     * @param update_only If true fetch only the set of metadata that have
+     *                    changed since the last invocation of getMetadata.
+     *                    The set is built using the unfiltered
+     *                    notifications the native player sent to the
+     *                    MediaPlayerService during that period of
+     *                    time. If false, all the metadatas are considered.
+     * @param apply_filter  If true, once the metadata set has been built based on
+     *                     the value update_only, the current filter is applied.
+     * @param reply[out] On return contains the serialized
+     *                   metadata. Valid only if the call was successful.
+     * @return The status code.
+     */
+    private native final HashMap<String, String> native_getMetadata(boolean update_only,
+                                                                    boolean apply_filter,
+                                                                    HashMap<String, String> reply);
 
     private native void _reset();
 
@@ -2180,9 +2232,8 @@ public class FFmpegMediaPlayer
     private int initAudioTrack(int streamType, int sampleRateInHz, int channelConfig, int sessionId) {
         channelConfig = (channelConfig == 1) ? AudioFormat.CHANNEL_OUT_MONO : AudioFormat.CHANNEL_OUT_STEREO;
 
-
         int minBufferSize = AudioTrack.getMinBufferSize(sampleRateInHz, channelConfig, AudioFormat.ENCODING_PCM_16BIT) * 4;
-
+        //int minBufferSize = AVCODEC_MAX_AUDIO_FRAME_SIZE;
         recordedSampleRate = sampleRateInHz;
         recordedBufferSize = minBufferSize;
         recordedAudioEncoding = AudioFormat.ENCODING_PCM_16BIT;

@@ -3,6 +3,7 @@ package com.gmail.radioserver2.utils;
 import android.content.Context;
 import android.content.pm.PackageInfo;
 import android.content.pm.PackageManager;
+import android.os.Environment;
 
 import org.apache.commons.io.FileUtils;
 
@@ -16,7 +17,7 @@ import java.io.IOException;
  */
 public class FileHelper {
 
-    private static final String RECORDED_PROGRAM_DIR = "recorded";
+    private static final String RECORDED_PROGRAM_DIR = "radioserver2";
 
     private static final String TOKEN_FILE = "token.txt";
     private static final String TOKEN_TMP_FILE = "token.tmp";
@@ -71,7 +72,7 @@ public class FileHelper {
     }
 
     public File getRecordedProgramFolder() {
-        return new File(getApplicationDir(),RECORDED_PROGRAM_DIR);
+        return new File(Environment.getExternalStorageDirectory(),RECORDED_PROGRAM_DIR);
     }
 
 

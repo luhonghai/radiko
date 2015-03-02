@@ -162,6 +162,7 @@ public class RecordedProgramFragmentTab extends FragmentTab implements OnListIte
                 try {
                     mService.setRepeatMode(MediaPlaybackService.REPEAT_ALL);
                     mService.open(playlist, selectedIndex);
+
                     Intent intent = new Intent(Constants.INTENT_FILTER_FRAGMENT_ACTION);
                     intent.putExtra(Constants.FRAGMENT_ACTION_TYPE, Constants.ACTION_SELECT_RECORDED_PROGRAM_ITEM);
                     getActivity().sendBroadcast(intent);
