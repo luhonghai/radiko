@@ -41,4 +41,9 @@ public class ServerTokenFetcher extends TokenFetcher {
             onError("Could not connect to server", e);
         }
     }
+
+    @Override
+    protected String getPrefixName() {
+        return "server";
+    }
 }

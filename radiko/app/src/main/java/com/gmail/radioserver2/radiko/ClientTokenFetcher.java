@@ -27,4 +27,9 @@ public class ClientTokenFetcher extends TokenFetcher {
         }
 
     }
+
+    @Override
+    protected String getPrefixName() {
+        return "client";
+    }
 }

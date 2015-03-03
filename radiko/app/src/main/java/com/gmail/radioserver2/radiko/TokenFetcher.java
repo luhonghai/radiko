@@ -64,7 +64,7 @@ public abstract class TokenFetcher {
     }
 
     public void fetch() {
-        File savedToken = fileHelper.getTokenFile(getClass().getName());
+        File savedToken = fileHelper.getTokenFile(getPrefixName());
         String token = "";
         if (savedToken.exists()) {
             Gson gson = new Gson();
@@ -92,12 +92,14 @@ public abstract class TokenFetcher {
 
     protected abstract void fetchRemote();
 
+    protected abstract String getPrefixName();
+
     protected void saveToken(String token) throws IOException {
         Gson gson = new Gson();
         RadikoToken radikoToken = new RadikoToken();
         radikoToken.setToken(token);
         radikoToken.setTimestamp(System.currentTimeMillis());
-        FileUtils.writeStringToFile(fileHelper.getTokenFile(getClass().getName()), gson.toJson(radikoToken));
+        FileUtils.writeStringToFile(fileHelper.getTokenFile(getPrefixName()), gson.toJson(radikoToken));
     }
 
     protected void onTokenFound(String token) {
