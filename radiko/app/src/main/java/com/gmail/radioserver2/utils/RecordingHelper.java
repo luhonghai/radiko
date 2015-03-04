@@ -4,6 +4,8 @@ import java.io.FileInputStream;
 import java.io.FileOutputStream;
 import java.io.IOException;
 
+import vavi.sound.pcm.resampling.ssrc.SSRC;
+
 /**
  * Created by luhonghai on 02/03/2015.
  */
@@ -112,5 +114,9 @@ public class RecordingHelper {
         header[43] = (byte) ((totalAudioLen >> 24) & 0xff);
 
         out.write(header, 0, 44);
+    }
+
+    public void resample(byte[] data) {
+        SSRC ssrc = new SSRC();
     }
 }
