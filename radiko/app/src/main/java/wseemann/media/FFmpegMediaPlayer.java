@@ -38,6 +38,7 @@ import android.media.AudioTrack;
 
 import com.gmail.radioserver2.utils.FileHelper;
 import com.gmail.radioserver2.utils.RecordingHelper;
+import com.gmail.radioserver2.utils.SimpleAppLog;
 
 import org.apache.commons.io.FileUtils;
 
@@ -2231,7 +2232,7 @@ public class FFmpegMediaPlayer
 	
     private int initAudioTrack(int streamType, int sampleRateInHz, int channelConfig, int sessionId) {
         channelConfig = (channelConfig == 1) ? AudioFormat.CHANNEL_OUT_MONO : AudioFormat.CHANNEL_OUT_STEREO;
-
+        //int minBufferSize = AudioTrack.getMinBufferSize(sampleRateInHz, channelConfig, AudioFormat.ENCODING_PCM_16BIT);
         int minBufferSize = AudioTrack.getMinBufferSize(sampleRateInHz, channelConfig, AudioFormat.ENCODING_PCM_16BIT) * 4;
         //int minBufferSize = AVCODEC_MAX_AUDIO_FRAME_SIZE;
         recordedSampleRate = sampleRateInHz;
@@ -2239,7 +2240,7 @@ public class FFmpegMediaPlayer
         recordedAudioEncoding = AudioFormat.ENCODING_PCM_16BIT;
         recordedChannel = channelConfig;
 
-        Log.i(TAG, "Minimum buffer size set to: " + minBufferSize);
+        Log.i(TAG, "Minimum buffer size set to: " + minBufferSize + ". Sample rate: " + sampleRateInHz);
         if (!isRecordingOnly) {
             if (sessionId != 0) {
                 mAudioTrack = setAudioSessionIdCompat(streamType, sampleRateInHz, channelConfig,
@@ -2259,6 +2260,7 @@ public class FFmpegMediaPlayer
     		    mAudioTrack.write(mBuffer, 0, frame_size_ptr);
             if (isRecording && fosRecording != null) {
                 try {
+
                     fosRecording.write(mBuffer, 0, frame_size_ptr);
                 } catch (IOException e) {
                     if (recordingListener != null)

@@ -47,7 +47,6 @@ import android.os.SystemClock;
 import android.os.PowerManager.WakeLock;
 import android.provider.BaseColumns;
 
-import com.dotohsoft.rtmpdump.RTMP;
 import com.gmail.radioserver2.R;
 import com.gmail.radioserver2.data.RecordedProgram;
 import com.gmail.radioserver2.data.sqlite.ext.RecordedProgramDBAdapter;
@@ -127,6 +126,9 @@ public class MediaPlaybackService extends Service {
     private static final int MAX_HISTORY_SIZE = 100;
     
     private MultiPlayer mPlayer;
+
+    private DefaultMultiPlayer mDefaultPlayer;
+
     private String mFileToPlay;
     private int mShuffleMode = SHUFFLE_NONE;
     private int mRepeatMode = REPEAT_NONE;
@@ -198,7 +200,7 @@ public class MediaPlaybackService extends Service {
                 recordedProgram.setStartTime(startRecordingTime);
                 long endTime = System.currentTimeMillis();
                 recordedProgram.setEndTime(new Date(endTime));
-                File recordedFile = new File(fileHelper.getRecordedProgramFolder(), startRecordingTime.getTime() + "-" + endTime + ".wav");
+                File recordedFile = new File(fileHelper.getRecordedProgramFolder(), startRecordingTime.getTime() + "-" + endTime + ".mp3");
                 try {
                     FileUtils.copyFile(tmpFile, recordedFile);
                 } catch (IOException e) {
@@ -478,6 +480,9 @@ public class MediaPlaybackService extends Service {
         mPlayer = new MultiPlayer();
         mPlayer.setHandler(mMediaplayerHandler);
 
+        mDefaultPlayer = new DefaultMultiPlayer();
+        mDefaultPlayer.setHandler(mMediaplayerHandler);
+
         reloadQueue();
         notifyChange(QUEUE_CHANGED);
         notifyChange(META_CHANGED);
@@ -513,6 +518,9 @@ public class MediaPlaybackService extends Service {
         sendBroadcast(i);
         mPlayer.release();
         mPlayer = null;
+
+        mDefaultPlayer.release();
+        mDefaultPlayer = null;
 
         mAudioManager.abandonAudioFocus(mAudioFocusListener);
         //mAudioManager.unregisterRemoteControlClient(mRemoteControlClient);
@@ -1298,7 +1306,7 @@ public class MediaPlaybackService extends Service {
             } else {
                 mFileToPlay = path;
             }
-            Log.i("TESTRTMP", "Play stream: " + mFileToPlay);
+            Log.i("TESTRTMP", "Play : " + mFileToPlay);
             mPlayer.setDataSource(mFileToPlay);
             if (mPlayer.isInitialized()) {
                 mOpenFailedCounter = 0;
@@ -2093,6 +2101,157 @@ public class MediaPlaybackService extends Service {
     private String getMediaUri() {
         synchronized (this) {
             return mFileToPlay;
+        }
+    }
+
+    /**
+     * Provides a unified interface for dealing with midi files and
+     * other media files.
+     */
+    private class DefaultMultiPlayer {
+        private MediaPlayer mCurrentMediaPlayer = new MediaPlayer();
+        private MediaPlayer mNextMediaPlayer;
+        private Handler mHandler;
+        private boolean mIsInitialized = false;
+
+        public DefaultMultiPlayer() {
+            mCurrentMediaPlayer.setWakeMode(MediaPlaybackService.this, PowerManager.PARTIAL_WAKE_LOCK);
+        }
+
+        public void setDataSource(String path) {
+            mIsInitialized = setDataSourceImpl(mCurrentMediaPlayer, path);
+        }
+
+        private boolean setDataSourceImpl(MediaPlayer player, String path) {
+            try {
+                player.reset();
+                player.setOnPreparedListener(null);
+                if (path.startsWith("content://")) {
+                    player.setDataSource(MediaPlaybackService.this, Uri.parse(path));
+                } else {
+                    player.setDataSource(path);
+                }
+                player.setAudioStreamType(AudioManager.STREAM_MUSIC);
+                player.setOnPreparedListener(preparedListener);
+                player.prepareAsync();
+            } catch (IOException ex) {
+                // TODO: notify the user why the file couldn't be opened
+                return false;
+            } catch (IllegalArgumentException ex) {
+                // TODO: notify the user why the file couldn't be opened
+                return false;
+            }
+            return true;
+        }
+
+        public boolean isInitialized() {
+            return mIsInitialized;
+        }
+
+        public void start() {
+            MusicUtils.debugLog(new Exception("MultiPlayer.start called"));
+            mCurrentMediaPlayer.start();
+        }
+
+        public void stop() {
+            mCurrentMediaPlayer.reset();
+            mIsInitialized = false;
+        }
+
+        /**
+         * You CANNOT use this player anymore after calling release()
+         */
+        public void release() {
+            stop();
+            mCurrentMediaPlayer.release();
+        }
+
+        public void pause() {
+            mCurrentMediaPlayer.pause();
+        }
+
+        public void setHandler(Handler handler) {
+            mHandler = handler;
+        }
+
+        MediaPlayer.OnPreparedListener preparedListener = new MediaPlayer.OnPreparedListener() {
+            @Override
+            public void onPrepared(MediaPlayer mp) {
+                mp.setOnCompletionListener(listener);
+                mp.setOnErrorListener(errorListener);
+                Intent i = new Intent(AudioEffect.ACTION_OPEN_AUDIO_EFFECT_CONTROL_SESSION);
+                i.putExtra(AudioEffect.EXTRA_AUDIO_SESSION, getAudioSessionId());
+                i.putExtra(AudioEffect.EXTRA_PACKAGE_NAME, getPackageName());
+                sendBroadcast(i);
+                play();
+                notifyChange(META_CHANGED);
+            }
+        };
+
+        MediaPlayer.OnCompletionListener listener = new MediaPlayer.OnCompletionListener() {
+            public void onCompletion(MediaPlayer mp) {
+                if (mp == mCurrentMediaPlayer && mNextMediaPlayer != null) {
+                    mCurrentMediaPlayer.release();
+                    mCurrentMediaPlayer = mNextMediaPlayer;
+                    mNextMediaPlayer = null;
+                    mHandler.sendEmptyMessage(TRACK_WENT_TO_NEXT);
+                } else {
+                    // Acquire a temporary wakelock, since when we return from
+                    // this callback the MediaPlayer will release its wakelock
+                    // and allow the device to go to sleep.
+                    // This temporary wakelock is released when the RELEASE_WAKELOCK
+                    // message is processed, but just in case, put a timeout on it.
+                    mWakeLock.acquire(30000);
+                    mHandler.sendEmptyMessage(TRACK_ENDED);
+                    mHandler.sendEmptyMessage(RELEASE_WAKELOCK);
+                }
+            }
+        };
+
+        MediaPlayer.OnErrorListener errorListener = new MediaPlayer.OnErrorListener() {
+            public boolean onError(MediaPlayer mp, int what, int extra) {
+                switch (what) {
+                    case MediaPlayer.MEDIA_ERROR_SERVER_DIED:
+                        mIsInitialized = false;
+                        mCurrentMediaPlayer.release();
+                        // Creating a new MediaPlayer and settings its wakemode does not
+                        // require the media service, so it's OK to do this now, while the
+                        // service is still being restarted
+                        mCurrentMediaPlayer = new MediaPlayer();
+                        mCurrentMediaPlayer.setWakeMode(MediaPlaybackService.this, PowerManager.PARTIAL_WAKE_LOCK);
+                        mHandler.sendMessageDelayed(mHandler.obtainMessage(SERVER_DIED), 2000);
+                        return true;
+                    default:
+                        Log.d("MultiPlayer", "Error: " + what + "," + extra);
+                        break;
+                }
+                return false;
+            }
+        };
+
+        public long duration() {
+            return mCurrentMediaPlayer.getDuration();
+        }
+
+        public long position() {
+            return mCurrentMediaPlayer.getCurrentPosition();
+        }
+
+        public long seek(long whereto) {
+            mCurrentMediaPlayer.seekTo((int) whereto);
+            return whereto;
+        }
+
+        public void setVolume(float vol) {
+            mCurrentMediaPlayer.setVolume(vol, vol);
+        }
+
+        public void setAudioSessionId(int sessionId) {
+            mCurrentMediaPlayer.setAudioSessionId(sessionId);
+        }
+
+        public int getAudioSessionId() {
+            return mCurrentMediaPlayer.getAudioSessionId();
         }
     }
     
