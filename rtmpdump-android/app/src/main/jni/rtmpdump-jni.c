@@ -1133,7 +1133,7 @@ RTMP_LogPrintf("Step #4\n");
     }
 
 #ifdef CRYPTO
-RTMP_Log(RTMP_LOGWARNING,
+RTMP_Log(RTMP_LOGINFO,
 	  "Enable CRYPTO");
   if (swfVfy)
     {

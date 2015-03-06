@@ -453,10 +453,9 @@ public class PlayerFragmentTab extends FragmentTab implements ServiceConnection,
         mService = IMediaPlaybackService.Stub.asInterface(service);
 
         try {
-            String uri = mService.getMediaUri();
             isRunning = mService.isPlaying();
             isRecording = mService.isRecording();
-            isStreaming = uri == null || uri.toLowerCase().startsWith("rtmp") || uri.toLowerCase().startsWith("mms");
+            isStreaming = mService.isStreaming();
             isServiceLoaded = true;
             showPlayer();
         } catch (RemoteException e) {
@@ -577,14 +576,11 @@ public class PlayerFragmentTab extends FragmentTab implements ServiceConnection,
     };
 
     private void setPauseButtonImage() {
-
         try {
             if (mService != null && mService.isPlaying()) {
-                String uri = mService.getMediaUri();
                 isRunning = mService.isPlaying();
                 isRecording = mService.isRecording();
-                isStreaming = (uri == null || uri.toLowerCase().startsWith("rtmp"));
-
+                isStreaming = mService.isStreaming();
                 showPlayer();
             } else {
                 btnPlay.setCompoundDrawablesWithIntrinsicBounds(0,R.drawable.icon_play,0,0);

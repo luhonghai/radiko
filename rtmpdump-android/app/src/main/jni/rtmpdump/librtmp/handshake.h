@@ -837,10 +837,8 @@ HandShake(RTMP * r, int FP9HandShake)
   if (FP9HandShake && type == 3 && !serversig[4])
     FP9HandShake = FALSE;
 
-#ifdef _DEBUG
   RTMP_Log(RTMP_LOGDEBUG, "Server signature:");
   RTMP_LogHex(RTMP_LOGDEBUG, serversig, RTMP_SIG_SIZE);
-#endif
 
   if (FP9HandShake)
     {
