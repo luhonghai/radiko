@@ -121,6 +121,20 @@ public interface IMediaPlaybackService extends android.os.IInterface
                     reply.writeNoException();
                     return true;
                 }
+                case TRANSACTION_setStreaming: {
+                    data.enforceInterface(DESCRIPTOR);
+                    boolean arg = data.readInt() == 1;
+                    this.setStreaming(arg);
+                    reply.writeNoException();
+                    return true;
+                }
+                case TRANSACTION_isStreaming: {
+                    data.enforceInterface(DESCRIPTOR);
+                    boolean r = this.isStreaming();
+                    reply.writeInt(r ? 1 : 0);
+                    reply.writeNoException();
+                    return true;
+                }
                 // Default
                 case TRANSACTION_openFile:
                 {
@@ -1100,6 +1114,39 @@ public interface IMediaPlaybackService extends android.os.IInterface
                     _data.recycle();
                 }
             }
+
+            @Override public void setStreaming(boolean isStreaming) throws android.os.RemoteException
+            {
+                android.os.Parcel _data = android.os.Parcel.obtain();
+                android.os.Parcel _reply = android.os.Parcel.obtain();
+                try {
+                    _data.writeInterfaceToken(DESCRIPTOR);
+                    _data.writeInt(isStreaming ? 1 : 0);
+                    mRemote.transact(Stub.TRANSACTION_doSlow, _data, _reply, 0);
+                    _reply.readException();
+                }
+                finally {
+                    _reply.recycle();
+                    _data.recycle();
+                }
+            }
+            @Override public boolean isStreaming() throws android.os.RemoteException
+            {
+                android.os.Parcel _data = android.os.Parcel.obtain();
+                android.os.Parcel _reply = android.os.Parcel.obtain();
+                boolean _result;
+                try {
+                    _data.writeInterfaceToken(DESCRIPTOR);
+                    mRemote.transact(Stub.TRANSACTION_stopSlow, _data, _reply, 0);
+                    _reply.readException();
+                    _result = (_reply.readInt() != 0);
+                }
+                finally {
+                    _reply.recycle();
+                    _data.recycle();
+                }
+                return _result;
+            }
         }
         // Added by Hai
         static final int TRANSACTION_startRecord = (android.os.IBinder.FIRST_CALL_TRANSACTION + 32);
@@ -1113,6 +1160,8 @@ public interface IMediaPlaybackService extends android.os.IInterface
         static final int TRANSACTION_doSlow = (android.os.IBinder.FIRST_CALL_TRANSACTION + 40);
         static final int TRANSACTION_stopSlow = (android.os.IBinder.FIRST_CALL_TRANSACTION + 41);
         static final int TRANSACTION_isRecording = (android.os.IBinder.FIRST_CALL_TRANSACTION + 42);
+        static final int TRANSACTION_setStreaming = (android.os.IBinder.FIRST_CALL_TRANSACTION + 43);
+        static final int TRANSACTION_isStreaming = (android.os.IBinder.FIRST_CALL_TRANSACTION + 44);
         // Default
         static final int TRANSACTION_openFile = (android.os.IBinder.FIRST_CALL_TRANSACTION + 0);
         static final int TRANSACTION_open = (android.os.IBinder.FIRST_CALL_TRANSACTION + 1);
@@ -1160,6 +1209,8 @@ public interface IMediaPlaybackService extends android.os.IInterface
     public void stopFast() throws android.os.RemoteException;
     public void doSlow(float level) throws android.os.RemoteException;
     public void stopSlow() throws android.os.RemoteException;
+    public boolean isStreaming() throws RemoteException;
+    public void setStreaming(boolean isStreaming) throws RemoteException;
     // Default
     public void openFile(java.lang.String path) throws android.os.RemoteException;
     public void open(long[] list, int position) throws android.os.RemoteException;

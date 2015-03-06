@@ -2280,7 +2280,11 @@ public class FFmpegMediaPlayer
     }
 
     public static interface OnRecordingListener {
-        public void onCompleted(String filePath);
+        public void onCompleted(int recordedSampleRate,
+                                int recordedChannel,
+                                int recordedAudioEncoding,
+                                int recordedBufferSize,
+                                String filePath);
         public void onError(String message, Throwable e);
     }
 
@@ -2294,7 +2298,7 @@ public class FFmpegMediaPlayer
 
     private FileOutputStream fosRecording;
 
-    private long recordedSampleRate;
+    private int recordedSampleRate;
     private int recordedChannel;
     private int recordedAudioEncoding;
     private int recordedBufferSize;
@@ -2328,24 +2332,14 @@ public class FFmpegMediaPlayer
         if (!isRecording) return;
         if (saveFile) {
             if (tmpRecordingFile != null && tmpRecordingFile.exists()) {
-                try {
-                    RecordingHelper recordingHelper = new RecordingHelper( recordedSampleRate,
-                                        recordedChannel,
-                                        recordedAudioEncoding,
-                                        recordedBufferSize);
-                    recordingHelper.copyWaveFile(tmpRecordingFile.getAbsolutePath(), recordingPath);
-                    if (recordingListener != null)
-                        recordingListener.onCompleted(recordingPath);
-                    try {
-                        FileUtils.forceDelete(tmpRecordingFile);
-                    } catch (Exception ex) {}
-                } catch (IOException e) {
-                    if (recordingListener != null)
-                        recordingListener.onError("Could not move recording tmp file", e);
-                }
+                if (recordingListener != null)
+                    recordingListener.onCompleted(recordedSampleRate,
+                            recordedChannel,
+                            recordedAudioEncoding,
+                            recordedBufferSize, tmpRecordingFile.getPath());
             } else {
                 if (recordingListener != null)
-                    recordingListener.onCompleted("");
+                    recordingListener.onCompleted(-1,-1,-1,-1, "");
             }
         }
     }

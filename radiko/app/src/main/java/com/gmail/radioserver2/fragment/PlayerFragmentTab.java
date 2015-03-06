@@ -1,13 +1,17 @@
 package com.gmail.radioserver2.fragment;
 
+import android.app.AlertDialog;
 import android.content.BroadcastReceiver;
 import android.content.ComponentName;
 import android.content.Context;
+import android.content.DialogInterface;
 import android.content.Intent;
 import android.content.IntentFilter;
 import android.content.ServiceConnection;
 import android.os.Bundle;
+import android.os.Handler;
 import android.os.IBinder;
+import android.os.Message;
 import android.os.RemoteException;
 import android.os.SystemClock;
 import android.util.Log;
@@ -193,9 +197,12 @@ public class PlayerFragmentTab extends FragmentTab implements ServiceConnection,
         txtDesciption = (TextView) v.findViewById(R.id.txtDescription);
 
         seekBarPlayer = (SeekBar) v.findViewById(R.id.seekBarPlayer);
+        seekBarPlayer.setMax(1000);
         seekBarPlayer.setOnSeekBarChangeListener(mSeekListener);
 
         switchButtonStage(ButtonStage.DISABLED);
+        long next = refreshNow();
+        queueNextRefresh(next);
         return v;
     }
 
@@ -307,48 +314,6 @@ public class PlayerFragmentTab extends FragmentTab implements ServiceConnection,
         });
     }
 
-    private TokenFetcher.OnTokenListener onTokenRecordingListener = new TokenFetcher.OnTokenListener() {
-
-        @Override
-        public void onTokenFound(final String token) {
-            getActivity().runOnUiThread(new Runnable() {
-                @Override
-                public void run() {
-                    FileHelper fileHelper = new FileHelper(getActivity());
-                    try {
-                        if (mService.isPlaying() && isStreaming) {
-                            mService.startRecord(token, fileHelper.getTempFile().getAbsolutePath());
-                            switchButtonStage(ButtonStage.RECORDING);
-                        }
-                    } catch (RemoteException e) {
-                        if (isStreaming) {
-                            switchButtonStage(ButtonStage.STREAMING);
-                        } else {
-                            switchButtonStage(ButtonStage.DEFAULT);
-                        }
-                        isRecording = false;
-                        SimpleAppLog.error("Could not start recording", e);
-                    }
-                }
-            });
-        }
-
-        @Override
-        public void onError(final String message, Throwable throwable) {
-            getActivity().runOnUiThread(new Runnable() {
-                @Override
-                public void run() {
-                    if (isStreaming) {
-                        switchButtonStage(ButtonStage.STREAMING);
-                    } else {
-                        switchButtonStage(ButtonStage.DEFAULT);
-                    }
-                    isRecording = false;
-                }
-            });
-        }
-    };
-
 
     @Override
     public void onClick(View v) {
@@ -397,6 +362,7 @@ public class PlayerFragmentTab extends FragmentTab implements ServiceConnection,
                             }
                         }
                         if (isStreaming) {
+                            mService.setStreaming(true);
                             mService.openFile("rtmp://0.0.0.0:1935/TBS/_definst_/simul-stream.stream|S:" + radikoToken);
                             switchButtonStage(ButtonStage.STREAMING);
                         } else {
@@ -428,15 +394,13 @@ public class PlayerFragmentTab extends FragmentTab implements ServiceConnection,
                 } else {
                     isRecording = true;
                     switchButtonStage(ButtonStage.DISABLED);
-                    TokenFetcher tokenFetcher;
-                    Setting setting = new Setting(getActivity());
-                    setting.load();
-                    if (setting.getTokenType() == Setting.TOKEN_TYPE_CLIENT) {
-                        tokenFetcher  = new ClientTokenFetcher(getActivity(),onTokenRecordingListener);
-                    } else {
-                        tokenFetcher  = new ServerTokenFetcher(getActivity(),onTokenRecordingListener);
+                    try {
+                        mService.startRecord("","");
+                        switchButtonStage(ButtonStage.RECORDING);
+                    } catch (RemoteException e) {
+                        switchButtonStage(ButtonStage.DEFAULT);
+                        e.printStackTrace();
                     }
-                    tokenFetcher.fetch();
                 }
                 break;
             case R.id.btnPrev:
@@ -513,33 +477,104 @@ public class PlayerFragmentTab extends FragmentTab implements ServiceConnection,
                 // redraw the artist/title info and
                 // set new max for progress bar
                 setPauseButtonImage();
-                updateProcess();
+                queueNextRefresh(1);
             } else if (action.equals(MediaPlaybackService.PLAYSTATE_CHANGED)) {
                 setPauseButtonImage();
-                updateProcess();
             }
         }
     };
 
-    private void updateProcess() {
+    private long refreshNow() {
+        if(mService == null || seekBarPlayer == null)
+            return 500;
         try {
-            if (mService != null && mService.isPlaying() && seekBarPlayer != null) {
-                mDuration = mService.duration();
-                long pos = mPosOverride < 0 ? mService.position() : mPosOverride;
-                if ((pos >= 0)) {
-                    if (mDuration > 0) {
-                        seekBarPlayer.setProgress((int) (1000 * pos / mDuration));
-                    } else {
-                        seekBarPlayer.setProgress(1000);
-                    }
+            if (mService.isStreaming()) return -1;
+            mDuration = mService.duration();
+            long pos = mPosOverride < 0 ? mService.position() : mPosOverride;
+            if ((pos >= 0)) {
+
+                if (mDuration > 0) {
+                    seekBarPlayer.setProgress((int) (1000 * pos / mDuration));
                 } else {
                     seekBarPlayer.setProgress(1000);
                 }
+
+            } else {
+                seekBarPlayer.setProgress(1000);
             }
-        } catch (RemoteException e) {
-            e.printStackTrace();
+            // calculate the number of milliseconds until the next full second, so
+            // the counter can be updated at just the right time
+            long remaining = 1000 - (pos % 1000);
+            // approximate how often we would need to refresh the slider to
+            // move it smoothly
+            int width = seekBarPlayer.getWidth();
+            if (width == 0) width = 320;
+            long smoothrefreshtime = mDuration / width;
+
+            if (smoothrefreshtime > remaining) return remaining;
+            if (smoothrefreshtime < 20) return 20;
+            return smoothrefreshtime;
+        } catch (RemoteException ex) {
+        }
+        return 500;
+    }
+
+    private static final int REFRESH = 1;
+    private static final int QUIT = 2;
+    private boolean paused;
+
+    @Override
+    public void onStart() {
+        super.onStart();
+        paused = false;
+    }
+
+    @Override
+    public void onStop() {
+        super.onStop();
+        paused = true;
+        mHandler.removeMessages(REFRESH);
+    }
+
+    private void queueNextRefresh(long delay) {
+        if (!paused) {
+            Message msg = mHandler.obtainMessage(REFRESH);
+            mHandler.removeMessages(REFRESH);
+            if (delay != -1)
+                mHandler.sendMessageDelayed(msg, delay);
         }
     }
+
+    private final Handler mHandler = new Handler() {
+        @Override
+        public void handleMessage(Message msg) {
+            switch (msg.what) {
+                case REFRESH:
+                    long next = refreshNow();
+                    queueNextRefresh(next);
+                    break;
+
+                case QUIT:
+                    // This can be moved back to onCreate once the bug that prevents
+                    // Dialogs from being started from onCreate/onResume is fixed.
+                    new AlertDialog.Builder(getActivity())
+                            .setTitle(R.string.service_start_error_title)
+                            .setMessage(R.string.service_start_error_msg)
+                            .setPositiveButton(android.R.string.ok,
+                                    new DialogInterface.OnClickListener() {
+                                        public void onClick(DialogInterface dialog, int whichButton) {
+                                            getActivity().finish();
+                                        }
+                                    })
+                            .setCancelable(false)
+                            .show();
+                    break;
+
+                default:
+                    break;
+            }
+        }
+    };
 
     private void setPauseButtonImage() {
 
@@ -582,7 +617,7 @@ public class PlayerFragmentTab extends FragmentTab implements ServiceConnection,
                 }
                 // trackball event, allow progress updates
                 if (!mFromTouch) {
-                    updateProcess();
+                    refreshNow();
                     mPosOverride = -1;
                 }
             }

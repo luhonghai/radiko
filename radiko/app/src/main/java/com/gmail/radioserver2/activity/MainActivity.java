@@ -303,11 +303,11 @@ public class MainActivity extends BaseFragmentActivity implements ServiceConnect
                     break;
                 case Constants.ACTION_SELECT_CHANNEL_ITEM:
                     try {
-                        String uri = mService.getMediaUri();
-                        if (uri != null && !uri.startsWith("rtmp")) {
+                        if (mService != null && !mService.isStreaming()) {
                             if (mService.isPlaying()) {
                                 mService.stop();
                             }
+                            mService.setStreaming(true);
                         }
                     } catch (RemoteException e) {
                         e.printStackTrace();

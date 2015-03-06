@@ -138,7 +138,7 @@ public class RecordedProgramFragmentTab extends FragmentTab implements OnListIte
     public void onSelectItem(RecordedProgram obj) {
         if (mService != null) {
             try {
-                if (mService.isRecording())
+                if (mService.isStreaming() && mService.isRecording())
                     mService.stopRecord();
             } catch (RemoteException e) {
                 SimpleAppLog.error("Could not stop recording",e);
@@ -150,6 +150,8 @@ public class RecordedProgramFragmentTab extends FragmentTab implements OnListIte
                 SimpleAppLog.error("Could not stop playing",e);
             }
             if (objects != null && objects.length > 0) {
+                MusicUtils.deleteAllData(getActivity());
+                MusicUtils.clearQueue();
                 int selectedIndex = 0;
                 long[] playlist = new long[objects.length];
                 for (int i = 0; i < objects.length; i++) {
@@ -160,6 +162,7 @@ public class RecordedProgramFragmentTab extends FragmentTab implements OnListIte
                     }
                 }
                 try {
+                    mService.setStreaming(false);
                     mService.setRepeatMode(MediaPlaybackService.REPEAT_ALL);
                     mService.open(playlist, selectedIndex);
 

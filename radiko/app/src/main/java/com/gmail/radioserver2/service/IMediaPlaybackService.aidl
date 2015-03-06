@@ -34,6 +34,9 @@ interface IMediaPlaybackService
     void stopFast();
     void doSlow(float level);
     void stopSlow();
+
+    boolean isStreaming();
+    void setStreaming(boolean isStreaming);
     // Default
     void openFile(String path);
     void open(in long [] list, int position);

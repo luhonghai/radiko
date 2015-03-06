@@ -239,6 +239,19 @@ public class MusicUtils {
         return sEmptyList;
     }
 
+    public static void deleteAllData(Context context) {
+        try {
+            ContentResolver resolver = context.getContentResolver();
+            if (resolver == null) {
+                return;
+            }
+            resolver.delete(Media.MediaColumns.CONTENT_URI, null,null);
+
+        } catch (UnsupportedOperationException ex) {
+
+        }
+    }
+
     public static long [] getSongListForPlaylist(Context context, long plid) {
         final String[] ccols = new String[] { MediaStore.Audio.Playlists.Members.AUDIO_ID };
         Cursor cursor = query(context, MediaStore.Audio.Playlists.Members.getContentUri("external", plid),

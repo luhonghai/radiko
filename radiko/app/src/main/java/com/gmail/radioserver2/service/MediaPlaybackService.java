@@ -31,6 +31,7 @@ import android.content.SharedPreferences;
 import android.content.SharedPreferences.Editor;
 import android.database.Cursor;
 import android.database.sqlite.SQLiteException;
+import android.media.SoundPool;
 import android.media.audiofx.AudioEffect;
 import android.media.AudioManager;
 import android.media.AudioManager.OnAudioFocusChangeListener;
@@ -49,6 +50,7 @@ import android.provider.BaseColumns;
 
 import com.gmail.radioserver2.R;
 import com.gmail.radioserver2.data.RecordedProgram;
+import com.gmail.radioserver2.data.Setting;
 import com.gmail.radioserver2.data.sqlite.ext.RecordedProgramDBAdapter;
 import com.gmail.radioserver2.provider.Media;
 import android.util.Log;
@@ -70,8 +72,12 @@ import java.util.WeakHashMap;
 
 import wseemann.media.FFmpegMediaPlayer;
 
+import com.gmail.radioserver2.radiko.ClientTokenFetcher;
+import com.gmail.radioserver2.radiko.ServerTokenFetcher;
+import com.gmail.radioserver2.radiko.TokenFetcher;
 import com.gmail.radioserver2.receiver.MediaButtonIntentReceiver;
 import com.gmail.radioserver2.utils.FileHelper;
+import com.gmail.radioserver2.utils.RecordingHelper;
 import com.gmail.radioserver2.utils.SimpleAppLog;
 
 import org.apache.commons.io.FileUtils;
@@ -124,10 +130,14 @@ public class MediaPlaybackService extends Service {
     private static final int FADEUP = 6;
     private static final int TRACK_WENT_TO_NEXT = 7;
     private static final int MAX_HISTORY_SIZE = 100;
-    
-    private MultiPlayer mPlayer;
+    /**
+     * FFMpeg streaming player
+     */
+    private MultiPlayer mStreamingPlayer;
 
-    private DefaultMultiPlayer mDefaultPlayer;
+    private DefaultMultiPlayer mPlayer;
+
+    private boolean isStreaming;
 
     private String mFileToPlay;
     private int mShuffleMode = SHUFFLE_NONE;
@@ -184,42 +194,64 @@ public class MediaPlaybackService extends Service {
 
     private FFmpegMediaPlayer.OnRecordingListener recordingListener = new FFmpegMediaPlayer.OnRecordingListener() {
         @Override
-        public void onCompleted(String filePath) {
+        public void onCompleted(final int recordedSampleRate,
+                                final int recordedChannel,
+                                final int recordedAudioEncoding,
+                                final int recordedBufferSize,String filePath) {
             if (filePath == null || filePath.length() == 0) {
                 SimpleAppLog.error("Recoding could not be completed");
                 return;
             }
-            File tmpFile = new File(filePath);
-            if (tmpFile.exists()) {
-                FileHelper fileHelper = new FileHelper(getApplicationContext());
+            final File rawPCM = new File(filePath);
+            new Thread(new Runnable() {
+                @Override
+                public void run() {
+                    if (!rawPCM.exists()) return;
+                    File tmpFile = new File(FileUtils.getTempDirectory(), UUID.randomUUID().toString() + ".wav");
+                    try {
+                        RecordingHelper recordingHelper = new RecordingHelper(recordedSampleRate,
+                                recordedChannel,
+                                recordedAudioEncoding,
+                                recordedBufferSize);
+                        recordingHelper.copyWaveFile(rawPCM.getAbsolutePath(), tmpFile.getAbsolutePath());
 
-                RecordedProgramDBAdapter adapter = new RecordedProgramDBAdapter(getApplicationContext());
-                RecordedProgram recordedProgram = new RecordedProgram();
-                recordedProgram.setChannelName(getResources().getString(R.string.default_channel_name));
-                recordedProgram.setName(getResources().getString(R.string.default_recorded_program_name));
-                recordedProgram.setStartTime(startRecordingTime);
-                long endTime = System.currentTimeMillis();
-                recordedProgram.setEndTime(new Date(endTime));
-                File recordedFile = new File(fileHelper.getRecordedProgramFolder(), startRecordingTime.getTime() + "-" + endTime + ".mp3");
-                try {
-                    FileUtils.copyFile(tmpFile, recordedFile);
-                } catch (IOException e) {
-                    SimpleAppLog.error("Could not move recorded file", e);
+                        FileUtils.forceDelete(rawPCM);
+                    } catch (IOException e) {
+                        if (recordingListener != null)
+                            recordingListener.onError("Could not move recording tmp file", e);
+                    }
+
+                    if (tmpFile.exists()) {
+                        FileHelper fileHelper = new FileHelper(getApplicationContext());
+
+                        RecordedProgramDBAdapter adapter = new RecordedProgramDBAdapter(getApplicationContext());
+                        RecordedProgram recordedProgram = new RecordedProgram();
+                        recordedProgram.setChannelName(getResources().getString(R.string.default_channel_name));
+                        recordedProgram.setName(getResources().getString(R.string.default_recorded_program_name));
+                        recordedProgram.setStartTime(startRecordingTime);
+                        long endTime = System.currentTimeMillis();
+                        recordedProgram.setEndTime(new Date(endTime));
+                        File recordedFile = new File(fileHelper.getRecordedProgramFolder(), startRecordingTime.getTime() + "-" + endTime + ".mp3");
+                        try {
+                            FileUtils.copyFile(tmpFile, recordedFile);
+                        } catch (IOException e) {
+                            SimpleAppLog.error("Could not move recorded file", e);
+                        }
+                        if (recordedFile.exists())
+                            recordedProgram.setFilePath(recordedFile.getPath());
+                        try {
+                            adapter.open();
+                            adapter.insert(recordedProgram);
+                            SimpleAppLog.debug("Save recording complete");
+                        } catch (Exception e) {
+                            SimpleAppLog.error("Could not insert recorded program", e);
+                        } finally {
+                            adapter.close();
+                        }
+                    }
                 }
-                if (recordedFile.exists())
-                    recordedProgram.setFilePath(recordedFile.getPath());
-                try {
-                    adapter.open();
-                    adapter.insert(recordedProgram);
-                    SimpleAppLog.debug("Save recording complete");
-                } catch (Exception e) {
-                    SimpleAppLog.error("Could not insert recorded program", e);
-                } finally {
-                    adapter.close();
-                }
-            }
+            }).start();
         }
-
         @Override
         public void onError(String message, Throwable e) {
             SimpleAppLog.error(message, e);
@@ -227,19 +259,32 @@ public class MediaPlaybackService extends Service {
     };
 
     public void stopRecord() {
-        mPlayer.stopRecording();
+        if (isStreaming)
+            mStreamingPlayer.stopRecording();
     }
 
     public void startRecord(String token, String filePath) {
         startRecordingTime = new Date(System.currentTimeMillis());
-        mPlayer.startRecording(new File(FileUtils.getTempDirectory(), UUID.randomUUID().toString() + ".wav").getAbsolutePath());
+        if (isStreaming)
+            mStreamingPlayer.startRecording(new File(FileUtils.getTempDirectory(), UUID.randomUUID().toString() + ".wav").getAbsolutePath());
     }
 
     public boolean isRecording() {
-        return mPlayer.isRecording();
+        if (isStreaming)
+            return mStreamingPlayer.isRecording();
+        return false;
+    }
+
+    public boolean isStreaming() {
+        return isStreaming;
+    }
+
+    public void setStreaming(boolean isStreaming) {
+        this.isStreaming = isStreaming;
     }
 
     public void doBack(int length) {
+        if (isStreaming) return;
         if (mPlayer.isInitialized()) {
             long pos = mPlayer.position();
             long toBackPos = pos - length * 1000;
@@ -260,16 +305,22 @@ public class MediaPlaybackService extends Service {
     private long posB;
 
     private int getStateAB() {
+        if (isStreaming)
+            return ABState.ERROR;
         return stateAB;
     }
 
     private void stopAB() {
+        if (isStreaming)
+            return;
         stateAB = ABState.STOP;
         posA = -1;
         posB = -1;
     }
 
     private void checkAB() {
+        if (isStreaming)
+            return;
         if (mPlayer.isInitialized()) {
             if (stateAB == ABState.PLAY) {
                 long currentPos = mPlayer.position();
@@ -281,6 +332,7 @@ public class MediaPlaybackService extends Service {
     }
 
     private void markAB() {
+        if (isStreaming) return;
         if (mPlayer.isInitialized()) {
             if (stateAB == ABState.STOP) {
                 posA = mPlayer.position();
@@ -294,19 +346,19 @@ public class MediaPlaybackService extends Service {
     }
 
     private void doFast(float level) {
-
+        if (isStreaming) return;
     }
 
     private void stopFast() {
-
+        if (isStreaming) return;
     }
 
     private void doSlow(float level) {
-
+        if (isStreaming) return;
     }
 
     private void stopSlow() {
-
+        if (isStreaming) return;
     }
 
     private Handler mMediaplayerHandler = new Handler() {
@@ -322,7 +374,10 @@ public class MediaPlaybackService extends Service {
                     } else {
                         mCurrentVolume = .2f;
                     }
-                    mPlayer.setVolume(mCurrentVolume);
+                    if (isStreaming)
+                        mStreamingPlayer.setVolume(mCurrentVolume);
+                    else
+                        mPlayer.setVolume(mCurrentVolume);
                     break;
                 case FADEUP:
                     mCurrentVolume += .01f;
@@ -331,7 +386,10 @@ public class MediaPlaybackService extends Service {
                     } else {
                         mCurrentVolume = 1.0f;
                     }
-                    mPlayer.setVolume(mCurrentVolume);
+                    if (isStreaming)
+                        mStreamingPlayer.setVolume(mCurrentVolume);
+                    else
+                        mPlayer.setVolume(mCurrentVolume);
                     break;
                 case SERVER_DIED:
                     if (mIsSupposedToBePlaying) {
@@ -393,7 +451,10 @@ public class MediaPlaybackService extends Service {
                             if(!isPlaying() && mPausedByTransientLossOfFocus) {
                                 mPausedByTransientLossOfFocus = false;
                                 mCurrentVolume = 0f;
-                                mPlayer.setVolume(mCurrentVolume);
+                                if (isStreaming)
+                                    mStreamingPlayer.setVolume(mCurrentVolume);
+                                else
+                                    mPlayer.setVolume(mCurrentVolume);
                                 play(); // also queues a fade-in
                             } else {
                                 mMediaplayerHandler.removeMessages(FADEDOWN);
@@ -450,6 +511,37 @@ public class MediaPlaybackService extends Service {
     public MediaPlaybackService() {
     }
 
+    private TokenFetcher.OnTokenListener onTokenListener = new TokenFetcher.OnTokenListener() {
+        @Override
+        public void onTokenFound(final String token) {
+            SimpleAppLog.info("Found token: " + token);
+            new Thread(new Runnable() {
+                @Override
+                public void run() {
+                    try {
+                        RTMPSuck rtmpSuck;
+                        if (mRTMPSuck.size() > 0) {
+                            rtmpSuck = mRTMPSuck.get(W_REF);
+                            if (rtmpSuck != null) {
+                                rtmpSuck.stop();
+                            }
+                            mRTMPSuck.remove(W_REF);
+                        }
+                        Log.i("TESTRTMP", "Start rtmp suck");
+                        rtmpSuck = new RTMPSuck();
+                        mRTMPSuck.put(W_REF, rtmpSuck);
+                        rtmpSuck.init(token, "");
+                    } catch (Exception ex) {
+                        //
+                    }
+                }
+            }).start();
+        }
+        @Override
+        public void onError(final String message, Throwable throwable) {
+        }
+    };
+
 
     @Override
     public void onCreate() {
@@ -477,11 +569,21 @@ public class MediaPlaybackService extends Service {
         registerExternalStorageListener();
 
         // Needs to be done in this thread, since otherwise ApplicationContext.getPowerManager() crashes.
-        mPlayer = new MultiPlayer();
+        mPlayer = new DefaultMultiPlayer();
         mPlayer.setHandler(mMediaplayerHandler);
 
-        mDefaultPlayer = new DefaultMultiPlayer();
-        mDefaultPlayer.setHandler(mMediaplayerHandler);
+        mStreamingPlayer = new MultiPlayer();
+        mStreamingPlayer.setHandler(mMediaplayerHandler);
+
+        TokenFetcher tokenFetcher;
+        Setting setting = new Setting(getApplicationContext());
+        setting.load();
+        if (setting.getTokenType() == Setting.TOKEN_TYPE_CLIENT) {
+            tokenFetcher  = new ClientTokenFetcher(getApplicationContext(),onTokenListener);
+        } else {
+            tokenFetcher  = new ServerTokenFetcher(getApplicationContext(),onTokenListener);
+        }
+        tokenFetcher.fetch();
 
         reloadQueue();
         notifyChange(QUEUE_CHANGED);
@@ -511,6 +613,23 @@ public class MediaPlaybackService extends Service {
         if (isPlaying()) {
             Log.e(LOGTAG, "Service being destroyed while still playing.");
         }
+            if (mRTMPSuck.size() > 0) {
+                try {
+                    RTMPSuck rtmpSuck = mRTMPSuck.get(W_REF);
+                    if (rtmpSuck != null) {
+                        try {
+                            rtmpSuck.stop();
+                        } catch (Exception ex) {
+                            //
+                        }
+                        mRTMPSuck.remove(W_REF);
+                    }
+                } catch (Exception ex) {
+
+                }
+            }
+
+
         // release all MediaPlayer resources, including the native player and wakelocks
         Intent i = new Intent(AudioEffect.ACTION_CLOSE_AUDIO_EFFECT_CONTROL_SESSION);
         i.putExtra(AudioEffect.EXTRA_AUDIO_SESSION, getAudioSessionId());
@@ -519,8 +638,8 @@ public class MediaPlaybackService extends Service {
         mPlayer.release();
         mPlayer = null;
 
-        mDefaultPlayer.release();
-        mDefaultPlayer = null;
+        mStreamingPlayer.release();
+        mStreamingPlayer = null;
 
         mAudioManager.abandonAudioFocus(mAudioFocusListener);
         //mAudioManager.unregisterRemoteControlClient(mRemoteControlClient);
@@ -606,7 +725,10 @@ public class MediaPlaybackService extends Service {
             }
         }
         ed.putInt("curpos", mPlayPos);
-        if (mPlayer.isInitialized()) {
+        if (isStreaming && mStreamingPlayer.isInitialized()) {
+            ed.putLong("seekpos", mPlayer.position());
+        }
+        if (!isStreaming && mPlayer.isInitialized()) {
             ed.putLong("seekpos", mPlayer.position());
         }
         ed.putInt("repeatmode", mRepeatMode);
@@ -701,7 +823,10 @@ public class MediaPlaybackService extends Service {
             mQuietMode = true;
             openCurrentAndNext();
             mQuietMode = false;
-            if (!mPlayer.isInitialized()) {
+            if (isStreaming && !mStreamingPlayer.isInitialized()) {
+                mPlayListLen = 0;
+            }
+            if (!isStreaming && !mPlayer.isInitialized()) {
                 // couldn't restore the saved state
                 mPlayListLen = 0;
                 return;
@@ -1170,7 +1295,6 @@ public class MediaPlaybackService extends Service {
                 return;
             }
             stop(false);
-
             mCursor = getCursorForId(mPlayList[mPlayPos]);
             while(true) {
                 if (mCursor != null && mCursor.getCount() != 0 &&
@@ -1269,49 +1393,27 @@ public class MediaPlaybackService extends Service {
                 } catch (UnsupportedOperationException ex) {
                 }
             }*/
-            Log.i("TESTRTMP", "play PATH: " + path);
             if (path.contains("|")) {
-                Log.i("TESTRTMP", "Contains |");
                 final String[] tmp = path.split("\\|");
-                Log.i("TESTRTMP", "Token: " + tmp[1]);
-                Log.i("TESTRTMP", "URL to play: " + tmp[0]);
-                new Thread(new Runnable() {
-                    @Override
-                    public void run() {
-                       try {
-                           RTMPSuck rtmpSuck;
-                           if (mRTMPSuck.size() > 0) {
-                               rtmpSuck = mRTMPSuck.get(W_REF);
-                               if (rtmpSuck != null) {
-                                   rtmpSuck.stop();
-                               }
-                               mRTMPSuck.remove(W_REF);
-                           }
-                           Log.i("TESTRTMP", "Start rtmp suck");
-                           rtmpSuck = new RTMPSuck();
-                           mRTMPSuck.put(W_REF, rtmpSuck);
-                           rtmpSuck.init(tmp[1], "");
-                       } catch (Exception ex) {
-                           //
-                       }
-                    }
-                }).start();
-                Log.i("TESTRTMP", "Wait for 2sec");
-                try {
-                    Thread.sleep(1500);
-                } catch (InterruptedException e) {
-                    e.printStackTrace();
-                }
                 mFileToPlay = tmp[0];
             } else {
                 mFileToPlay = path;
             }
-            Log.i("TESTRTMP", "Play : " + mFileToPlay);
-            mPlayer.setDataSource(mFileToPlay);
-            if (mPlayer.isInitialized()) {
-                mOpenFailedCounter = 0;
-                return true;
+            SimpleAppLog.info("Play: " + mFileToPlay);
+            if (isStreaming) {
+                mStreamingPlayer.setDataSource(mFileToPlay);
+                if (mStreamingPlayer.isInitialized()) {
+                    mOpenFailedCounter = 0;
+                    return true;
+                }
+            } else {
+                mPlayer.setDataSource(mFileToPlay);
+                if (mPlayer.isInitialized()) {
+                    mOpenFailedCounter = 0;
+                    return true;
+                }
             }
+
             stop(true);
             return false;
         }
@@ -1381,32 +1483,55 @@ public class MediaPlaybackService extends Service {
                 AudioManager.AUDIOFOCUS_GAIN);
         mAudioManager.registerMediaButtonEventReceiver(new ComponentName(this.getPackageName(),
                 MediaButtonIntentReceiver.class.getName()));
+        if (isStreaming) {
+            if (mStreamingPlayer.isInitialized()) {
+                // if we are at the end of the song, go to the next song first
 
-        if (mPlayer.isInitialized()) {
-            // if we are at the end of the song, go to the next song first
-            long duration = mPlayer.duration();
-            if (mRepeatMode != REPEAT_CURRENT && duration > 2000 &&
-                mPlayer.position() >= duration - 2000) {
-                gotoNext(true);
+                mStreamingPlayer.start();
+                // make sure we fade in, in case a previous fadein was stopped because
+                // of another focus loss
+                mMediaplayerHandler.removeMessages(FADEDOWN);
+                mMediaplayerHandler.sendEmptyMessage(FADEUP);
+
+                updateNotification();
+                if (!mIsSupposedToBePlaying) {
+                    mIsSupposedToBePlaying = true;
+                    notifyChange(PLAYSTATE_CHANGED);
+                }
+
+            } else if (mPlayListLen <= 0) {
+                // This is mostly so that if you press 'play' on a bluetooth headset
+                // without every having played anything before, it will still play
+                // something.
+                setShuffleMode(SHUFFLE_AUTO);
             }
+        } else {
+            if (mPlayer.isInitialized()) {
+                // if we are at the end of the song, go to the next song first
+                long duration = mPlayer.duration();
+                if (mRepeatMode != REPEAT_CURRENT && duration > 2000 &&
+                        mPlayer.position() >= duration - 2000) {
+                    gotoNext(true);
+                }
 
-            mPlayer.start();
-            // make sure we fade in, in case a previous fadein was stopped because
-            // of another focus loss
-            mMediaplayerHandler.removeMessages(FADEDOWN);
-            mMediaplayerHandler.sendEmptyMessage(FADEUP);
+                mPlayer.start();
+                // make sure we fade in, in case a previous fadein was stopped because
+                // of another focus loss
+                mMediaplayerHandler.removeMessages(FADEDOWN);
+                mMediaplayerHandler.sendEmptyMessage(FADEUP);
 
-            updateNotification();
-            if (!mIsSupposedToBePlaying) {
-                mIsSupposedToBePlaying = true;
-                notifyChange(PLAYSTATE_CHANGED);
+                updateNotification();
+                if (!mIsSupposedToBePlaying) {
+                    mIsSupposedToBePlaying = true;
+                    notifyChange(PLAYSTATE_CHANGED);
+                }
+
+            } else if (mPlayListLen <= 0) {
+                // This is mostly so that if you press 'play' on a bluetooth headset
+                // without every having played anything before, it will still play
+                // something.
+                setShuffleMode(SHUFFLE_AUTO);
             }
-
-        } else if (mPlayListLen <= 0) {
-            // This is mostly so that if you press 'play' on a bluetooth headset
-            // without every having played anything before, it will still play
-            // something.
-            setShuffleMode(SHUFFLE_AUTO);
         }
     }
 
@@ -1443,6 +1568,9 @@ public class MediaPlaybackService extends Service {
     }
 
     private void stop(boolean remove_status_icon) {
+        if (isStreaming && mStreamingPlayer.isInitialized()) {
+            mStreamingPlayer.stop();
+        }
         if (mPlayer.isInitialized()) {
             mPlayer.stop();
         }
@@ -1458,21 +1586,6 @@ public class MediaPlaybackService extends Service {
         }
         if (remove_status_icon) {
             mIsSupposedToBePlaying = false;
-        }
-        if (mRTMPSuck.size() > 0) {
-            try {
-                RTMPSuck rtmpSuck = mRTMPSuck.get(W_REF);
-                if (rtmpSuck != null) {
-                    try {
-                        rtmpSuck.stop();
-                    } catch (Exception ex) {
-                        //
-                    }
-                    mRTMPSuck.remove(W_REF);
-                }
-            } catch (Exception ex) {
-
-            }
         }
     }
 
@@ -1490,7 +1603,10 @@ public class MediaPlaybackService extends Service {
         synchronized(this) {
             mMediaplayerHandler.removeMessages(FADEUP);
             if (isPlaying()) {
-                mPlayer.pause();
+                if (isStreaming)
+                    mStreamingPlayer.pause();
+                else
+                    mPlayer.pause();
                 gotoIdleState();
                 mIsSupposedToBePlaying = false;
                 notifyChange(PLAYSTATE_CHANGED);
@@ -1946,7 +2062,7 @@ public class MediaPlaybackService extends Service {
      */
     public long getAudioId() {
         synchronized (this) {
-            if (mPlayPos >= 0 && mPlayer.isInitialized()) {
+            if (mPlayPos >= 0 && (mPlayer.isInitialized() || mStreamingPlayer.isInitialized())) {
                 return mPlayList[mPlayPos];
             }
         }
@@ -2048,7 +2164,10 @@ public class MediaPlaybackService extends Service {
      * Currently this method returns -1 for the duration of MIDI files.
      */
     public long duration() {
-        if (mPlayer.isInitialized()) {
+        if (isStreaming && mStreamingPlayer.isInitialized()) {
+            return mStreamingPlayer.duration();
+        }
+        if (!isStreaming && mPlayer.isInitialized()) {
             return mPlayer.duration();
         }
         return -1;
@@ -2058,7 +2177,10 @@ public class MediaPlaybackService extends Service {
      * Returns the current playback position in milliseconds
      */
     public long position() {
-        if (mPlayer.isInitialized()) {
+        if (isStreaming && mStreamingPlayer.isInitialized()) {
+            return mStreamingPlayer.position();
+        }
+        if (!isStreaming && mPlayer.isInitialized()) {
             return mPlayer.position();
         }
         return -1;
@@ -2070,7 +2192,12 @@ public class MediaPlaybackService extends Service {
      * @param pos The position to seek to, in milliseconds
      */
     public long seek(long pos) {
-        if (mPlayer.isInitialized()) {
+        if (isStreaming && mStreamingPlayer.isInitialized()) {
+            if (pos < 0) pos = 0;
+            if (pos > mStreamingPlayer.duration() && mStreamingPlayer.duration() != 0) pos = mStreamingPlayer.duration();
+            return mStreamingPlayer.seek(pos);
+        }
+        if (!isStreaming && mPlayer.isInitialized()) {
             if (pos < 0) pos = 0;
             if (pos > mPlayer.duration() && mPlayer.duration() != 0) pos = mPlayer.duration();
             return mPlayer.seek(pos);
@@ -2085,7 +2212,10 @@ public class MediaPlaybackService extends Service {
      */
     public void setAudioSessionId(int sessionId) {
         synchronized (this) {
-            mPlayer.setAudioSessionId(sessionId);
+            if (isStreaming)
+                mStreamingPlayer.setAudioSessionId(sessionId);
+            else
+                mPlayer.setAudioSessionId(sessionId);
         }
     }
 
@@ -2094,6 +2224,7 @@ public class MediaPlaybackService extends Service {
      */
     public int getAudioSessionId() {
         synchronized (this) {
+            if (isStreaming) return mStreamingPlayer.getAudioSessionId();
             return mPlayer.getAudioSessionId();
         }
     }
@@ -2133,12 +2264,12 @@ public class MediaPlaybackService extends Service {
                 }
                 player.setAudioStreamType(AudioManager.STREAM_MUSIC);
                 player.setOnPreparedListener(preparedListener);
-                player.prepareAsync();
+                player.prepare();
             } catch (IOException ex) {
-                // TODO: notify the user why the file couldn't be opened
+                SimpleAppLog.error("Could not open file",ex);
                 return false;
             } catch (IllegalArgumentException ex) {
-                // TODO: notify the user why the file couldn't be opened
+                SimpleAppLog.error("Could not open file",ex);
                 return false;
             }
             return true;
@@ -2297,12 +2428,12 @@ public class MediaPlaybackService extends Service {
                 }
                 player.setAudioStreamType(AudioManager.STREAM_MUSIC);
                 player.setOnPreparedListener(preparedListener);
-                player.prepareAsync();
+                player.prepare();
             } catch (IOException ex) {
-                // TODO: notify the user why the file couldn't be opened
+                SimpleAppLog.error("Could not set data source",ex);
                 return false;
             } catch (IllegalArgumentException ex) {
-                // TODO: notify the user why the file couldn't be opened
+                SimpleAppLog.error("Could not set data source",ex);
                 return false;
             }
             return true;
@@ -2524,6 +2655,17 @@ public class MediaPlaybackService extends Service {
         public void stopSlow() throws RemoteException {
             mService.get().stopSlow();
         }
+
+        @Override
+        public boolean isStreaming() throws RemoteException {
+            return mService.get().isStreaming();
+        }
+
+        @Override
+        public void setStreaming(boolean isStreaming) throws RemoteException {
+            mService.get().setStreaming(isStreaming);
+        }
+
         // Default
         public void openFile(String path)
         {
@@ -2633,7 +2775,10 @@ public class MediaPlaybackService extends Service {
         writer.println(getTrackName());
         writer.println(getPath());
         writer.println("playing: " + mIsSupposedToBePlaying);
-        writer.println("actual: " + mPlayer.mCurrentMediaPlayer.isPlaying());
+        if (isStreaming)
+            writer.println("actual: " + mStreamingPlayer.mCurrentMediaPlayer.isPlaying());
+        else
+            writer.println("actual: " + mPlayer.mCurrentMediaPlayer.isPlaying());
         writer.println("shuffle mode: " + mShuffleMode);
         MusicUtils.debugDump(writer);
     }
