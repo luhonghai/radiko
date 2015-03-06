@@ -530,7 +530,7 @@ public class MediaPlaybackService extends Service {
                         Log.i("TESTRTMP", "Start rtmp suck");
                         rtmpSuck = new RTMPSuck();
                         mRTMPSuck.put(W_REF, rtmpSuck);
-                        rtmpSuck.init(token, "");
+                        rtmpSuck.init("S:" + token, "");
                     } catch (Exception ex) {
                         //
                     }
