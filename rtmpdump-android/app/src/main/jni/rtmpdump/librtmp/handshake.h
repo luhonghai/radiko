@@ -806,10 +806,9 @@ HandShake(RTMP * r, int FP9HandShake)
 	     SHA256_DIGEST_LENGTH);
     }
 
-#ifdef _DEBUG
   RTMP_Log(RTMP_LOGDEBUG, "Clientsig: ");
   RTMP_LogHex(RTMP_LOGDEBUG, clientsig, RTMP_SIG_SIZE);
-#endif
+
 
   if (!WriteN(r, (char *)clientsig-1, RTMP_SIG_SIZE + 1))
     return FALSE;
@@ -958,11 +957,11 @@ HandShake(RTMP * r, int FP9HandShake)
 #endif
     }
 
-#ifdef _DEBUG
+
   RTMP_Log(RTMP_LOGDEBUG, "%s: Sending handshake response: ",
     __FUNCTION__);
   RTMP_LogHex(RTMP_LOGDEBUG, reply, RTMP_SIG_SIZE);
-#endif
+
   if (!WriteN(r, (char *)reply, RTMP_SIG_SIZE))
     return FALSE;
 
@@ -970,10 +969,10 @@ HandShake(RTMP * r, int FP9HandShake)
   if (ReadN(r, (char *)serversig, RTMP_SIG_SIZE) != RTMP_SIG_SIZE)
     return FALSE;
 
-#ifdef _DEBUG
+
   RTMP_Log(RTMP_LOGDEBUG, "%s: 2nd handshake: ", __FUNCTION__);
   RTMP_LogHex(RTMP_LOGDEBUG, serversig, RTMP_SIG_SIZE);
-#endif
+
 
   if (FP9HandShake)
     {

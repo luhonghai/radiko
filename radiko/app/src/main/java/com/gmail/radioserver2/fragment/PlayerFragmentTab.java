@@ -363,7 +363,8 @@ public class PlayerFragmentTab extends FragmentTab implements ServiceConnection,
                         }
                         if (isStreaming) {
                             mService.setStreaming(true);
-                            mService.openFile("mms://a52.l12993346051.c129933.g.lm.akamaistream.net/D/52/129933/v0001/reflector:46051");
+                            //mService.openFile("mms://a52.l12993346051.c129933.g.lm.akamaistream.net/D/52/129933/v0001/reflector:46051");
+                            mService.openFile("rtmp://0.0.0.0/TBS/_definst_/simul-stream.stream");
                             switchButtonStage(ButtonStage.STREAMING);
                         } else {
                             mService.play();
@@ -451,7 +452,6 @@ public class PlayerFragmentTab extends FragmentTab implements ServiceConnection,
     @Override
     public void onServiceConnected(ComponentName name, IBinder service) {
         mService = IMediaPlaybackService.Stub.asInterface(service);
-
         try {
             isRunning = mService.isPlaying();
             isRecording = mService.isRecording();

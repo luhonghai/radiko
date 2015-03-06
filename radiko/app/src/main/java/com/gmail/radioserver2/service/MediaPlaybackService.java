@@ -579,8 +579,10 @@ public class MediaPlaybackService extends Service {
         Setting setting = new Setting(getApplicationContext());
         setting.load();
         if (setting.getTokenType() == Setting.TOKEN_TYPE_CLIENT) {
+            SimpleAppLog.info("User client token");
             tokenFetcher  = new ClientTokenFetcher(getApplicationContext(),onTokenListener);
         } else {
+            SimpleAppLog.info("User server token");
             tokenFetcher  = new ServerTokenFetcher(getApplicationContext(),onTokenListener);
         }
         tokenFetcher.fetch();
