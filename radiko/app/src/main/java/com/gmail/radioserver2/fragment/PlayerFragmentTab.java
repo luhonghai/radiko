@@ -456,7 +456,7 @@ public class PlayerFragmentTab extends FragmentTab implements ServiceConnection,
             String uri = mService.getMediaUri();
             isRunning = mService.isPlaying();
             isRecording = mService.isRecording();
-            isStreaming = uri == null || uri.toLowerCase().startsWith("rtmp");
+            isStreaming = uri == null || uri.toLowerCase().startsWith("rtmp") || uri.toLowerCase().startsWith("mms");
             isServiceLoaded = true;
             showPlayer();
         } catch (RemoteException e) {

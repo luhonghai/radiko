@@ -1133,6 +1133,8 @@ RTMP_LogPrintf("Step #4\n");
     }
 
 #ifdef CRYPTO
+RTMP_Log(RTMP_LOGWARNING,
+	  "Enable CRYPTO");
   if (swfVfy)
     {
       if (RTMP_HashSWF(swfUrl.av_val, &swfSize, hash, swfAge) == 0)
