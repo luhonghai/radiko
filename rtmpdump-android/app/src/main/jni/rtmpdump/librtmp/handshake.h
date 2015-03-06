@@ -854,17 +854,21 @@ HandShake(RTMP * r, int FP9HandShake)
 	  getdig = digoff[offalg];
 	  getdh  = dhoff[offalg];
 	  digestPosServer = getdig(serversig, RTMP_SIG_SIZE);
-
+        RTMP_Log(RTMP_LOGWARNING, "Debug step #0");
 	  if (!VerifyDigest(digestPosServer, serversig, GenuineFMSKey, 36))
 	    {
+	        RTMP_Log(RTMP_LOGWARNING, "Stop here!");
 	      RTMP_Log(RTMP_LOGERROR, "Couldn't verify the server digest");	/* continuing anyway will probably fail */
 	      return FALSE;
 	    }
 	}
 
+	RTMP_Log(RTMP_LOGWARNING, "Debug step #1");
+
       /* generate SWFVerification token (SHA256 HMAC hash of decompressed SWF, key are the last 32 bytes of the server handshake) */
       if (r->Link.SWFSize)
 	{
+	    RTMP_Log(RTMP_LOGWARNING, "Have SWFSize");
 	  const char swfVerify[] = { 0x01, 0x01 };
 	  char *vend = r->Link.SWFVerificationResponse+sizeof(r->Link.SWFVerificationResponse);
 
@@ -876,10 +880,11 @@ HandShake(RTMP * r, int FP9HandShake)
 		     SHA256_DIGEST_LENGTH,
 		     (uint8_t *)&r->Link.SWFVerificationResponse[10]);
 	}
-
+    RTMP_Log(RTMP_LOGWARNING, "Debug step #2: do Diffie-Hellmann Key exchange for encrypted RTMP");
       /* do Diffie-Hellmann Key exchange for encrypted RTMP */
       if (encrypted)
 	{
+    	RTMP_Log(RTMP_LOGWARNING, "Debug step #3: is encrypted");
 	  /* compute secret key */
 	  uint8_t secretKey[128] = { 0 };
 	  int len, dhposServer;
@@ -889,6 +894,7 @@ HandShake(RTMP * r, int FP9HandShake)
 	    dhposServer);
 	  len = DHComputeSharedSecretKey(r->Link.dh, &serversig[dhposServer],
 	  				128, secretKey);
+    	RTMP_Log(RTMP_LOGWARNING, "Debug step #4");
 	  if (len < 0)
 	    {
 	      RTMP_Log(RTMP_LOGDEBUG, "%s: Wrong secret key position!", __FUNCTION__);
@@ -897,14 +903,14 @@ HandShake(RTMP * r, int FP9HandShake)
 
 	  RTMP_Log(RTMP_LOGDEBUG, "%s: Secret key: ", __FUNCTION__);
 	  RTMP_LogHex(RTMP_LOGDEBUG, secretKey, 128);
-
+     	RTMP_Log(RTMP_LOGWARNING, "Debug step #5");
 	  InitRC4Encryption(secretKey,
 			    (uint8_t *) & serversig[dhposServer],
 			    (uint8_t *) & clientsig[dhposClient],
 			    &keyIn, &keyOut);
 	}
 
-
+RTMP_Log(RTMP_LOGWARNING, "Debug step #6");
       reply = client2;
 #ifdef _DEBUG
       memset(reply, 0xff, RTMP_SIG_SIZE);
@@ -913,6 +919,7 @@ HandShake(RTMP * r, int FP9HandShake)
       for (i = 0; i < RTMP_SIG_SIZE/4; i++)
         *ip++ = rand();
 #endif
+RTMP_Log(RTMP_LOGWARNING, "Debug step #7");
       /* calculate response now */
       signatureResp = reply+RTMP_SIG_SIZE-SHA256_DIGEST_LENGTH;
 
@@ -928,6 +935,7 @@ HandShake(RTMP * r, int FP9HandShake)
       RTMP_LogHex(RTMP_LOGDEBUG, digestResp, SHA256_DIGEST_LENGTH);
 
 #ifdef FP10
+    RTMP_Log(RTMP_LOGWARNING, "Debug step #8 is FP10");
       if (type == 8 )
         {
 	  uint8_t *dptr = digestResp;
@@ -945,6 +953,7 @@ HandShake(RTMP * r, int FP9HandShake)
             rtmpe9_sig(sig+i, sig+i, dptr[i] % 15);
         }
 #endif
+RTMP_Log(RTMP_LOGWARNING, "Debug step #9 not FP10");
       RTMP_Log(RTMP_LOGDEBUG, "%s: Client signature calculated:", __FUNCTION__);
       RTMP_LogHex(RTMP_LOGDEBUG, signatureResp, SHA256_DIGEST_LENGTH);
     }
@@ -957,14 +966,14 @@ HandShake(RTMP * r, int FP9HandShake)
 #endif
     }
 
-
+RTMP_Log(RTMP_LOGWARNING, "Debug step #10");
   RTMP_Log(RTMP_LOGDEBUG, "%s: Sending handshake response: ",
     __FUNCTION__);
   RTMP_LogHex(RTMP_LOGDEBUG, reply, RTMP_SIG_SIZE);
 
   if (!WriteN(r, (char *)reply, RTMP_SIG_SIZE))
     return FALSE;
-
+RTMP_Log(RTMP_LOGWARNING, "Debug step #11");
   /* 2nd part of handshake */
   if (ReadN(r, (char *)serversig, RTMP_SIG_SIZE) != RTMP_SIG_SIZE)
     return FALSE;
@@ -978,7 +987,7 @@ HandShake(RTMP * r, int FP9HandShake)
     {
       uint8_t signature[SHA256_DIGEST_LENGTH];
       uint8_t digest[SHA256_DIGEST_LENGTH];
-
+    RTMP_Log(RTMP_LOGWARNING, "Debug step #12");
       if (serversig[4] == 0 && serversig[5] == 0 && serversig[6] == 0
 	  && serversig[7] == 0)
 	{
@@ -999,8 +1008,9 @@ HandShake(RTMP * r, int FP9HandShake)
       /* show some information */
       RTMP_Log(RTMP_LOGDEBUG, "%s: Digest key: ", __FUNCTION__);
       RTMP_LogHex(RTMP_LOGDEBUG, digest, SHA256_DIGEST_LENGTH);
-
+RTMP_Log(RTMP_LOGWARNING, "Debug step #13");
 #ifdef FP10
+RTMP_Log(RTMP_LOGWARNING, "Debug step #14 is FP10");
       if (type == 8 )
         {
 	  uint8_t *dptr = digest;
@@ -1018,6 +1028,7 @@ HandShake(RTMP * r, int FP9HandShake)
             rtmpe9_sig(sig+i, sig+i, dptr[i] % 15);
         }
 #endif
+RTMP_Log(RTMP_LOGWARNING, "Debug step #15 not FP10");
       RTMP_Log(RTMP_LOGDEBUG, "%s: Signature calculated:", __FUNCTION__);
       RTMP_LogHex(RTMP_LOGDEBUG, signature, SHA256_DIGEST_LENGTH);
       if (memcmp
@@ -1060,7 +1071,7 @@ HandShake(RTMP * r, int FP9HandShake)
 	      __FUNCTION__);
 	}
     }
-
+RTMP_Log(RTMP_LOGWARNING, "Debug step #20 finished");
   RTMP_Log(RTMP_LOGDEBUG, "%s: Handshaking finished....", __FUNCTION__);
   return TRUE;
 }
@@ -1273,8 +1284,6 @@ SHandShake(RTMP * r)
 			    (uint8_t *) &serversig[dhposServer],
 			    &keyIn, &keyOut);
 	}
-
-
       /* calculate response now */
       signatureResp = clientsig+RTMP_SIG_SIZE-SHA256_DIGEST_LENGTH;
 
@@ -1300,7 +1309,6 @@ SHandShake(RTMP * r)
             rtmpe9_sig(sig+i, sig+i, dptr[i] % 15);
         }
 #endif
-
       /* some info output */
       RTMP_Log(RTMP_LOGDEBUG,
 	  "%s: Calculated digest key from secure key and server digest: ",
