@@ -1364,8 +1364,8 @@ main_rtmpsuck(int argc, char **argv, char *sToken)
 
     char *flvFile = 0;
 
- //RTMP_debuglevel = RTMP_LOGALL;
-  RTMP_debuglevel = RTMP_LOGINFO;
+ RTMP_debuglevel = RTMP_LOGALL;
+ // RTMP_debuglevel = RTMP_LOGINFO;
 
  RTMP_LogPrintf("Check all arguments\n");
     int opt;
