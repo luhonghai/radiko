@@ -1,0 +1,22 @@
+apply plugin: 'java'
+apply plugin: 'gradle-one-jar'
+
+buildscript {
+    repositories {
+        mavenCentral()
+    }
+    dependencies {
+        classpath 'com.github.rholder:gradle-one-jar:1.0.4'
+    }
+}
+
+dependencies {
+    compile fileTree(dir: 'libs', include: ['*.jar'])
+    compile 'org.apache.httpcomponents:httpclient:4.0-beta2'
+    compile 'commons-io:commons-io:2.4'
+}
+
+task awesomeFunJar(type: OneJar) {
+    mainClass = 'com.dotohsoft.radiko.TokenRequester'
+    useStable = false
+}

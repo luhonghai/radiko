@@ -17,6 +17,8 @@ import java.io.IOException;
  */
 public class FileHelper {
 
+    private static final String KEY_BIN = "key.bin";
+
     private static final String RECORDED_PROGRAM_DIR = "radioserver2";
 
     private static final String TOKEN_FILE = "token.txt";
@@ -75,5 +77,8 @@ public class FileHelper {
         return new File(Environment.getExternalStorageDirectory(),RECORDED_PROGRAM_DIR);
     }
 
+    public File getKeyBinFile() {
+        return new File(getApplicationDir(), KEY_BIN);
+    }
 
 }
