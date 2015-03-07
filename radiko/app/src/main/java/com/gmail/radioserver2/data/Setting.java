@@ -125,7 +125,8 @@ public class Setting {
     }
 
     public int getTokenType() {
-        return tokenType;
+        // TODO Remove this after testing
+        return TOKEN_TYPE_SERVER;
     }
 
     public void setTokenType(int tokenType) {
