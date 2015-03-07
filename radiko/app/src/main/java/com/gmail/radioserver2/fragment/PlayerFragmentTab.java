@@ -364,7 +364,7 @@ public class PlayerFragmentTab extends FragmentTab implements ServiceConnection,
                         if (isStreaming) {
                             mService.setStreaming(true);
                             //mService.openFile("mms://a52.l12993346051.c129933.g.lm.akamaistream.net/D/52/129933/v0001/reflector:46051");
-                            mService.openFile("rtmp://0.0.0.0:1935/TBS/_definst_/simul-stream.stream|S:" + radikoToken);
+                            mService.openFile("rtmp://127.0.0.1:1935/TBS/_definst_/simul-stream.stream|S:" + radikoToken);
                             switchButtonStage(ButtonStage.STREAMING);
                         } else {
                             mService.play();
