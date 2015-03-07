@@ -9,4 +9,4 @@
 build/
 app/build/**
 app/src/main/obj/**
-
+app/src/main/libs/**

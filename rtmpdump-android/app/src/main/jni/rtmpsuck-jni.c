@@ -972,6 +972,8 @@ TFTYPE doServe(void *arg)	// server socket and state (our listening socket)
           while (RTMP_ReadPacket(&server->rs, &ps)) {
            if (server->rc.m_stream_id > 2) {
                 char *ptrs = ps.m_body+2;
+                int streamId = AMF_DecodeInt32(ptrs);
+                RTMP_Log(RTMP_LOGDEBUG, "Change request client id %d to fixed client id %d", streamId, server->rc.m_stream_id);
                 AMF_EncodeInt32(ptrs, ptrs+4, server->rc.m_stream_id);
             }
 
@@ -1021,8 +1023,8 @@ TFTYPE doServe(void *arg)	// server socket and state (our listening socket)
                               {
                                 AMF_EncodeInt32(ptr+4, ptr+8, BUFFERTIME);
                               }
-                            RTMP_LogPrintf("%s, client: BufferTime change in stream %d to %d", __FUNCTION__,
-                                id, len);
+                            RTMP_LogPrintf("%s, client: BufferTime change in stream %d from %d to %d", __FUNCTION__,
+                                id, len, BUFFERTIME);
                           }
                       }
                   }

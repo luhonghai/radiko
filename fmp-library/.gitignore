@@ -1,0 +1,16 @@
+.gradle
+/local.properties
+/.idea/**
+.DS_Store
+/build
+**.iml
+.idea/**
+.idea/
+build/
+gen/**
+obj/**
+ffmpeg/ffmpeg/**
+ffmpeg/ffmpeg-2.5.3.tar.gz
+libs/**
+jni/openssl-android/**
+
