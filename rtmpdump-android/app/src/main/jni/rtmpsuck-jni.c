@@ -970,15 +970,16 @@ TFTYPE doServe(void *arg)	// server socket and state (our listening socket)
       if (sr)
         {
           while (RTMP_ReadPacket(&server->rs, &ps)) {
-           if (server->rc.m_stream_id > 2) {
-                char *ptrs = ps.m_body+2;
-                int streamId = AMF_DecodeInt32(ptrs);
-                RTMP_Log(RTMP_LOGDEBUG, "Change request client id %d to fixed client id %d", streamId, server->rc.m_stream_id);
-                AMF_EncodeInt32(ptrs, ptrs+4, server->rc.m_stream_id);
-            }
 
             if (RTMPPacket_IsReady(&ps))
               {
+              char *ptrs = ps.m_body+2;
+                int streamId = AMF_DecodeInt32(ptrs);
+                RTMP_Log(RTMP_LOGWARNING, "Request client id %d", streamId);
+                if (streamId == 1) {
+                     RTMP_Log(RTMP_LOGWARNING, "=> Fix client id to %d", server->rc.m_stream_id);
+                    AMF_EncodeInt32(ptrs, ptrs+4, server->rc.m_stream_id);
+                }
                 /* change chunk size */
                 if (ps.m_packetType == RTMP_PACKET_TYPE_CHUNK_SIZE)
                   {
@@ -1012,9 +1013,8 @@ TFTYPE doServe(void *arg)	// server socket and state (our listening socket)
                         int len;
                         id = AMF_DecodeInt32(ptr);
                        // id = server->rc.m_stream_id;
-
                         /* Assume the interesting media is on a non-zero stream */
-                        RTMP_LogPrintf( "Client id %d request new buffer time", id);
+                        RTMP_Log(RTMP_LOGWARNING, "Client id %d request new buffer time", id);
                         if (id)
                           {
                             len = AMF_DecodeInt32(ptr+4);
@@ -1023,7 +1023,7 @@ TFTYPE doServe(void *arg)	// server socket and state (our listening socket)
                               {
                                 AMF_EncodeInt32(ptr+4, ptr+8, BUFFERTIME);
                               }
-                            RTMP_LogPrintf("%s, client: BufferTime change in stream %d from %d to %d", __FUNCTION__,
+                            RTMP_Log(RTMP_LOGWARNING,"%s, client: BufferTime change in stream %d from %d to %d", __FUNCTION__,
                                 id, len, BUFFERTIME);
                           }
                       }
@@ -1366,8 +1366,8 @@ main_rtmpsuck(int argc, char **argv, char *sToken)
 
     char *flvFile = 0;
 
- RTMP_debuglevel = RTMP_LOGALL;
- // RTMP_debuglevel = RTMP_LOGINFO;
+// RTMP_debuglevel = RTMP_LOGALL;
+ RTMP_debuglevel = RTMP_LOGINFO;
 
  RTMP_LogPrintf("Check all arguments\n");
     int opt;
