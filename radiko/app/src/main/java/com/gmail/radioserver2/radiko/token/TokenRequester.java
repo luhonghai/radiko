@@ -5,6 +5,7 @@ import android.util.Base64;
 import android.util.Log;
 
 import com.gmail.radioserver2.R;
+import com.gmail.radioserver2.utils.SimpleAppLog;
 
 import org.apache.commons.io.IOUtils;
 import org.apache.http.Header;
@@ -53,7 +54,6 @@ public class TokenRequester {
 
         SingleClientConnManager mgr = new SingleClientConnManager(params, schemeRegistry);
 
-
         HttpClient httpClient = new DefaultHttpClient(mgr, params);
         HttpPost httpPost = new HttpPost(context.getResources().getString(R.string.radiko_auth1_fms));
         httpPost.setHeader("pragma","no-cache");
@@ -67,6 +67,15 @@ public class TokenRequester {
         String authToken =getHeaderValue(response, "x-radiko-authtoken").trim();
         String keyOffset = getHeaderValue(response, "x-radiko-keyoffset").trim();
         String keyLength = getHeaderValue(response, "x-radiko-keylength").trim();
+
+        try {
+            HttpEntity entity = response.getEntity();
+            if (entity != null) {
+                entity.consumeContent();
+            }
+        } catch (Exception ex) {
+
+        }
         Log.i(TAG, "authToken: " + authToken);
         Log.i(TAG, "keyOffset: " + keyOffset);
         Log.i(TAG, "keyLength: " + keyLength);
@@ -92,10 +101,33 @@ public class TokenRequester {
                 httpPost.setHeader("X-Radiko-Partialkey",partialKey);
                 httpPost.setEntity(new StringEntity("\r\n", "UTF-8"));
 
+
+                schemeRegistry = new SchemeRegistry();
+                schemeRegistry.register(new Scheme("https",
+                        SSLSocketFactory.getSocketFactory(), 443));
+
+                params = new BasicHttpParams();
+
+                mgr = new SingleClientConnManager(params, schemeRegistry);
+
                 httpClient = new DefaultHttpClient(mgr, params);
                 response = httpClient.execute(httpPost);
-                String strRes = IOUtils.toString(response.getEntity().getContent());
-                Log.i(TAG, "Response: " + strRes);
+                InputStream is = null;
+                try {
+                    HttpEntity entity = response.getEntity();
+                    is = entity.getContent();
+                    String strRes = IOUtils.toString(is);
+                    Log.i(TAG, "Response: " + strRes);
+                    entity.consumeContent();
+                } catch (Exception ex) {
+                    SimpleAppLog.error("Could not get response",ex);
+                } finally {
+                    if (is != null) {
+                        try {
+                            is.close();
+                        } catch (Exception e) {}
+                    }
+                }
                 return authToken;
             }
         }
