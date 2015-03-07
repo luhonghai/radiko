@@ -9,8 +9,7 @@
 build/
 gen/**
 obj/**
-ffmpeg/ffmpeg/**
-ffmpeg/ffmpeg-2.5.3.tar.gz
+ffmpeg/**
 libs/**
 jni/openssl-android/**
-
+openssl-android.tar
