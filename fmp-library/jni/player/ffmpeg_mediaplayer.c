@@ -38,8 +38,6 @@ const char *FRAMERATE = "framerate";
 const int SUCCESS = 0;
 const int FAILURE = -1;
 
-const int DEFAULT_SAMPLE_RATE = 16000;
-
 static pthread_mutex_t *lock;
 
 int decode_interrupt_cb(void *opaque) {
@@ -235,7 +233,7 @@ void get_duration(AVFormatContext *ic, char * value) {
 		}
 	}
 
-
+	sprintf(value, "%d", duration); // %i
 }
 
 void set_codec(AVFormatContext *ic, int i) {
@@ -390,9 +388,6 @@ int decode_frame_from_packet(State *state, AVPacket *aPacket, int *frame_size_pt
             
             src_rate = decoded_frame->sample_rate;
             dst_rate = decoded_frame->sample_rate;
-            // Changed by Hai
-            //dst_rate = DEFAULT_SAMPLE_RATE;
-
             src_ch_layout = decoded_frame->channel_layout;
             dst_ch_layout = decoded_frame->channel_layout;
             src_sample_fmt = decoded_frame->format;
@@ -475,7 +470,7 @@ int decode_frame_from_packet(State *state, AVPacket *aPacket, int *frame_size_pt
     		samples = malloc(data_size);
     		memcpy(samples, decoded_frame->data[0], data_size);
     	}
-
+        
         *frame_size_ptr = data_size;
         
         // TODO add this call back!
@@ -483,8 +478,6 @@ int decode_frame_from_packet(State *state, AVPacket *aPacket, int *frame_size_pt
         n = 2 * state->audio_st->codec->channels;
         state->audio_clock += (double)*frame_size_ptr /
         		(double)(n * state->audio_st->codec->sample_rate);
-        //state->audio_clock += (double)*frame_size_ptr /
-        //                		(double)(n * 16000);
 
         /* if update, update the audio clock w/pts */
         if(pkt->pts != AV_NOPTS_VALUE) {
@@ -653,9 +646,8 @@ int player_prepare(State **ps, int from_thread)
     printf("Path: %s\n", state->filename);
 
     AVDictionary *options = NULL;
-    //av_dict_set(&options, "icy", "1", 0);
-    //av_dict_set(&options, "user-agent", "FFmpegMediaPlayer", 0);
-    //av_dict_set(&options, "sample_rate", "16000", 0);
+    av_dict_set(&options, "icy", "1", 0);
+    av_dict_set(&options, "user-agent", "NSPlayer/7.10.0.3059", 0);
     
     if (state->headers) {
     	av_dict_set(&options, "headers", state->headers, 0);
@@ -683,7 +675,6 @@ int player_prepare(State **ps, int from_thread)
 
 	char duration[30] = "0";
 	get_duration(state->pFormatCtx, duration);
-	__android_log_print(ANDROID_LOG_VERBOSE, "MediaPlayer", "init duration (%d)", state->pFormatCtx->duration);
 	av_dict_set(&state->pFormatCtx->metadata, DURATION, duration, 0);
 	
 	get_shoutcast_metadata(state->pFormatCtx);
@@ -739,6 +730,7 @@ int player_prepare(State **ps, int from_thread)
 					//break;
 			    }
 			}
+
 			int frame_size_ptr = 0;
 			ret = decode_frame_from_packet(state, &packet, &frame_size_ptr, from_thread);
 		    __android_log_print(ANDROID_LOG_ERROR, "TAG", "Fill buffer: %d -> %d", frame_size_ptr, state->buffer_size);
@@ -916,4 +908,3 @@ sp<IMemory> decode(int fd, int64_t offset, int64_t length, uint32_t *pSampleRate
 {
     return p;
 }*/
-
