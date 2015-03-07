@@ -3,7 +3,7 @@
     <string name="radiko_auth1_fms">https://radiko.jp/v2/api/auth1_fms</string>
     <string name="radiko_auth2_fms">https://radiko.jp/v2/api/auth2_fms</string>
 
-    <string name="radiko_play_url">rtmp://0.0.0.0:1935/TBS/_definst_/simul-stream.stream|S:%1$s</string>
+    <string name="radiko_play_url">rtmp://127.0.0.1:1935/TBS/_definst_/simul-stream.stream</string>
 
     <string name="radiko_server_token_url">http://stest.dotohsoft.com/~duc/rad/gettoken/getkey.php</string>
 </resources>

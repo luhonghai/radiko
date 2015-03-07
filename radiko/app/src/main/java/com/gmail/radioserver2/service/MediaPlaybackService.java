@@ -2249,6 +2249,7 @@ public class MediaPlaybackService extends Service {
 
         public DefaultMultiPlayer() {
             mCurrentMediaPlayer.setWakeMode(MediaPlaybackService.this, PowerManager.PARTIAL_WAKE_LOCK);
+
         }
 
         public void setDataSource(String path) {
