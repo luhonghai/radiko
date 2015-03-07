@@ -5,18 +5,22 @@ import android.util.Base64;
 import android.util.Log;
 
 import com.gmail.radioserver2.R;
-import com.gmail.radioserver2.utils.SimpleAppLog;
 
 import org.apache.commons.io.IOUtils;
 import org.apache.http.Header;
 import org.apache.http.HttpEntity;
 import org.apache.http.HttpResponse;
 import org.apache.http.client.HttpClient;
-import org.apache.http.client.methods.HttpGet;
 import org.apache.http.client.methods.HttpPost;
+import org.apache.http.conn.scheme.Scheme;
+import org.apache.http.conn.scheme.SchemeRegistry;
+import org.apache.http.conn.ssl.SSLSocketFactory;
 import org.apache.http.entity.BasicHttpEntity;
 import org.apache.http.entity.StringEntity;
 import org.apache.http.impl.client.DefaultHttpClient;
+import org.apache.http.impl.conn.SingleClientConnManager;
+import org.apache.http.params.BasicHttpParams;
+import org.apache.http.params.HttpParams;
 
 import java.io.ByteArrayInputStream;
 import java.io.IOException;
@@ -41,7 +45,16 @@ public class TokenRequester {
     }
 
     public String requestToken() throws IOException {
-        HttpClient httpClient = new DefaultHttpClient();
+        SchemeRegistry schemeRegistry = new SchemeRegistry();
+        schemeRegistry.register(new Scheme("https",
+                SSLSocketFactory.getSocketFactory(), 443));
+
+        HttpParams params = new BasicHttpParams();
+
+        SingleClientConnManager mgr = new SingleClientConnManager(params, schemeRegistry);
+
+
+        HttpClient httpClient = new DefaultHttpClient(mgr, params);
         HttpPost httpPost = new HttpPost(context.getResources().getString(R.string.radiko_auth1_fms));
         httpPost.setHeader("pragma","no-cache");
         httpPost.setHeader("X-Radiko-App","pc_1");
@@ -51,32 +64,36 @@ public class TokenRequester {
         httpPost.setEntity(new StringEntity("\r\n","UTF-8"));
 
         HttpResponse response = httpClient.execute(httpPost);
-        String authToken =getHeaderValue(response, "x-radiko-authtoken");
-        String keyOffset = getHeaderValue(response, "x-radiko-keyoffset");
-        String keyLength = getHeaderValue(response, "x-radiko-keylength");
-        SimpleAppLog.info("authToken: " + authToken);
-        SimpleAppLog.info( "keyOffset: " + keyOffset);
-        SimpleAppLog.info( "keyLength: " + keyLength);
+        String authToken =getHeaderValue(response, "x-radiko-authtoken").trim();
+        String keyOffset = getHeaderValue(response, "x-radiko-keyoffset").trim();
+        String keyLength = getHeaderValue(response, "x-radiko-keylength").trim();
+        Log.i(TAG, "authToken: " + authToken);
+        Log.i(TAG, "keyOffset: " + keyOffset);
+        Log.i(TAG, "keyLength: " + keyLength);
         if (authToken.length() > 0 && keyOffset.length() > 0 && keyLength.length() > 0) {
             String partialKey = "";
             try {
-                 partialKey = generatePartialKey(Integer.parseInt(keyOffset), Integer.parseInt(keyLength));
+                 partialKey = generatePartialKey(Integer.parseInt(keyOffset), Integer.parseInt(keyLength)).trim();
             } catch (Exception ex) {
                 ex.printStackTrace();
             }
             Log.i(TAG, "partialKey: " + partialKey);
             if (partialKey.length() > 0) {
-                HttpGet httpGet = new HttpGet(context.getResources().getString(R.string.radiko_auth2_fms));
-                httpGet.setHeader("pragma","no-cache");
-                httpGet.setHeader("X-Radiko-App","pc_1");
-                httpGet.setHeader("X-Radiko-App-Version","2.0.1");
-                httpGet.setHeader("X-Radiko-User","test-stream");
-                httpGet.setHeader("X-Radiko-Device","pc");
-                httpGet.setHeader("X-Radiko-Authtoken",authToken);
-                httpGet.setHeader("X-Radiko-Partialkey",partialKey);
-                //httpGet.setEntity(new StringEntity("\r\n", "UTF-8"));
-                httpClient = new DefaultHttpClient();
-                response = httpClient.execute(httpGet);
+                httpPost = new HttpPost(context.getResources().getString(R.string.radiko_auth2_fms));
+                httpPost.setHeader("pragma","no-cache");
+                httpPost.setHeader("content-type","application/x-www-form-urlencoded");
+                httpPost.setHeader("DNT","1");
+                httpPost.setHeader("Content-Length","2");
+                httpPost.setHeader("X-Radiko-App","pc_1");
+                httpPost.setHeader("X-Radiko-App-Version","2.0.1");
+                httpPost.setHeader("X-Radiko-User","test-stream");
+                httpPost.setHeader("X-Radiko-Device","pc");
+                httpPost.setHeader("X-Radiko-Authtoken",authToken);
+                httpPost.setHeader("X-Radiko-Partialkey",partialKey);
+                httpPost.setEntity(new StringEntity("\r\n", "UTF-8"));
+
+                httpClient = new DefaultHttpClient(mgr, params);
+                response = httpClient.execute(httpPost);
                 String strRes = IOUtils.toString(response.getEntity().getContent());
                 Log.i(TAG, "Response: " + strRes);
                 return authToken;
