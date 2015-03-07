@@ -92,7 +92,6 @@ public class TokenRequester {
                 httpPost.setHeader("pragma","no-cache");
                 httpPost.setHeader("content-type","application/x-www-form-urlencoded");
                 httpPost.setHeader("DNT","1");
-                httpPost.setHeader("Content-Length","2");
                 httpPost.setHeader("X-Radiko-App","pc_1");
                 httpPost.setHeader("X-Radiko-App-Version","2.0.1");
                 httpPost.setHeader("X-Radiko-User","test-stream");
@@ -100,7 +99,6 @@ public class TokenRequester {
                 httpPost.setHeader("X-Radiko-Authtoken",authToken);
                 httpPost.setHeader("X-Radiko-Partialkey",partialKey);
                 httpPost.setEntity(new StringEntity("\r\n", "UTF-8"));
-
 
                 schemeRegistry = new SchemeRegistry();
                 schemeRegistry.register(new Scheme("https",
