@@ -1,0 +1,10 @@
+/.settings
+/.project
+/.buildpath
+/vendor
+/nbproject
+phpunit.xml
+.vagrant
+Vagrantfile
+.idea
+cached/**
