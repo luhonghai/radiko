@@ -66,6 +66,11 @@ public class Channel extends AbstractData<Channel> {
         return type;
     }
 
+    public boolean isType(String radioType) {
+        if (this.type == null) return false;
+        return this.type.equalsIgnoreCase(radioType);
+    }
+
     public void setType(String type) {
         this.type = type;
     }

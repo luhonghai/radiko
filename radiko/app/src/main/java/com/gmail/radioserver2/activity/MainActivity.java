@@ -17,6 +17,7 @@ import android.view.View;
 import android.widget.TabHost;
 import android.widget.TextView;
 
+import com.crashlytics.android.Crashlytics;
 import com.gmail.radioserver2.R;
 import com.gmail.radioserver2.data.Library;
 import com.gmail.radioserver2.fragment.HomeFragmentTab;
@@ -30,6 +31,7 @@ import com.gmail.radioserver2.utils.Constants;
 import com.gmail.radioserver2.view.ReclickableTabHost;
 import com.google.gson.Gson;
 
+import io.fabric.sdk.android.Fabric;
 import java.util.HashMap;
 import java.util.Stack;
 

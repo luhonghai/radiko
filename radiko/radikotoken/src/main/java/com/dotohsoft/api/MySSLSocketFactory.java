@@ -1,4 +1,4 @@
-package com.dotohsoft.radiko;
+package com.dotohsoft.api;
 
 import org.apache.http.conn.ssl.SSLSocketFactory;
 

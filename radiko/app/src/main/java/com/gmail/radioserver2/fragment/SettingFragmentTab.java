@@ -106,6 +106,7 @@ public class SettingFragmentTab extends FragmentTab implements View.OnClickListe
     public void onClick(View v) {
         switch (v.getId()) {
             case R.id.btnSave:
+
                 saveData();
                 Intent intent = new Intent(Constants.INTENT_FILTER_FRAGMENT_ACTION);
                 intent.putExtra(Constants.FRAGMENT_ACTION_TYPE, Constants.ACTION_CALL_SELECT_TAB);

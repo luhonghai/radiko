@@ -69,4 +69,20 @@ public class ChannelDBAdapter extends DBAdapter<Channel> {
                 null,
                 KEY_LAST_PLAYED_TIME + " DESC, " + KEY_NAME + " ASC"));
     }
+
+    @Override
+    public long insert(Channel obj) throws Exception {
+        Cursor cursor = getDB().query(getTableName(), getAllColumns(),
+                KEY_URL + "=?",
+                new String[]{
+                        obj.getUrl()
+                },
+                null,
+                null,
+                null);
+        if (cursor.getCount() > 0) {
+            return cursor.getLong(cursor.getColumnIndex(KEY_ROW_ID));
+        }
+        return super.insert(obj);
+    }
 }

@@ -2,6 +2,8 @@ package com.gmail.radioserver2.utils;
 
 import android.util.Log;
 
+import com.crashlytics.android.Crashlytics;
+
 /**
  * Created by luhonghai on 2/28/15.
  * Simple log
@@ -12,6 +14,7 @@ public class SimpleAppLog {
 
     public static void info(String log) {
         Log.i(TAG, log);
+        Crashlytics.log(log);
     }
 
     public static void debug(String log) {
@@ -23,6 +26,7 @@ public class SimpleAppLog {
     }
 
     public static void error(String log, Throwable throwable) {
+        Crashlytics.log(Log.ERROR, TAG, log);
         if (throwable == null) {
             Log.e(TAG, log);
         } else {

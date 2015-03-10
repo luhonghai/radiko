@@ -1,4 +1,4 @@
-package com.dotohsoft.radiko;
+package com.dotohsoft.api;
 
 import org.apache.commons.codec.binary.Base64;
 import org.apache.commons.io.IOUtils;

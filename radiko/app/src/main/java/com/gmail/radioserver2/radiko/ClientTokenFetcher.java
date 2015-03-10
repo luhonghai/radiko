@@ -2,7 +2,7 @@ package com.gmail.radioserver2.radiko;
 
 import android.content.Context;
 
-import com.dotohsoft.radiko.TokenRequester;
+import com.dotohsoft.api.TokenRequester;
 import com.gmail.radioserver2.R;
 import com.gmail.radioserver2.utils.SimpleAppLog;
 

@@ -79,6 +79,9 @@
             android:name="com.gmail.radioserver2.provider.MediaProvider"
             android:authorities="com.gmail.radioserver2.provider.Media"
             android:exported="false" />
+        <meta-data
+            android:name="io.fabric.ApiKey"
+            android:value="86b96442908831d7e8d34e62c1f023d2748197eb" />
     </application>
 
 </manifest>

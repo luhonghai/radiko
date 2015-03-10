@@ -1,0 +1,22 @@
+{
+  "channels": [
+    {
+      "service": "nhk",
+      "serviceChannelId": "r1",
+      "name": "ＮＨＫラジオ第1",
+      "streamURL": "mms://a52.l12993146037.c129931.g.lm.akamaistream.net/D/52/129931/v0001/reflector:46037"
+    },
+    {
+      "service": "nhk",
+      "serviceChannelId": "r2",
+      "name": "ＮＨＫラジオ第2",
+      "streamURL": "mms://a52.l12993246056.c129932.g.lm.akamaistream.net/D/52/129932/v0001/reflector:46056"
+    },
+    {
+      "service": "nhk",
+      "serviceChannelId": "r3",
+      "name": "ＮＨＫＦＭ",
+      "streamURL": "mms://a52.l12993346051.c129933.g.lm.akamaistream.net/D/52/129933/v0001/reflector:46051"
+    }
+  ]
+}
