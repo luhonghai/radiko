@@ -4,6 +4,7 @@ import android.os.Bundle;
 
 import com.actionbarsherlock.app.SherlockActivity;
 import com.crashlytics.android.Crashlytics;
+import com.gmail.radioserver2.service.CustomUncaughtExceptionHandler;
 import com.gmail.radioserver2.utils.AndroidUtil;
 
 
@@ -16,6 +17,7 @@ public class BaseActivity extends SherlockActivity {
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
+        Thread.setDefaultUncaughtExceptionHandler(new CustomUncaughtExceptionHandler());
         Fabric.with(this, new Crashlytics());
         AndroidUtil.updateLanguage(this);
     }
