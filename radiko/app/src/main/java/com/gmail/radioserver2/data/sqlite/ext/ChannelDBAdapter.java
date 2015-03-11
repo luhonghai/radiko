@@ -81,7 +81,13 @@ public class ChannelDBAdapter extends DBAdapter<Channel> {
                 null,
                 null);
         if (cursor.getCount() > 0) {
-            return cursor.getLong(cursor.getColumnIndex(KEY_ROW_ID));
+            long oldId =cursor.getLong(cursor.getColumnIndex(KEY_ROW_ID));
+            Channel oldObject = find(oldId);
+            obj.setId(oldId);
+            obj.setLastPlayedTime(oldObject.getLastPlayedTime());
+            obj.setCreatedDate(oldObject.getCreatedDate());
+            update(obj);
+            return oldId;
         }
         return super.insert(obj);
     }

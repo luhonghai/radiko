@@ -2330,6 +2330,7 @@ public class FFmpegMediaPlayer
         }
         fosRecording = null;
         if (!isRecording) return;
+        isRecording = false;
         if (saveFile) {
             if (tmpRecordingFile != null && tmpRecordingFile.exists()) {
                 if (recordingListener != null)

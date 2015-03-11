@@ -81,4 +81,25 @@ public class LibraryDBAdapter extends DBAdapter<Library> {
                 null,
                 KEY_NAME + " ASC"));
     }
+
+    @Override
+    public long insert(Library obj) throws Exception {
+        Cursor cursor = getDB().query(getTableName(), getAllColumns(),
+                KEY_NAME + "=?",
+                new String[]{
+                        obj.getName()
+                },
+                null,
+                null,
+                null);
+        if (cursor.getCount() > 0) {
+            long oldId =cursor.getLong(cursor.getColumnIndex(KEY_ROW_ID));
+            Library oldObject = find(oldId);
+            obj.setId(oldId);
+            obj.setCreatedDate(oldObject.getCreatedDate());
+            update(obj);
+            return oldId;
+        }
+        return super.insert(obj);
+    }
 }
