@@ -53,11 +53,9 @@ import java.util.List;
  */
 
 public class PlayerFragmentTab extends FragmentTab implements ServiceConnection,View.OnClickListener {
-
     /**
      *  Screen state
      */
-
     private TextView txtTitle;
 
     private TextView txtDescription;
@@ -163,6 +161,7 @@ public class PlayerFragmentTab extends FragmentTab implements ServiceConnection,
         seekBarPlayer.setMax(1000);
         seekBarPlayer.setOnSeekBarChangeListener(mSeekListener);
         switchButtonStage(ButtonStage.DISABLED);
+        showPlayerInit();
         long next = refreshNow();
         queueNextRefresh(next);
         return v;
@@ -321,8 +320,6 @@ public class PlayerFragmentTab extends FragmentTab implements ServiceConnection,
                             seekBarPlayer.setVisibility(View.VISIBLE);
                             btnPrev.setVisibility(View.VISIBLE);
                             btnNext.setVisibility(View.VISIBLE);
-                        } else {
-                            gifView.setVisibility(View.VISIBLE);
                         }
                     } else {
                         btnPlay.setCompoundDrawablesWithIntrinsicBounds(0, R.drawable.icon_play, 0, 0);
@@ -425,8 +422,8 @@ public class PlayerFragmentTab extends FragmentTab implements ServiceConnection,
                             mService.stop();
                         } else {
                             mService.pause();
+                            showPlayer();
                         }
-                        showPlayer();
                     } else {
                         try {
                             if (mService.isStreaming() && mService.isRecording())
@@ -435,11 +432,22 @@ public class PlayerFragmentTab extends FragmentTab implements ServiceConnection,
                             SimpleAppLog.error("Could not stop recording",ex);
                         }
                         if (mService.isStreaming() && mService.isPlaying()) {
-                            try {
-                                mService.stop();
-                            } catch (Exception ex) {
-                                SimpleAppLog.error("Could not stop streaming",ex);
-                            }
+                                new Thread(new Runnable() {
+                                    @Override
+                                    public void run() {
+                                        try {
+                                            mService.stop();
+                                            getActivity().runOnUiThread(new Runnable() {
+                                                @Override
+                                                public void run() {
+                                                    showPlayer();
+                                                }
+                                            });
+                                        } catch (RemoteException e) {
+                                            SimpleAppLog.error("Could not stop streaming",e);
+                                        }
+                                    }
+                                }).start();
                         }
                         if (mService.isStreaming()) {
                             if (lastChannelObject != null && lastChannelObject.length() > 0)
@@ -557,7 +565,6 @@ public class PlayerFragmentTab extends FragmentTab implements ServiceConnection,
             mDuration = mService.duration();
             long pos = mPosOverride < 0 ? mService.position() : mPosOverride;
             if ((pos >= 0)) {
-
                 if (mDuration > 0) {
                     seekBarPlayer.setProgress((int) (1000 * pos / mDuration));
                 } else {

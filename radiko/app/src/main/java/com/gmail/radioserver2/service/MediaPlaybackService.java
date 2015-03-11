@@ -31,7 +31,6 @@ import android.content.SharedPreferences;
 import android.content.SharedPreferences.Editor;
 import android.database.Cursor;
 import android.database.sqlite.SQLiteException;
-import android.media.SoundPool;
 import android.media.audiofx.AudioEffect;
 import android.media.AudioManager;
 import android.media.AudioManager.OnAudioFocusChangeListener;
@@ -474,10 +473,10 @@ public class MediaPlaybackService extends Service {
                         mCurrentVolume = .2f;
                     }
                     if (isStreaming) {
-                        if (mStreamingPlayer != null)
-                            mStreamingPlayer.setVolume(mCurrentVolume);
+                      //  if (mStreamingPlayer != null)
+                          //  mStreamingPlayer.setVolume(mCurrentVolume);
                     } else {
-                        mPlayer.setVolume(mCurrentVolume);
+                        //mPlayer.setVolume(mCurrentVolume);
                     }
                     break;
                 case FADEUP:
@@ -488,10 +487,10 @@ public class MediaPlaybackService extends Service {
                         mCurrentVolume = 1.0f;
                     }
                     if (isStreaming) {
-                        if (mStreamingPlayer != null)
-                            mStreamingPlayer.setVolume(mCurrentVolume);
+                        //if (mStreamingPlayer != null)
+                         //   mStreamingPlayer.setVolume(mCurrentVolume);
                     } else {
-                        mPlayer.setVolume(mCurrentVolume);
+                        //mPlayer.setVolume(mCurrentVolume);
                     }
                     break;
                 case SERVER_DIED:
@@ -1727,6 +1726,7 @@ public class MediaPlaybackService extends Service {
     }
 
     private void stop(boolean remove_status_icon) {
+        mIsSupposedToBePlaying = false;
         currentChannel = null;
         stopAB();
 //        if (isStreaming && mStreamingPlayer.isInitialized()) {
@@ -1756,11 +1756,7 @@ public class MediaPlaybackService extends Service {
         } else {
             stopForeground(false);
         }
-        if (remove_status_icon) {
-            mIsSupposedToBePlaying = false;
-        }
     }
-
     /**
      * Stops playback.
      */
@@ -2566,6 +2562,7 @@ public class MediaPlaybackService extends Service {
      * Provides a unified interface for dealing with midi files and
      * other media files.
      */
+
     private class MultiPlayer {
         private FFmpegMediaPlayer mCurrentMediaPlayer = new FFmpegMediaPlayer();
         private FFmpegMediaPlayer mNextMediaPlayer;
@@ -2655,6 +2652,7 @@ public class MediaPlaybackService extends Service {
                 i.putExtra(AudioEffect.EXTRA_PACKAGE_NAME, getPackageName());
                 sendBroadcast(i);
                 play();
+                setVolume(1.0f);
                 notifyChange(META_CHANGED);
             }
         };
@@ -2686,14 +2684,18 @@ public class MediaPlaybackService extends Service {
             public boolean onError(FFmpegMediaPlayer mp, int what, int extra) {
                 switch (what) {
                     case MediaPlayer.MEDIA_ERROR_SERVER_DIED:
-                        mIsInitialized = false;
-                        mCurrentMediaPlayer.release();
-                        // Creating a new MediaPlayer and settings its wakemode does not
-                        // require the media service, so it's OK to do this now, while the
-                        // service is still being restarted
-                        mCurrentMediaPlayer = new FFmpegMediaPlayer();
-                        mCurrentMediaPlayer.setWakeMode(MediaPlaybackService.this, PowerManager.PARTIAL_WAKE_LOCK);
-                        mHandler.sendMessageDelayed(mHandler.obtainMessage(SERVER_DIED), 2000);
+                        try {
+                          //  mIsInitialized = false;
+                          //  mCurrentMediaPlayer.release();
+                            // Creating a new MediaPlayer and settings its wakemode does not
+                            // require the media service, so it's OK to do this now, while the
+                            // service is still being restarted
+                          //  mCurrentMediaPlayer = new FFmpegMediaPlayer();
+                          //  mCurrentMediaPlayer.setWakeMode(MediaPlaybackService.this, PowerManager.PARTIAL_WAKE_LOCK);
+                          //  mHandler.sendMessageDelayed(mHandler.obtainMessage(SERVER_DIED), 2000);
+                        } catch (Exception e) {
+
+                        }
                         return true;
                     default:
                         Log.d("MultiPlayer", "Error: " + what + "," + extra);

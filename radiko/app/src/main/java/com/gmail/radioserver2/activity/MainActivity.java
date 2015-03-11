@@ -320,34 +320,39 @@ public class MainActivity extends BaseFragmentActivity implements ServiceConnect
                     }
                     break;
                 case Constants.ACTION_SELECT_CHANNEL_ITEM:
-                    boolean isNew = true;
-                    String selectedObj = bundle.getString(Constants.ARG_OBJECT);
-                    try {
-                        if (mService.isPlaying()) {
-                            if (mService.isStreaming()) {
-                                Gson gson = new Gson();
-                                String obj = mService.getChannelObject();
-                                Channel selectedChannel = gson.fromJson(selectedObj, Channel.class);
-                                Channel currentChannel = gson.fromJson(obj, Channel.class);
-                                if (currentChannel.getUrl().equalsIgnoreCase(selectedChannel.getUrl())) {
-                                    isNew = false;
+                    final String selectedObj = bundle.getString(Constants.ARG_OBJECT);
+                    new Thread(new Runnable() {
+                        @Override
+                        public void run() {
+                            boolean isNew = true;
+                            try {
+                                if (mService.isPlaying()) {
+                                    if (mService.isStreaming()) {
+                                        Gson gson = new Gson();
+                                        String obj = mService.getChannelObject();
+                                        Channel selectedChannel = gson.fromJson(selectedObj, Channel.class);
+                                        Channel currentChannel = gson.fromJson(obj, Channel.class);
+                                        if (currentChannel.getUrl().equalsIgnoreCase(selectedChannel.getUrl())) {
+                                            isNew = false;
+                                        }
+                                    }
+                                    if (isNew)
+                                        mService.stop();
+                                }
+                            } catch (RemoteException e) {
+                                SimpleAppLog.error("Could not stop old stream",e);
+                            }
+                            if (isNew) {
+                                try {
+                                    mService.setStreaming(true);
+                                    mService.stop();
+                                    mService.openStream("", selectedObj);
+                                } catch (RemoteException e) {
+                                    SimpleAppLog.error("Could not open stream", e);
                                 }
                             }
-                            if (isNew)
-                                mService.stop();
                         }
-                    } catch (RemoteException e) {
-                        SimpleAppLog.error("Could not stop old stream",e);
-                    }
-                    if (isNew) {
-                        try {
-                            mService.setStreaming(true);
-                            mService.stop();
-                            mService.openStream("", selectedObj);
-                        } catch (RemoteException e) {
-                            SimpleAppLog.error("Could not open stream", e);
-                        }
-                    }
+                    }).start();
                     pushFragments(Constants.TAB_PLAY_SCREEN, new PlayerFragmentTab(), true,false);
                     break;
                 case Constants.ACTION_SELECT_RECORDED_PROGRAM_ITEM:
