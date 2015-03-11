@@ -419,7 +419,22 @@ public class PlayerFragmentTab extends FragmentTab implements ServiceConnection,
                     if (mService.isPlaying()) {
                         if (mService.isStreaming()) {
                             lastChannelObject = mService.getChannelObject();
-                            mService.stop();
+                            new Thread(new Runnable() {
+                                @Override
+                                public void run() {
+                                    try {
+                                        mService.stop();
+                                        getActivity().runOnUiThread(new Runnable() {
+                                            @Override
+                                            public void run() {
+                                                showPlayer();
+                                            }
+                                        });
+                                    } catch (RemoteException e) {
+                                        SimpleAppLog.error("Could not stop streaming",e);
+                                    }
+                                }
+                            }).start();
                         } else {
                             mService.pause();
                             showPlayer();
@@ -432,22 +447,7 @@ public class PlayerFragmentTab extends FragmentTab implements ServiceConnection,
                             SimpleAppLog.error("Could not stop recording",ex);
                         }
                         if (mService.isStreaming() && mService.isPlaying()) {
-                                new Thread(new Runnable() {
-                                    @Override
-                                    public void run() {
-                                        try {
-                                            mService.stop();
-                                            getActivity().runOnUiThread(new Runnable() {
-                                                @Override
-                                                public void run() {
-                                                    showPlayer();
-                                                }
-                                            });
-                                        } catch (RemoteException e) {
-                                            SimpleAppLog.error("Could not stop streaming",e);
-                                        }
-                                    }
-                                }).start();
+                            mService.stop();
                         }
                         if (mService.isStreaming()) {
                             if (lastChannelObject != null && lastChannelObject.length() > 0)
