@@ -3,6 +3,7 @@ package com.gmail.radioserver2.radiko;
 import android.content.Context;
 import android.os.AsyncTask;
 
+import com.dotohsoft.radio.data.RadioArea;
 import com.gmail.radioserver2.R;
 import com.gmail.radioserver2.utils.FileHelper;
 import com.google.gson.Gson;
@@ -31,10 +32,10 @@ public class ServerTokenFetcher extends TokenFetcher {
             FileUtils.copyURLToFile(new URL("http://stest.dotohsoft.com/~duc/rad/gettoken/getkey.php"), tmpFile);
             if (tmpFile.exists()) {
                 String token = FileUtils.readFileToString(tmpFile, "UTF-8");
-                saveToken(token);
-                onTokenFound(token);
+                saveToken(token, RadioArea.AREA_ID_TOKYO);
+                onTokenFound(token, RadioArea.AREA_ID_TOKYO);
             } else {
-                onTokenFound("");
+                onTokenFound("", "");
             }
 
         } catch (Exception e) {

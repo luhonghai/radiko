@@ -1,21 +1,28 @@
 package com.gmail.radioserver2.fragment;
 
+import android.content.BroadcastReceiver;
+import android.content.Context;
 import android.content.Intent;
+import android.content.IntentFilter;
 import android.os.Bundle;
+import android.os.RemoteException;
 import android.view.LayoutInflater;
 import android.view.View;
 import android.view.ViewGroup;
 import android.widget.Button;
 import android.widget.EditText;
 
+import com.dotohsoft.radio.Constant;
 import com.gmail.radioserver2.adapter.OnListItemActionListener;
 import com.gmail.radioserver2.data.Channel;
+import com.gmail.radioserver2.data.Library;
 import com.gmail.radioserver2.data.sqlite.ext.ChannelDBAdapter;
 import com.gmail.radioserver2.utils.Constants;
 import com.gmail.radioserver2.utils.SimpleAppLog;
 import com.gmail.radioserver2.view.swipelistview.SwipeListView;
 import com.gmail.radioserver2.R;
 import com.gmail.radioserver2.adapter.ChannelAdapter;
+import com.google.gson.Gson;
 
 import java.util.Collection;
 
@@ -30,6 +37,23 @@ public class HomeFragmentTab extends FragmentTab implements OnListItemActionList
     private Button btnSearch;
 
     @Override
+    public void onCreate(Bundle savedInstanceState) {
+        super.onCreate(savedInstanceState);
+        getActivity().registerReceiver(mHandleAction, new IntentFilter(Constants.INTENT_FILTER_FRAGMENT_ACTION));
+    }
+
+    @Override
+    public void onDestroy() {
+        try {
+            getActivity().unregisterReceiver(mHandleAction);
+        } catch (Exception ex) {
+
+        }
+        super.onDestroy();
+
+    }
+
+    @Override
     public View onCreateView(LayoutInflater inflater, ViewGroup container, Bundle savedInstanceState) {
         View v = inflater.inflate(R.layout.fragment_home_tab, container, false);
         listView = (SwipeListView) v.findViewById(R.id.list_channel);
@@ -40,6 +64,7 @@ public class HomeFragmentTab extends FragmentTab implements OnListItemActionList
         return v;
     }
     private void loadData() {
+        if (listView == null || txtSearch == null) return;
         ChannelDBAdapter dbAdapter = new ChannelDBAdapter(getActivity());
         try {
             dbAdapter.open();
@@ -88,6 +113,8 @@ public class HomeFragmentTab extends FragmentTab implements OnListItemActionList
     public void onSelectItem(Channel obj) {
         Intent intent = new Intent(Constants.INTENT_FILTER_FRAGMENT_ACTION);
         intent.putExtra(Constants.FRAGMENT_ACTION_TYPE, Constants.ACTION_SELECT_CHANNEL_ITEM);
+        Gson gson = new Gson();
+        intent.putExtra(Constants.ARG_OBJECT, gson.toJson(obj));
         getActivity().sendBroadcast(intent);
     }
 
@@ -109,4 +136,17 @@ public class HomeFragmentTab extends FragmentTab implements OnListItemActionList
                 break;
         }
     }
+
+    private final BroadcastReceiver mHandleAction = new BroadcastReceiver() {
+        @Override
+        public void onReceive(Context context, Intent intent) {
+            Bundle bundle = intent.getExtras();
+            int type = bundle.getInt(Constants.FRAGMENT_ACTION_TYPE);
+            switch (type) {
+                case Constants.ACTION_RELOAD_LIST:
+                    loadData();
+                    break;
+            }
+        }
+    };
 }

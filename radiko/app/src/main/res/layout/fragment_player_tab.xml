@@ -30,8 +30,7 @@
             android:textSize="@dimen/font_size_title"
             android:layout_marginTop="@dimen/default_top_margin"
             android:gravity="center"
-            android:textStyle="bold"
-            android:text="@string/default_channel_name"/>
+            android:textStyle="bold"/>
         <ScrollView
             android:layout_width="match_parent"
             android:layout_height="match_parent"
@@ -41,8 +40,7 @@
                 android:layout_width="match_parent"
                 android:layout_height="wrap_content"
                 android:gravity="center"
-                android:textSize="@dimen/font_size_description"
-                android:text="@string/default_channel_description"/>
+                android:textSize="@dimen/font_size_description"/>
         </ScrollView>
     </LinearLayout>
     <LinearLayout
@@ -67,12 +65,19 @@
                     android:src="@drawable/icon_prev"
                     android:adjustViewBounds="true"
                     android:scaleType="fitCenter"/>
-
+                <WebView
+                    android:id="@+id/gifView"
+                    android:layout_marginTop="15dp"
+                    android:layout_width="0dp"
+                    android:visibility="gone"
+                    android:layout_height="match_parent"
+                    android:layout_weight="1"/>
                 <SeekBar
                     android:layout_width="0dp"
                     android:layout_height="wrap_content"
                     android:id="@+id/seekBarPlayer"
                     android:layout_weight="1"
+                    android:visibility="gone"
                     android:layout_gravity="center_horizontal|center_vertical"
                     android:indeterminate="false" />
 
@@ -163,7 +168,7 @@
                 android:text="@string/button_repeat"
                 android:drawableTop="@drawable/icon_repeat"
                 android:background="@drawable/rounded_corner_button"
-                android:textAppearance="?android:attr/textAppearanceSmall"
+                android:textSize="12sp"
                 android:layout_margin="@dimen/button_media_margin"/>
         </LinearLayout>
     </LinearLayout>

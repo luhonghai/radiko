@@ -40,6 +40,8 @@ public class Constants {
 
     public static final int TAB_SETTING_ID = 3;
 
+    public static final String PLAYBACK_VIEWER_INTENT = "com.gmail.radioserver2.PLAYBACK_VIEWER";
+
     /**
      *  Fragment action intent
      */
@@ -56,6 +58,8 @@ public class Constants {
     public static final int ACTION_SELECT_LIBRARY_ITEM = 4;
 
     public static final int ACTION_SELECT_RECORDED_PROGRAM_ITEM = 5;
+
+    public static final int ACTION_RELOAD_LIST = 6;
 
     public static final String PARAMETER_SELECTED_TAB_ID = "PARAMETER_SELECTED_TAB_ID";
 

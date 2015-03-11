@@ -28,4 +28,9 @@ public class FragmentTab extends SherlockFragment {
         tv.setText(this.getTag() + " content.");
         return v;
     }
+
+    @Override
+    public void onSaveInstanceState(Bundle outState) {
+        //
+    }
 }

@@ -135,6 +135,21 @@ public interface IMediaPlaybackService extends android.os.IInterface
                     reply.writeNoException();
                     return true;
                 }
+                case TRANSACTION_getChannelObject: {
+                    data.enforceInterface(DESCRIPTOR);
+                    String r = this.getChannelObject();
+                    reply.writeString(r);
+                    reply.writeNoException();
+                    return true;
+                }
+                case TRANSACTION_openStream: {
+                    data.enforceInterface(DESCRIPTOR);
+                    String token = data.readString();
+                    String channelObj = data.readString();
+                    this.openStream(token, channelObj);
+                    reply.writeNoException();
+                    return true;
+                }
                 // Default
                 case TRANSACTION_openFile:
                 {
@@ -1147,6 +1162,41 @@ public interface IMediaPlaybackService extends android.os.IInterface
                 }
                 return _result;
             }
+
+            @Override public void openStream(String token, String channelObject) throws android.os.RemoteException
+            {
+                android.os.Parcel _data = android.os.Parcel.obtain();
+                android.os.Parcel _reply = android.os.Parcel.obtain();
+                try {
+                    _data.writeInterfaceToken(DESCRIPTOR);
+                    _data.writeString(token);
+                    _data.writeString(channelObject);
+                    mRemote.transact(Stub.TRANSACTION_openStream, _data, _reply, 0);
+                    _reply.readException();
+                }
+                finally {
+                    _reply.recycle();
+                    _data.recycle();
+                }
+            }
+
+            @Override public String getChannelObject() throws android.os.RemoteException
+            {
+                android.os.Parcel _data = android.os.Parcel.obtain();
+                android.os.Parcel _reply = android.os.Parcel.obtain();
+                String _result;
+                try {
+                    _data.writeInterfaceToken(DESCRIPTOR);
+                    mRemote.transact(Stub.TRANSACTION_getChannelObject, _data, _reply, 0);
+                    _reply.readException();
+                    _result = _reply.readString();
+                }
+                finally {
+                    _reply.recycle();
+                    _data.recycle();
+                }
+                return _result;
+            }
         }
         // Added by Hai
         static final int TRANSACTION_startRecord = (android.os.IBinder.FIRST_CALL_TRANSACTION + 32);
@@ -1162,6 +1212,8 @@ public interface IMediaPlaybackService extends android.os.IInterface
         static final int TRANSACTION_isRecording = (android.os.IBinder.FIRST_CALL_TRANSACTION + 42);
         static final int TRANSACTION_setStreaming = (android.os.IBinder.FIRST_CALL_TRANSACTION + 43);
         static final int TRANSACTION_isStreaming = (android.os.IBinder.FIRST_CALL_TRANSACTION + 44);
+        static final int TRANSACTION_openStream = (android.os.IBinder.FIRST_CALL_TRANSACTION + 45);
+        static final int TRANSACTION_getChannelObject = (android.os.IBinder.FIRST_CALL_TRANSACTION + 46);
         // Default
         static final int TRANSACTION_openFile = (android.os.IBinder.FIRST_CALL_TRANSACTION + 0);
         static final int TRANSACTION_open = (android.os.IBinder.FIRST_CALL_TRANSACTION + 1);
@@ -1211,6 +1263,9 @@ public interface IMediaPlaybackService extends android.os.IInterface
     public void stopSlow() throws android.os.RemoteException;
     public boolean isStreaming() throws RemoteException;
     public void setStreaming(boolean isStreaming) throws RemoteException;
+    public void openStream(String token, String objChannel) throws RemoteException;
+    public String getChannelObject() throws RemoteException;
+
     // Default
     public void openFile(java.lang.String path) throws android.os.RemoteException;
     public void open(long[] list, int position) throws android.os.RemoteException;

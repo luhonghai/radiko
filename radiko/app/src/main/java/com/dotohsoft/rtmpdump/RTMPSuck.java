@@ -7,6 +7,10 @@ public class RTMPSuck {
         System.loadLibrary("rtmp");
         System.loadLibrary("rtmpsuck");
     }
-    public native void init(String token, String dest);
+    public native void update(String token, String tcUrl, String app);
+    public native void init(String token, int port);
+    public void init(String token) {
+        init(token, 1935);
+    }
     public native void stop();
 }

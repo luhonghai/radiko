@@ -100,7 +100,8 @@
     <string name="label_create_new_library">フォルダの新規作成</string>
     <string name="hint_library_name">フォルダ名</string>
 
-
+    <string name="current_program">現在のプログラム</string>
+    <string name="program_description">Description</string>
     <!-- For debug -->
     <string name="ads_place">広　告　枠</string>
     <string name="default_channel_name">TBS ラジオ</string>

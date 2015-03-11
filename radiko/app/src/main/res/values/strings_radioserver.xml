@@ -101,7 +101,8 @@
     <string name="label_create_new_library">Create new library</string>
     <string name="hint_library_name">Library name</string>
 
-
+    <string name="current_program">Current program</string>
+    <string name="program_description">Description</string>
     <!-- For debug -->
     <string name="ads_place">Ads place</string>
     <string name="default_channel_name">TBS Radio</string>

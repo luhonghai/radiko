@@ -32,6 +32,27 @@ import java.security.KeyStore;
  */
 public class TokenRequester {
 
+    public static class TokenData {
+        private String token;
+        private String output;
+
+        public String getToken() {
+            return token;
+        }
+
+        public void setToken(String token) {
+            this.token = token;
+        }
+
+        public String getOutput() {
+            return output;
+        }
+
+        public void setOutput(String output) {
+            this.output = output;
+        }
+    }
+
     public interface TokenRequesterListener {
 
         public void onMessage(String message);
@@ -55,7 +76,7 @@ public class TokenRequester {
     }
 
 
-    public String requestToken() throws IOException {
+    public TokenData requestToken() throws IOException {
         HttpClient httpClient = getNewHttpClient();
         HttpPost httpPost = new HttpPost("https://radiko.jp/v2/api/auth1_fms");
         httpPost.setHeader("pragma","no-cache");
@@ -109,7 +130,19 @@ public class TokenRequester {
                     String strRes = IOUtils.toString(is);
                     requesterListener.onMessage("Response: " + strRes);
                     entity.consumeContent();
-                    return authToken;
+                    TokenData tokenData = new TokenData();
+                    tokenData.setToken(authToken);
+                    strRes = strRes.replace("\n", " ");
+                    strRes = strRes.replace("\t", " ");
+                    while (strRes.contains("  ")) {
+                        strRes = strRes.replace("  ", " ");
+                    }
+                    strRes = strRes.trim();
+                    if (strRes.equalsIgnoreCase("OUT")) {
+                        strRes = "";
+                    }
+                    tokenData.setOutput(strRes);
+                    return tokenData;
                 } catch (Exception ex) {
                     requesterListener.onError("Could not get response", ex);
                 } finally {
@@ -121,7 +154,7 @@ public class TokenRequester {
                 }
             }
         }
-        return "";
+        return null;
     }
 
     public String generatePartialKey(int offset, int length) {

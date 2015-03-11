@@ -2242,6 +2242,12 @@ public class FFmpegMediaPlayer
 
         Log.i(TAG, "Minimum buffer size set to: " + minBufferSize + ". Sample rate: " + sampleRateInHz);
         if (!isRecordingOnly) {
+            if (mAudioTrack != null) {
+                try {
+                    mAudioTrack.release();
+                    mAudioTrack = null;
+                } catch (Exception ex) {}
+            }
             if (sessionId != 0) {
                 mAudioTrack = setAudioSessionIdCompat(streamType, sampleRateInHz, channelConfig,
                         AudioFormat.ENCODING_PCM_16BIT, minBufferSize, AudioTrack.MODE_STREAM, sessionId);
@@ -2272,7 +2278,7 @@ public class FFmpegMediaPlayer
     
     private int _setVolume(float leftVolume, float rightVolume) {
 		int ret = -3;
-    	
+
     	if (mAudioTrack != null) {
     		ret = mAudioTrack.setStereoVolume(leftVolume, rightVolume);
     	}

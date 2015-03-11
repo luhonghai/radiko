@@ -108,25 +108,35 @@ public class APIRequester {
     }
 
     public static void main(String[] args) {
-        APIRequester requester = new APIRequester(FileUtils.getTempDirectory());
-        RadioChannel.Channel channel = new RadioChannel.Channel();
-        channel.setService(RadioProvider.RADIKO);
-        channel.setServiceChannelId("TBS");
-        RadioArea area = RadioArea.getArea("JP13,東京都,tokyo Japan", RadioProvider.RADIKO);
-        Gson gson = new GsonBuilder().setPrettyPrinting().create();
-        try {
-            RadioProgram radioProgram = requester.getPrograms(channel, area);
+//        APIRequester requester = new APIRequester(FileUtils.getTempDirectory());
+//        RadioChannel.Channel channel = new RadioChannel.Channel();
+//        channel.setService(RadioProvider.RADIKO);
+//        channel.setServiceChannelId("TBS");
+//        RadioArea area = RadioArea.getArea("JP13,東京都,tokyo Japan", RadioProvider.RADIKO);
+//        Gson gson = new GsonBuilder().setPrettyPrinting().create();
+//        try {
+//            RadioProgram radioProgram = requester.getPrograms(channel, area);
+//
+//            System.out.print(gson.toJson(radioProgram));
+//        } catch (IOException e) {
+//            e.printStackTrace();
+//        }
+//        try {
+//            System.out.println("========================");
+//            RadioChannel radioChannel = requester.getChannels("JP40", true, "");
+//            System.out.print(gson.toJson(radioChannel));
+//        } catch (IOException e) {
+//            e.printStackTrace();
+//        }
+        String playUrl = "rtmpe://f-radiko.smartstream.ne.jp/TBS/_definst_/simul-stream.stream";
 
-            System.out.print(gson.toJson(radioProgram));
-        } catch (IOException e) {
-            e.printStackTrace();
-        }
-        try {
-            System.out.println("========================");
-            RadioChannel radioChannel = requester.getChannels("JP40", true, "");
-            System.out.print(gson.toJson(radioChannel));
-        } catch (IOException e) {
-            e.printStackTrace();
-        }
+            int port = 1935;
+            String tcUrl = playUrl.substring(0, playUrl.lastIndexOf("/") - 1);
+        System.out.println("Update tcURL to " + tcUrl);
+
+
+            playUrl = "rtmp://127.0.0.1:" + port + playUrl.substring("rtmpe://f-radiko.smartstream.ne.jp".length(), playUrl.length());
+        System.out.println(playUrl);
+
     }
 }

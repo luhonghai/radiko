@@ -133,6 +133,10 @@ typedef struct
 
 STREAMING_SERVER *rtmpServer = 0;	// server structure pointer
 
+char *currentToken = 0;
+char *currentTcURL = 0;
+char *currentApp = 0;
+
 STREAMING_SERVER * startStreaming(const char *address, int port,
                  int protocol,
         		 AVal *host,
@@ -226,101 +230,62 @@ static const AVal av_NetStream_Play_Stop = AVC("NetStream.Play.Stop");
 static const char *cst[] = { "client", "server" };
 
 RTMP_Pass_Arg(STREAMING_SERVER *server, int includeRs) {
-int i;
+       int i;
        #ifdef CRYPTO
        if (server->swfSHA256Hash != NULL && server->swfSize > 0)
        {
          memcpy(server->rc.Link.SWFHash, server->swfSHA256Hash->av_val, sizeof(server->rc.Link.SWFHash));
          server->rc.Link.SWFSize = server->swfSize;
-
-         if (includeRs) {
-            memcpy(server->rs.Link.SWFHash, server->swfSHA256Hash->av_val, sizeof(server->rs.Link.SWFHash));
-            server->rs.Link.SWFSize = server->swfSize;
-         }
        }
        else
        {
          server->rc.Link.SWFSize = 0;
-         if (includeRs)
-            server->rs.Link.SWFSize = 0;
        }
        #endif
+       RTMP_LogPrintf("Use TcURL: %s <\n", currentTcURL);
+        AVal tavUrl;
+        STR2AVAL(tavUrl, currentTcURL);
+        server->rc.Link.tcUrl = tavUrl;
 
-        if (server->tcUrl && server->tcUrl->av_len) {
-                server->rc.Link.tcUrl = *server->tcUrl;
-                if (includeRs)
-                    server->rs.Link.tcUrl = *server->tcUrl;
-        }
         if (server->swfUrl && server->swfUrl->av_len) {
                 server->rc.Link.swfUrl = *server->swfUrl;
-                if (includeRs)
-                    server->rs.Link.swfUrl = *server->swfUrl;
         }
         if (server->pageUrl && server->pageUrl->av_len) {
+                RTMP_LogPrintf("Use page url: %s <\n", server->pageUrl->av_val);
                 server->rc.Link.pageUrl = *server->pageUrl;
-                if (includeRs)
-                    server->rs.Link.pageUrl = *server->pageUrl;
         }
-        if (server->app && server->app->av_len) {
-                server->rc.Link.app = *server->app;
-                if (includeRs)
-                    server->rs.Link.app = *server->app;
-        }
+        RTMP_LogPrintf("Use app: %s <\n", currentApp);
+        AVal tavApp;
+        STR2AVAL(tavApp, currentApp);
+        server->rc.Link.app = tavApp;
         if (server->auth && server->auth->av_len)
          {
                   server->rc.Link.auth = *server->auth;
                   server->rc.Link.lFlags |= RTMP_LF_AUTH;
-                  if (includeRs) {
-                  server->rs.Link.auth = *server->auth;
-                  server->rs.Link.lFlags |= RTMP_LF_AUTH;
-                  }
           }
          if (server->flashVer && server->flashVer->av_len) {
                 server->rc.Link.flashVer = *server->flashVer;
-               if (includeRs)
-                server->rs.Link.flashVer = *server->flashVer;
-                }
-         else {
+          }  else {
                 server->rc.Link.flashVer = RTMP_DefaultFlashVer;
-                if (includeRs)
-                    server->rs.Link.flashVer = RTMP_DefaultFlashVer;
-        }
+         }
          if (server->subscribepath && server->subscribepath->av_len) {
                 server->rc.Link.subscribepath = *server->subscribepath;
-               if (includeRs)
-                server->rs.Link.subscribepath = *server->subscribepath;
           }
          if (server->usherToken && server->usherToken->av_len) {
                  server->rc.Link.usherToken = *server->usherToken;
-                if (includeRs)
-                    server->rs.Link.usherToken = *server->usherToken;
-                 }
-                 server->rc.Link.seekTime = server->dStart;
-                 server->rc.Link.stopTime = server->dStop;
-                 if (includeRs) {
-                 server->rs.Link.seekTime = server->dStart;
-                 server->rs.Link.stopTime = server->dStop;
-                 }
+          }
+          server->rc.Link.seekTime = server->dStart;
+          server->rc.Link.stopTime = server->dStop;
          if (server->bLiveStream) {
                 server->rc.Link.lFlags |= RTMP_LF_LIVE;
-                if (includeRs)
-                server->rs.Link.lFlags |= RTMP_LF_LIVE;
-                }
+         }
          server->rc.Link.timeout = server->timeout;
-         if (includeRs)
-         server->rs.Link.timeout = server->timeout;
 
          server->rc.Link.protocol = server->protocol;
               server->rc.Link.hostname = *server->host;
               server->rc.Link.port = server->port;
               server->rc.Link.playpath = *server->playpath;
-if (includeRs) {
-        server->rs.Link.protocol = server->protocol;
-                      server->rs.Link.hostname = *server->host;
-                      server->rs.Link.port = server->port;
-                      server->rs.Link.playpath = *server->playpath;
-}
-              if (server->rc.Link.port == 0)
+         if (server->rc.Link.port == 0)
               {
                   if (server->protocol & RTMP_FEATURE_SSL)
             	        server->rc.Link.port = 443;
@@ -328,18 +293,7 @@ if (includeRs) {
             	        server->rc.Link.port = 80;
                   else
             	        server->rc.Link.port = 1935;
-              }
-              if (includeRs) {
-              if (server->rs.Link.port == 0)
-                            {
-                                if (server->protocol & RTMP_FEATURE_SSL)
-                          	        server->rs.Link.port = 443;
-                                else if (server->protocol & RTMP_FEATURE_HTTP)
-                          	        server->rs.Link.port = 80;
-                                else
-                          	        server->rs.Link.port = 1935;
-                            }
-                }
+          }
               if (server->sockshost->av_len)
                   {
                     const char *socksport = strchr(server->sockshost->av_val, ':');
@@ -351,38 +305,23 @@ if (includeRs) {
                     server->rc.Link.sockshost.av_len = strlen(server->hostname);
 
                     server->rc.Link.socksport = socksport ? atoi(socksport + 1) : 1080;
-                    if (includeRs) {
-                    server->rs.Link.sockshost.av_val = server->hostname;
-                     server->rs.Link.sockshost.av_len = strlen(server->hostname);
-
-                    server->rs.Link.socksport = socksport ? atoi(socksport + 1) : 1080;
-                }
                   }
                 else
                   {
                     server->rc.Link.sockshost.av_val = NULL;
                     server->rc.Link.sockshost.av_len = 0;
                     server->rc.Link.socksport = 0;
-                    if (includeRs) {
-                    server->rs.Link.sockshost.av_val = NULL;
-                                        server->rs.Link.sockshost.av_len = 0;
-                                        server->rs.Link.socksport = 0;
-                                        }
                   }
 
                 AVal av;
                 for (i=0; i<3;i++) {
                     STR2AVAL(av, "S:");
                     RTMP_SetOpt(&server->rc, &av_conn, &av);
-                    if (includeRs)
-                        RTMP_SetOpt(&server->rs, &av_conn, &av);
                 }
-                RTMP_LogPrintf("Use token %s <\n", server->sToken);
+                RTMP_LogPrintf("Use token %s <\n", currentToken);
                 AVal tav;
-                STR2AVAL(tav, server->sToken);
+                STR2AVAL(tav, currentToken);
                 RTMP_SetOpt(&server->rc, &av_conn, &tav);
-                if (includeRs)
-                    RTMP_SetOpt(&server->rs, &av_conn, &tav);
 }
 
 // Returns 0 for OK/Failed/error, 1 for 'Stop or Complete'
@@ -1319,7 +1258,7 @@ sigIntHandler(int sig)
 }
 
 int
-main_rtmpsuck(int argc, char **argv, char *sToken)
+main_rtmpsuck(int argc, char **argv, char *sToken, int nRtmpStreamingPort)
 {
   // Parsing arguments
   extern char *optarg;
@@ -1534,6 +1473,7 @@ main_rtmpsuck(int argc, char **argv, char *sToken)
   	  STR2AVAL(swfUrl, optarg);
   	  break;
   	case 't':
+  	  currentTcURL = optarg;
   	  STR2AVAL(tcUrl, optarg);
   	  break;
   	case 'p':
@@ -1708,10 +1648,9 @@ main_rtmpsuck(int argc, char **argv, char *sToken)
   int nStatus = RD_SUCCESS;
 
   // rtmp streaming server
-  char DEFAULT_RTMP_STREAMING_DEVICE[] = "0.0.0.0";	// 0.0.0.0 is any device
+  char DEFAULT_RTMP_STREAMING_DEVICE[] = "127.0.0.1";	// 0.0.0.0 is any device
 
   char *rtmpStreamingDevice = DEFAULT_RTMP_STREAMING_DEVICE;	// streaming device, default 0.0.0.0
-  int nRtmpStreamingPort = 1935;	// port
 
   RTMP_LogPrintf("(c) 2010 Andrej Stepanchuk, Howard Chu; license: GPL\n\n");
 
@@ -1751,14 +1690,25 @@ main_rtmpsuck(int argc, char **argv, char *sToken)
   return nStatus;
 }
 
+JNIEXPORT void JNICALL Java_com_dotohsoft_rtmpdump_RTMPSuck_update(JNIEnv * env, jobject obj, jstring token, jstring tcURL, jstring app)
+{
+    const char *nativeToken = (*env)->GetStringUTFChars(env, token, 0);
+    const char *nativeApp = (*env)->GetStringUTFChars(env, app, 0);
+    const char *nativeTcURL = (*env)->GetStringUTFChars(env, tcURL, 0);
+    RTMP_LogPrintf("Update RTMPSuck Token: %s, TcURL: %s. App: %s\n", nativeToken,
+    	    nativeTcURL, nativeApp);
+    currentToken = strdup(nativeToken);
+    currentApp = strdup(nativeApp);
+    currentTcURL = strdup(nativeTcURL);
+}
 
-JNIEXPORT void JNICALL Java_com_dotohsoft_rtmpdump_RTMPSuck_init(JNIEnv * env, jobject obj, jstring token, jstring dest)
+JNIEXPORT void JNICALL Java_com_dotohsoft_rtmpdump_RTMPSuck_init(JNIEnv * env, jobject obj, jstring token, jint rPort)
 {
     RTMP_ctrlC = FALSE;
     const char *nativeToken = (*env)->GetStringUTFChars(env, token, 0);
-    const char *nativeDest = (*env)->GetStringUTFChars(env, dest, 0);
-    RTMP_LogPrintf("Start rtmp server. Token: %s, Save to file %s.\n", nativeToken,
-    	    nativeDest);
+    int port = (int) rPort;
+    RTMP_LogPrintf("Start rtmp server. Token: %s. Port %d\n", nativeToken,
+    	    port);
     char *v[] = {
             "-v",
             "-l", "2",
@@ -1768,16 +1718,17 @@ JNIEXPORT void JNICALL Java_com_dotohsoft_rtmpdump_RTMPSuck_init(JNIEnv * env, j
             "--playpath", "simul-stream.stream"
             };
     char **argv = v;
-    char *sToken = strdup(nativeToken);
+    currentToken = strdup(nativeToken);
     int argc = 11;
-    main_rtmpsuck(argc, argv, sToken);
+    main_rtmpsuck(argc, argv, currentToken, port);
 }
 
 JNIEXPORT void JNICALL Java_com_dotohsoft_rtmpdump_RTMPSuck_stop(JNIEnv * env, jobject obj)
 {
+  //try{
     RTMP_LogPrintf("Force stop server\n");
-         RTMP_LogPrintf("Stop streaming... socket %d", rtmpServer->socket);
-        int fd = rtmpServer->socket;
+     RTMP_LogPrintf("Stop streaming... socket %d", rtmpServer->socket);
+     int fd = rtmpServer->socket;
         //if (fd) continue;
                 rtmpServer->socket = 0;
                 if (rtmpServer->state == STREAMING_IN_PROGRESS)
@@ -1821,4 +1772,18 @@ JNIEXPORT void JNICALL Java_com_dotohsoft_rtmpdump_RTMPSuck_stop(JNIEnv * env, j
         RTMP_LogPrintf("Cleanup socket...");
         CleanupSockets();
         RTMP_LogPrintf("Done!");
+//    } catch (std::exception &e) {
+//        throwJavaException (env, e.what());
+//    }
+}
+
+void throwJavaException(JNIEnv *env, const char *msg)
+{
+    // You can put your own exception here
+    jclass c = (*env)->FindClass(env,"com/dotohsoft/rtmpdump/RTMPException");
+    if (NULL == c)
+    {
+        c = (*env)->FindClass(env,"java/lang/NullPointerException");
+    }
+    (*env)->ThrowNew(env,c, msg);
 }

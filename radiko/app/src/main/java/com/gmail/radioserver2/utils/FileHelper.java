@@ -21,6 +21,8 @@ public class FileHelper {
 
     private static final String RECORDED_PROGRAM_DIR = "radioserver2";
 
+    private static final String API_CACHED_FOLDER = "radioserverapi";
+
     private static final String TOKEN_FILE = "token.txt";
     private static final String TOKEN_TMP_FILE = "token.tmp";
 
@@ -75,6 +77,14 @@ public class FileHelper {
 
     public File getRecordedProgramFolder() {
         return new File(Environment.getExternalStorageDirectory(),RECORDED_PROGRAM_DIR);
+    }
+
+    public File getApiCachedFolder() {
+        File folder= new File(getApplicationDir(), API_CACHED_FOLDER);
+        if (!folder.exists()) {
+            folder.mkdirs();
+        }
+        return folder;
     }
 
     public File getKeyBinFile() {

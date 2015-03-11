@@ -80,8 +80,9 @@ public class ChannelDBAdapter extends DBAdapter<Channel> {
                 null,
                 null,
                 null);
-        if (cursor.getCount() > 0) {
+        if (cursor.moveToFirst()) {
             long oldId =cursor.getLong(cursor.getColumnIndex(KEY_ROW_ID));
+            cursor.close();
             Channel oldObject = find(oldId);
             obj.setId(oldId);
             obj.setLastPlayedTime(oldObject.getLastPlayedTime());

@@ -6,8 +6,10 @@ import android.content.Context;
 import android.content.Intent;
 import android.content.IntentFilter;
 import android.content.ServiceConnection;
+import android.os.AsyncTask;
 import android.os.Bundle;
 import android.os.IBinder;
+import android.os.PersistableBundle;
 import android.os.RemoteException;
 import android.support.v4.app.Fragment;
 import android.support.v4.app.FragmentManager;
@@ -18,16 +20,21 @@ import android.widget.TabHost;
 import android.widget.TextView;
 
 import com.crashlytics.android.Crashlytics;
+import com.dotohsoft.radio.Constant;
 import com.gmail.radioserver2.R;
+import com.gmail.radioserver2.data.Channel;
 import com.gmail.radioserver2.data.Library;
 import com.gmail.radioserver2.fragment.HomeFragmentTab;
 import com.gmail.radioserver2.fragment.LibraryFragmentTab;
 import com.gmail.radioserver2.fragment.PlayerFragmentTab;
 import com.gmail.radioserver2.fragment.RecordedProgramFragmentTab;
 import com.gmail.radioserver2.fragment.SettingFragmentTab;
+import com.gmail.radioserver2.radiko.TokenFetcher;
+import com.gmail.radioserver2.service.DataPrepareService;
 import com.gmail.radioserver2.service.IMediaPlaybackService;
 import com.gmail.radioserver2.service.MusicUtils;
 import com.gmail.radioserver2.utils.Constants;
+import com.gmail.radioserver2.utils.SimpleAppLog;
 import com.gmail.radioserver2.view.ReclickableTabHost;
 import com.google.gson.Gson;
 
@@ -56,8 +63,16 @@ public class MainActivity extends BaseFragmentActivity implements ServiceConnect
 
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
+        new AsyncTask<Void, Void, Void>() {
+            @Override
+            protected Void doInBackground(Void... params) {
+                DataPrepareService prepareService = new DataPrepareService(MainActivity.this);
+                prepareService.execute();
+                return null;
+            }
+        }.execute();
         setContentView(R.layout.activity_main);
-        mServiceToken = MusicUtils.bindToService(this, this);
+
         /*
          *  Navigation stacks for each tab gets created..
          *  tab identifier is used as key_bin to get respective stack for each tab
@@ -73,10 +88,9 @@ public class MainActivity extends BaseFragmentActivity implements ServiceConnect
         mTabHost.setOnTabChangedListener(listener);
         mTabHost.setOnReclickTabListener(reclickTabListener);
         mTabHost.setup();
-
         initializeTabs();
+        mServiceToken = MusicUtils.bindToService(this, this);
         registerReceiver(mHandleAction, new IntentFilter(Constants.INTENT_FILTER_FRAGMENT_ACTION));
-
     }
 
     private void showTimer() {
@@ -217,19 +231,23 @@ public class MainActivity extends BaseFragmentActivity implements ServiceConnect
      *                      true in all other cases.
      */
     public void pushFragments(String tag, Fragment fragment,boolean shouldAnimate, boolean shouldAdd){
-        if(shouldAdd)
-            mStacks.get(tag).push(fragment);
-        FragmentManager manager         =   getSupportFragmentManager();
-        FragmentTransaction ft            =   manager.beginTransaction();
-        if(shouldAnimate)
-            ft.setCustomAnimations(R.anim.slide_in_right, R.anim.slide_out_left);
-        ft.replace(R.id.realtabcontent, fragment);
-        ft.commit();
+        try {
+            if (shouldAdd)
+                mStacks.get(tag).push(fragment);
+            FragmentManager manager = getSupportFragmentManager();
+            FragmentTransaction ft = manager.beginTransaction();
+            if (shouldAnimate)
+                ft.setCustomAnimations(R.anim.slide_in_right, R.anim.slide_out_left);
+            ft.replace(R.id.realtabcontent, fragment);
+            ft.commitAllowingStateLoss();
+        } catch (Exception ex) {
+            SimpleAppLog.error("Could not push fragment " + tag,ex);
+        }
     }
 
     /*
-     * Update Tab highlight color
-     */
+         * Update Tab highlight color
+         */
     private void setSelectedTabColor() {
         for(int i=0;i<mTabHost.getTabWidget().getChildCount();i++)
         {
@@ -284,7 +302,6 @@ public class MainActivity extends BaseFragmentActivity implements ServiceConnect
         if(mStacks.get(mCurrentTab).size() == 0){
             return;
         }
-
         /*Now current fragment on screen gets onActivityResult callback..*/
         mStacks.get(mCurrentTab).lastElement().onActivityResult(requestCode, resultCode, data);
     }
@@ -303,15 +320,33 @@ public class MainActivity extends BaseFragmentActivity implements ServiceConnect
                     }
                     break;
                 case Constants.ACTION_SELECT_CHANNEL_ITEM:
+                    boolean isNew = true;
+                    String selectedObj = bundle.getString(Constants.ARG_OBJECT);
                     try {
-                        if (mService != null && !mService.isStreaming()) {
-                            if (mService.isPlaying()) {
-                                mService.stop();
+                        if (mService.isPlaying()) {
+                            if (mService.isStreaming()) {
+                                Gson gson = new Gson();
+                                String obj = mService.getChannelObject();
+                                Channel selectedChannel = gson.fromJson(selectedObj, Channel.class);
+                                Channel currentChannel = gson.fromJson(obj, Channel.class);
+                                if (currentChannel.getUrl().equalsIgnoreCase(selectedChannel.getUrl())) {
+                                    isNew = false;
+                                }
                             }
-                            mService.setStreaming(true);
+                            if (isNew)
+                                mService.stop();
                         }
                     } catch (RemoteException e) {
-                        e.printStackTrace();
+                        SimpleAppLog.error("Could not stop old stream",e);
+                    }
+                    if (isNew) {
+                        try {
+                            mService.setStreaming(true);
+                            mService.stop();
+                            mService.openStream("", selectedObj);
+                        } catch (RemoteException e) {
+                            SimpleAppLog.error("Could not open stream", e);
+                        }
                     }
                     pushFragments(Constants.TAB_PLAY_SCREEN, new PlayerFragmentTab(), true,false);
                     break;
@@ -342,14 +377,36 @@ public class MainActivity extends BaseFragmentActivity implements ServiceConnect
         super.onDestroy();
     }
 
+    private void checkPlaying() {
+        try {
+            if (mService != null && mService.isPlaying()) {
+                if (mService.isStreaming()) {
+                    setCurrentTab(Constants.TAB_HOME_ID);
+                } else {
+                    setCurrentTab(Constants.TAB_RECORDED_PROGRAM_ID);
+                }
+                pushFragments(Constants.TAB_PLAY_SCREEN, new PlayerFragmentTab(), false, false);
+            }
+        } catch (RemoteException e) {
+            SimpleAppLog.error("Could not get player status",e);
+        }
+    }
+
     @Override
     public void onServiceConnected(ComponentName name, IBinder service) {
         mService = IMediaPlaybackService.Stub.asInterface(service);
-
+        checkPlaying();
+//        Intent intent = getIntent();
+//        if (intent == null) return;
+//        String type =intent.getType();
+//        if (type != null && type.equalsIgnoreCase(Constants.PLAYBACK_VIEWER_INTENT)) {
+//
+//        }
     }
 
     @Override
     public void onServiceDisconnected(ComponentName name) {
         mService = null;
     }
+
 }

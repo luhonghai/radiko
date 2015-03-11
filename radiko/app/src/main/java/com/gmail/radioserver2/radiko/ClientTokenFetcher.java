@@ -51,9 +51,13 @@ public class ClientTokenFetcher extends TokenFetcher {
             }
         },keyBin);
         try {
-            String token = requester.requestToken();
-            if (token.length() > 0) saveToken(token);
-            onTokenFound(token);
+            TokenRequester.TokenData tokenData = requester.requestToken();
+            if (tokenData != null) {
+                saveToken(tokenData.getToken(), tokenData.getOutput());
+                onTokenFound(tokenData.getToken(), tokenData.getOutput());
+            } else {
+                onTokenFound("", "");
+            }
         } catch (Exception e) {
             onError("Could not fetch token",e);
         }

@@ -1,15 +1,18 @@
 <?php
 $timezone = "Asia/Tokyo";
-$cachedDir = dirname(__FILE__) . "/cached";
+$cachedDir = sys_get_temp_dir() . "/radioservercache";
 $nhkApiToken = "rP3N5A1nBCixRk21AAyDFrIWKtALEpDw";
 
 date_default_timezone_set($timezone);
 if (!isset($_GET["provider"]) || !isset($_GET["area"]) || !isset($_GET["channel"])) {
     echo "Error: Invalid parameter";
-    //die();
+    die();
+}
+if (!file_exists($cachedDir)) {
+    mkdir($cachedDir, 0744);
 }
 $provider = isset($_GET["provider"]) ? $_GET["provider"] : "nhk";
-$area = isset($_GET["area"]) ? $_GET["area"] : "1130";
+$area = isset($_GET["area"]) ? $_GET["area"] : "130";
 $channel = isset($_GET["channel"]) ? $_GET["channel"] : "r1";
 $date = isset($_GET["date"]) ? $_GET["date"] : "now";
 if ($date == 'now') {
@@ -111,5 +114,5 @@ if (file_exists($cachedFile)) {
     file_put_contents($cachedFile, json_encode($result));
 }
 $result["serverTime"] = $sTimeMs;
-echo json_encode($result, JSON_PRETTY_PRINT);
+echo json_encode($result);
 

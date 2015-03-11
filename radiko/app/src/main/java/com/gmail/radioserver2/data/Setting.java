@@ -54,7 +54,7 @@ public class Setting {
         this.fastLevel = preferences.getFloat(KEY_FAST, MIN_FAST_LEVEL);
         this.backLength = preferences.getFloat(KEY_BACK, MIN_BACK_LENGTH);
         this.isRegion = preferences.getBoolean(KEY_REGION, true);
-        this.setTokenType(preferences.getInt(KEY_TOKEN_TYPE, TOKEN_TYPE_SERVER));
+        this.setTokenType(preferences.getInt(KEY_TOKEN_TYPE, TOKEN_TYPE_CLIENT));
     }
 
     public void save() {
@@ -125,8 +125,7 @@ public class Setting {
     }
 
     public int getTokenType() {
-        // TODO Remove this after testing
-        return TOKEN_TYPE_CLIENT;
+        return tokenType;
     }
 
     public void setTokenType(int tokenType) {

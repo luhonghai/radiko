@@ -37,6 +37,9 @@ interface IMediaPlaybackService
 
     boolean isStreaming();
     void setStreaming(boolean isStreaming);
+
+    void openStream(String token, String objChannel);
+    String getChannelObject();
     // Default
     void openFile(String path);
     void open(in long [] list, int position);
