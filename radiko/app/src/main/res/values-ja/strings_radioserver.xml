@@ -37,7 +37,7 @@
     <string name="button_set_timer">この条件で設定</string>
 
     <!-- Home screen -->
-    <string name="hint_search_channel">チャンネル名または国名を入力</string>
+    <string name="hint_search_channel">チャンネル名または番組名等を入力</string>
     <string name="label_recent_channels">最近検索したチャンネル</string>
 
     <!-- Recorded programs -->
@@ -45,7 +45,7 @@
 
     <!-- Library list screen -->
     <string name="label_library_list">フォルダ</string>
-    <string name="hint_search_library">フォルダ名入力</string>
+    <string name="hint_search_library">フォルダ名を入力</string>
 
     <!-- Player screen -->
     <string name="button_slow">遅聞き</string>

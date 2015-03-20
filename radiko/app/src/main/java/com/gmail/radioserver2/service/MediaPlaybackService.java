@@ -75,6 +75,7 @@ import java.sql.SQLException;
 import java.text.SimpleDateFormat;
 import java.util.Date;
 import java.util.List;
+import java.util.Locale;
 import java.util.Random;
 import java.util.UUID;
 import java.util.Vector;
@@ -92,6 +93,7 @@ import com.gmail.radioserver2.utils.InetHelper;
 import com.gmail.radioserver2.utils.RecordingHelper;
 import com.gmail.radioserver2.utils.SimpleAppLog;
 import com.google.gson.Gson;
+import com.swssm.waveloop.audio.OSLESMediaPlayer;
 
 import org.apache.commons.io.FileUtils;
 
@@ -443,20 +445,73 @@ public class MediaPlaybackService extends Service {
         }
     }
 
+    private Runnable fastRunnable = new Runnable() {
+        private final Boolean flag = false;
+        @Override
+        public void run() {
+            synchronized (flag) {
+                if (!isStreaming) {
+                    if (mPlayer.position() < mPlayer.duration() - 100) {
+                        mPlayer.seek(mPlayer.position() + 100);
+                        fastHandler.postDelayed(fastRunnable, 100);
+                    }
+                }
+            }
+        }
+    };
+
+    private Handler fastHandler = new Handler();
+
     private void doFast(float level) {
-        if (isStreaming) return;
+        stopFast();
+        stopSlow();
+        fastHandler.post(fastRunnable);
     }
 
     private void stopFast() {
-        if (isStreaming) return;
+
+        try {
+            fastHandler.removeCallbacks(fastRunnable);
+        } catch (Exception ex) {
+
+        }
     }
 
+    private Runnable slowRunnable = new Runnable() {
+        private final Boolean flag = false;
+        private boolean isPause = false;
+        @Override
+        public void run() {
+            synchronized (flag) {
+                if (!isStreaming && mPlayer.isInitialized()) {
+                    if (isPause) {
+                        mPlayer.start();
+                        isPause = false;
+                    } else {
+                        mPlayer.pause();
+                        isPause = true;
+                    }
+                    slowHandler.postDelayed(slowRunnable, 100);
+                }
+            }
+        }
+    };
+
+    private Handler slowHandler = new Handler();
+
     private void doSlow(float level) {
-        if (isStreaming) return;
+        stopFast();
+        stopSlow();
+        slowHandler.post(slowRunnable);
     }
 
     private void stopSlow() {
-        if (isStreaming) return;
+
+        try {
+            slowHandler.removeCallbacks(slowRunnable);
+        } catch (Exception ex) {
+
+        }
     }
 
     private class CustomHandler extends Handler {
@@ -1649,13 +1704,15 @@ public class MediaPlaybackService extends Service {
         new AsyncTask<Void, Void, Void>() {
             @Override
             protected Void doInBackground(Void... params) {
-                APIRequester requester = new APIRequester(new FileHelper(getApplicationContext()).getApiCachedFolder());
-                RadioChannel.Channel rChannel = new RadioChannel.Channel();
-                rChannel.setName(channel.getName());
-                rChannel.setService(channel.getType());
-                rChannel.setServiceChannelId(channel.getUrl());
-                rChannel.setServiceChannelId(channel.getKey());
+                boolean done = false;
                 try {
+                    APIRequester requester = new APIRequester(new FileHelper(getApplicationContext()).getApiCachedFolder());
+                    RadioChannel.Channel rChannel = new RadioChannel.Channel();
+                    rChannel.setName(channel.getName());
+                    rChannel.setService(channel.getType());
+                    rChannel.setServiceChannelId(channel.getUrl());
+                    rChannel.setServiceChannelId(channel.getKey());
+
                     RadioProgram radioProgram = requester.getPrograms(rChannel, RadioArea.getArea(rawAreaId, channel.getType()));
                     if (radioProgram != null) {
                         List<RadioProgram.Program> programList =  radioProgram.getPrograms();
@@ -1663,12 +1720,13 @@ public class MediaPlaybackService extends Service {
                             for (RadioProgram.Program program : programList) {
                                 long now = System.currentTimeMillis();
                                 if (now > program.getFromTime() && now < program.getToTime()) {
-                                    SimpleDateFormat sdf = new SimpleDateFormat("HH:mm");
+                                    SimpleDateFormat sdf = new SimpleDateFormat("HH:mm", Locale.JAPANESE);
                                     final StringBuffer sb = new StringBuffer();
-                                    sb.append(program.getTitle()).append(" ");
+                                    sb.append(program.getTitle()).append("\n");
                                     sb.append(sdf.format(new Date(program.getFromTime())));
                                     sb.append( " - ").append(sdf.format(new Date(program.getToTime())));
                                     showServiceNotification(channel.getName(), sb.toString());
+                                    done = true;
                                     break;
                                 }
                             }
@@ -1676,6 +1734,9 @@ public class MediaPlaybackService extends Service {
                     }
                 } catch (Exception e) {
                     SimpleAppLog.error("Could not fetch programs",e);
+                }
+                if (!done) {
+                    showServiceNotification(channel.getName(), "");
                 }
                 return null;
             }
@@ -1728,6 +1789,8 @@ public class MediaPlaybackService extends Service {
     private void stop(boolean remove_status_icon) {
         mIsSupposedToBePlaying = false;
         currentChannel = null;
+        stopFast();
+        stopSlow();
         stopAB();
 //        if (isStreaming && mStreamingPlayer.isInitialized()) {
 //            mStreamingPlayer.stop();
@@ -1777,6 +1840,8 @@ public class MediaPlaybackService extends Service {
                 } else {
                     mPlayer.pause();
                 }
+                stopFast();
+                stopSlow();
                 gotoIdleState();
                 mIsSupposedToBePlaying = false;
                 notifyChange(PLAYSTATE_CHANGED);
@@ -2452,7 +2517,6 @@ public class MediaPlaybackService extends Service {
         }
 
         public void start() {
-            MusicUtils.debugLog(new Exception("MultiPlayer.start called"));
             mCurrentMediaPlayer.start();
         }
 

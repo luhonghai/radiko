@@ -3,4 +3,11 @@
     <declare-styleable name="GIFView">
         <attr name="src" format="reference" />
     </declare-styleable>
+
+    <attr name="color" format="color" />
+    <declare-styleable name="ComboSeekBar">
+        <attr name="multiline" format="boolean" />
+        <attr name="color" />
+        <attr name="textSize" format="dimension" />
+    </declare-styleable>
 </resources>

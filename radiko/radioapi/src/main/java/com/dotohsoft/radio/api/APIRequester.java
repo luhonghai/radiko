@@ -49,7 +49,7 @@ public class APIRequester {
             channels = new ArrayList<RadioChannel.Channel>();
         }
         getRadikoChannels(channels, RadioArea.getArea(rawAreaId, RadioProvider.RADIKO));
-        if (isRegion)
+        if (!isRegion)
             getRadikoChannels(channels, RadioArea.getArea(RadioArea.AREA_ID_TOKYO, RadioProvider.RADIKO));
 
         radioChannel.setChannels(channels);
@@ -84,8 +84,6 @@ public class APIRequester {
     }
 
     public RadioProgram getPrograms(RadioChannel.Channel channel, RadioArea area) throws IOException {
-
-
         String strCachedFile = "program_" + area.getProvider() + "_" + channel.getServiceChannelId() + "_" + area.getId() + "_" + sdf.format(now) + ".json";
         File cachedFile = new File(cachedFolder, strCachedFile);
         if (!cachedFile.exists()) {
@@ -94,8 +92,11 @@ public class APIRequester {
                                 + "&" + Constant.ARG_CHANNEL + "=" + channel.getServiceChannelId()
                                 + "&" + Constant.ARG_AREA + "=" + area.getId());
             FileUtils.copyURLToFile(url, cachedFile);
-            if (cachedFile.exists() && FileUtils.readFileToString(cachedFile, "UTF-8").toLowerCase().contains("error:")) {
-                FileUtils.forceDelete(cachedFile);
+            if (cachedFile.exists()) {
+                String source = FileUtils.readFileToString(cachedFile, "UTF-8");
+                if (source == null || !(source.contains("[") && source.contains("]"))) {
+                    FileUtils.forceDelete(cachedFile);
+                }
             }
         }
         if (cachedFile.exists()) {
@@ -108,35 +109,35 @@ public class APIRequester {
     }
 
     public static void main(String[] args) {
-//        APIRequester requester = new APIRequester(FileUtils.getTempDirectory());
-//        RadioChannel.Channel channel = new RadioChannel.Channel();
-//        channel.setService(RadioProvider.RADIKO);
-//        channel.setServiceChannelId("TBS");
-//        RadioArea area = RadioArea.getArea("JP13,東京都,tokyo Japan", RadioProvider.RADIKO);
-//        Gson gson = new GsonBuilder().setPrettyPrinting().create();
-//        try {
-//            RadioProgram radioProgram = requester.getPrograms(channel, area);
+        APIRequester requester = new APIRequester(FileUtils.getTempDirectory());
+        RadioChannel.Channel channel = new RadioChannel.Channel();
+        channel.setService(RadioProvider.RADIKO);
+        channel.setServiceChannelId("TBS");
+        RadioArea area = RadioArea.getArea("JP13,東京都,tokyo Japan", RadioProvider.RADIKO);
+        Gson gson = new GsonBuilder().setPrettyPrinting().create();
+        try {
+            RadioProgram radioProgram = requester.getPrograms(channel, area);
+
+            System.out.print(gson.toJson(radioProgram));
+        } catch (IOException e) {
+            e.printStackTrace();
+        }
+        try {
+            System.out.println("========================");
+            RadioChannel radioChannel = requester.getChannels("JP40", true, "");
+            System.out.print(gson.toJson(radioChannel));
+        } catch (IOException e) {
+            e.printStackTrace();
+        }
+//        String playUrl = "rtmpe://f-radiko.smartstream.ne.jp/TBS/_definst_/simul-stream.stream";
 //
-//            System.out.print(gson.toJson(radioProgram));
-//        } catch (IOException e) {
-//            e.printStackTrace();
-//        }
-//        try {
-//            System.out.println("========================");
-//            RadioChannel radioChannel = requester.getChannels("JP40", true, "");
-//            System.out.print(gson.toJson(radioChannel));
-//        } catch (IOException e) {
-//            e.printStackTrace();
-//        }
-        String playUrl = "rtmpe://f-radiko.smartstream.ne.jp/TBS/_definst_/simul-stream.stream";
-
-            int port = 1935;
-            String tcUrl = playUrl.substring(0, playUrl.lastIndexOf("/") - 1);
-        System.out.println("Update tcURL to " + tcUrl);
-
-
-            playUrl = "rtmp://127.0.0.1:" + port + playUrl.substring("rtmpe://f-radiko.smartstream.ne.jp".length(), playUrl.length());
-        System.out.println(playUrl);
+//            int port = 1935;
+//            String tcUrl = playUrl.substring(0, playUrl.lastIndexOf("/") - 1);
+//        System.out.println("Update tcURL to " + tcUrl);
+//
+//
+//            playUrl = "rtmp://127.0.0.1:" + port + playUrl.substring("rtmpe://f-radiko.smartstream.ne.jp".length(), playUrl.length());
+//        System.out.println(playUrl);
 
     }
 }

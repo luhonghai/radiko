@@ -17,6 +17,10 @@ import com.gmail.radioserver2.data.Setting;
 import com.gmail.radioserver2.data.sqlite.ext.ChannelDBAdapter;
 import com.gmail.radioserver2.utils.Constants;
 import com.gmail.radioserver2.utils.SimpleAppLog;
+import com.infteh.comboseekbar.ComboSeekBar;
+
+import java.util.Arrays;
+import java.util.List;
 
 /**
  * Created by luhonghai on 2/17/15.
@@ -49,6 +53,15 @@ public class SettingFragmentTab extends FragmentTab implements View.OnClickListe
         v.findViewById(R.id.rlTokenType).setVisibility(getResources().getBoolean(R.bool.is_debug_mode) ? View.VISIBLE : View.GONE);
         loadData();
         return v;
+    }
+
+    private void initSeekbar() {
+//        List<String> slowStep = Arrays.asList("x0.9", "x0.7", "x0.5", "x0.3");
+//        List<String> fastStep = Arrays.asList("x1.3", "x1.5", "x1.7", "x2.0");
+//        List<String> backStep = Arrays.asList("10s", "7s", "5s", "3s");
+//        seekBarSlowLevel.setAdapter(slowStep);
+//        seekBarFastLevel.setAdapter(fastStep);
+//        seekBarBackLength.setAdapter(backStep);
     }
 
     private void loadData() {

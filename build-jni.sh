@@ -22,3 +22,8 @@ cp -R $WORKING_DIR/liblame/libs/. $WORKING_DIR/radiko/app/src/main/jniLibs
 cd $WORKING_DIR/libautotalent
 ndk-build
 cp -R $WORKING_DIR/libautotalent/libs/. $WORKING_DIR/radiko/app/src/main/jniLibs
+
+#build OSLESMediaPlayer
+cd $WORKING_DIR/OSLESMediaPlayer
+ndk-build TARGET_PLATFORM=android-9
+cp -R $WORKING_DIR/OSLESMediaPlayer/libs/. $WORKING_DIR/radiko/app/src/main/jniLibs

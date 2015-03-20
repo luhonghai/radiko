@@ -31,7 +31,7 @@ public class LibraryPickerAdapter extends DefaultAdapter<Library> {
         RadioButton rdSelect;
     }
 
-    private int selectedIndex = 0;
+    private int selectedIndex = -1;
 
     public LibraryPickerAdapter(Context context, Library[] objects, OnListItemActionListener<Library> onListItemActionListener) {
         super(context, R.layout.list_item_library_picker, objects, onListItemActionListener);

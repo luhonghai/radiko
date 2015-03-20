@@ -515,8 +515,22 @@ public class PlayerFragmentTab extends FragmentTab implements ServiceConnection,
                 showPlayer();
                 break;
             case R.id.btnSlow:
+                try {
+                    if (mService.isPlaying()) {
+                        mService.doSlow(0.5f);
+                    }
+                } catch (Exception ex) {
+                    SimpleAppLog.error("Could call slow", ex);
+                }
                 break;
             case R.id.btnFast:
+                try {
+                    if (mService.isPlaying()) {
+                        mService.doFast(0.5f);
+                    }
+                } catch (Exception ex) {
+                    SimpleAppLog.error("Could call fast", ex);
+                }
                 break;
             case R.id.btnTimer:
                 Intent intent = new Intent();

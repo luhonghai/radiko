@@ -57,7 +57,7 @@ public class LibraryPickerActivity extends BaseActivity implements View.OnClickL
             dbAdapter.open();
             selectedLibrary = dbAdapter.findByRecordedProgram(recordedProgram);
 
-            int selectedIndex = 0;
+            int selectedIndex = -1;
             Collection<Library> libraries = dbAdapter.findAll();
             Library[] items;
             if (libraries != null && libraries.size() > 0) {
