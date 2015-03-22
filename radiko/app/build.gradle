@@ -11,7 +11,9 @@ apply plugin: 'com.android.application'
 apply plugin: 'io.fabric'
 
 repositories {
+    mavenLocal()
     maven { url 'https://maven.fabric.io/public' }
+
 }
 
 
@@ -21,7 +23,7 @@ android {
 
     defaultConfig {
         applicationId "com.gmail.radioserver2"
-        minSdkVersion 14
+        minSdkVersion 16
         targetSdkVersion 21
     }
 

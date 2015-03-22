@@ -21,7 +21,7 @@ public class BaseFragmentActivity extends SherlockFragmentActivity{
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
         Thread.setDefaultUncaughtExceptionHandler(new CustomUncaughtExceptionHandler());
-        Fabric.with(this, new Crashlytics());
+     //   Fabric.with(this, new Crashlytics());
         AndroidUtil.updateLanguage(this);
     }
 }

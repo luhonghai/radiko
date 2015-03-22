@@ -88,6 +88,8 @@ public class PlayerFragmentTab extends FragmentTab implements ServiceConnection,
 
     private boolean isLoading = false;
 
+    private Setting setting;
+
     @Override
     public void onDestroyView() {
         super.onDestroyView();
@@ -132,6 +134,10 @@ public class PlayerFragmentTab extends FragmentTab implements ServiceConnection,
     @Override
     public View onCreateView(LayoutInflater inflater, ViewGroup container, Bundle savedInstanceState) {
         View v = inflater.inflate(R.layout.fragment_player_tab, container, false);
+
+        setting = new Setting(getActivity());
+        setting.load();
+
         isLoading = false;
         gifView = (WebView) v.findViewById(R.id.gifView);
         loadGifLoader();
@@ -517,16 +523,17 @@ public class PlayerFragmentTab extends FragmentTab implements ServiceConnection,
             case R.id.btnSlow:
                 try {
                     if (mService.isPlaying()) {
-                        mService.doSlow(0.5f);
+                        mService.doSlow(setting.getSlowLevel());
                     }
                 } catch (Exception ex) {
                     SimpleAppLog.error("Could call slow", ex);
                 }
                 break;
             case R.id.btnFast:
+
                 try {
                     if (mService.isPlaying()) {
-                        mService.doFast(0.5f);
+                        mService.doFast(setting.getFastLevel());
                     }
                 } catch (Exception ex) {
                     SimpleAppLog.error("Could call fast", ex);

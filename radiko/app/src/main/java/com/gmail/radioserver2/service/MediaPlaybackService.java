@@ -21,70 +21,47 @@ package com.gmail.radioserver2.service;
 import android.app.Notification;
 import android.app.PendingIntent;
 import android.app.Service;
+import android.content.BroadcastReceiver;
 import android.content.ComponentName;
 import android.content.ContentResolver;
 import android.content.Context;
 import android.content.Intent;
 import android.content.IntentFilter;
-import android.content.BroadcastReceiver;
 import android.content.SharedPreferences;
 import android.content.SharedPreferences.Editor;
 import android.database.Cursor;
 import android.database.sqlite.SQLiteException;
-import android.media.audiofx.AudioEffect;
 import android.media.AudioManager;
 import android.media.AudioManager.OnAudioFocusChangeListener;
 import android.media.MediaPlayer;
 import android.media.MediaPlayer.OnCompletionListener;
 import android.media.RemoteControlClient;
+import android.media.audiofx.AudioEffect;
 import android.net.Uri;
 import android.os.AsyncTask;
 import android.os.Handler;
 import android.os.IBinder;
 import android.os.Message;
 import android.os.PowerManager;
+import android.os.PowerManager.WakeLock;
 import android.os.RemoteException;
 import android.os.SystemClock;
-import android.os.PowerManager.WakeLock;
 import android.provider.BaseColumns;
+import android.util.Log;
+import android.widget.RemoteViews;
+import android.widget.Toast;
 
 import com.dotohsoft.radio.api.APIRequester;
 import com.dotohsoft.radio.data.RadioArea;
 import com.dotohsoft.radio.data.RadioChannel;
 import com.dotohsoft.radio.data.RadioProgram;
-import com.dotohsoft.radio.data.RadioProvider;
+import com.dotohsoft.rtmpdump.RTMPSuck;
 import com.gmail.radioserver2.R;
 import com.gmail.radioserver2.data.Channel;
 import com.gmail.radioserver2.data.RecordedProgram;
-import com.gmail.radioserver2.data.Setting;
 import com.gmail.radioserver2.data.sqlite.ext.ChannelDBAdapter;
 import com.gmail.radioserver2.data.sqlite.ext.RecordedProgramDBAdapter;
 import com.gmail.radioserver2.provider.Media;
-import android.util.Log;
-import android.widget.RemoteViews;
-import android.widget.Toast;
-
-import com.dotohsoft.rtmpdump.RTMPSuck;
-
-import java.io.File;
-import java.io.FileDescriptor;
-import java.io.IOException;
-import java.io.PrintWriter;
-import java.lang.ref.WeakReference;
-import java.sql.SQLException;
-import java.text.SimpleDateFormat;
-import java.util.Date;
-import java.util.List;
-import java.util.Locale;
-import java.util.Random;
-import java.util.UUID;
-import java.util.Vector;
-import java.util.WeakHashMap;
-
-import wseemann.media.FFmpegMediaPlayer;
-
-import com.gmail.radioserver2.radiko.ClientTokenFetcher;
-import com.gmail.radioserver2.radiko.ServerTokenFetcher;
 import com.gmail.radioserver2.radiko.TokenFetcher;
 import com.gmail.radioserver2.receiver.MediaButtonIntentReceiver;
 import com.gmail.radioserver2.utils.Constants;
@@ -93,9 +70,25 @@ import com.gmail.radioserver2.utils.InetHelper;
 import com.gmail.radioserver2.utils.RecordingHelper;
 import com.gmail.radioserver2.utils.SimpleAppLog;
 import com.google.gson.Gson;
-import com.swssm.waveloop.audio.OSLESMediaPlayer;
 
 import org.apache.commons.io.FileUtils;
+
+import java.io.File;
+import java.io.FileDescriptor;
+import java.io.IOException;
+import java.io.PrintWriter;
+import java.lang.ref.WeakReference;
+import java.text.SimpleDateFormat;
+import java.util.Date;
+import java.util.List;
+import java.util.Locale;
+import java.util.Random;
+import java.util.UUID;
+import java.util.Vector;
+
+import at.aau.itec.android.mediaplayer.FileSource;
+import at.aau.itec.android.mediaplayer.MediaSource;
+import wseemann.media.FFmpegMediaPlayer;
 
 /**
  * Provides "background" audio playback capabilities, allowing the
@@ -150,7 +143,7 @@ public class MediaPlaybackService extends Service {
      */
     private MultiPlayer mStreamingPlayer;
 
-    private DefaultMultiPlayer mPlayer;
+    private CustomMultiPlayer mPlayer;
 
     private boolean isStreaming;
 
@@ -465,13 +458,17 @@ public class MediaPlaybackService extends Service {
     private void doFast(float level) {
         stopFast();
         stopSlow();
-        fastHandler.post(fastRunnable);
+        //fastHandler.post(fastRunnable);
+        if (!isStreaming && mPlayer.isInitialized()) {
+            mPlayer.setPlaybackSpeed(level);
+        }
     }
 
     private void stopFast() {
-
+        if (isStreaming || !mPlayer.isInitialized()) return;
         try {
-            fastHandler.removeCallbacks(fastRunnable);
+          //  fastHandler.removeCallbacks(fastRunnable);
+            mPlayer.setPlaybackSpeed(1.0f);
         } catch (Exception ex) {
 
         }
@@ -502,13 +499,17 @@ public class MediaPlaybackService extends Service {
     private void doSlow(float level) {
         stopFast();
         stopSlow();
-        slowHandler.post(slowRunnable);
+       // slowHandler.post(slowRunnable);
+        if (!isStreaming && mPlayer.isInitialized()) {
+            mPlayer.setPlaybackSpeed(level);
+        }
     }
 
     private void stopSlow() {
 
         try {
-            slowHandler.removeCallbacks(slowRunnable);
+            mPlayer.setPlaybackSpeed(1.0f);
+        //    slowHandler.removeCallbacks(slowRunnable);
         } catch (Exception ex) {
 
         }
@@ -739,7 +740,7 @@ public class MediaPlaybackService extends Service {
         registerExternalStorageListener();
 
         // Needs to be done in this thread, since otherwise ApplicationContext.getPowerManager() crashes.
-        mPlayer = new DefaultMultiPlayer();
+        mPlayer = new CustomMultiPlayer();
         mPlayer.setHandler(mMediaplayerHandler);
 
         mStreamingPlayer = new MultiPlayer();
@@ -1678,7 +1679,6 @@ public class MediaPlaybackService extends Service {
 //                        mPlayer.position() >= duration - 2000) {
 //                    gotoNext(true);
 //                }
-
                 mPlayer.start();
                 // make sure we fade in, in case a previous fadein was stopped because
                 // of another focus loss
@@ -1805,8 +1805,12 @@ public class MediaPlaybackService extends Service {
             }
             //mStreamingPlayer = null;
         }
-        if (mPlayer.isInitialized()) {
-            mPlayer.stop();
+        if (mPlayer != null && mPlayer.isInitialized()) {
+            try {
+                mPlayer.release();
+            } catch (Exception ex) {
+                ex.printStackTrace();
+            }
         }
 
         mFileToPlay = null;
@@ -2468,6 +2472,144 @@ public class MediaPlaybackService extends Service {
     private String getMediaUri() {
         synchronized (this) {
             return mFileToPlay;
+        }
+    }
+
+    /**
+     * Provides a unified interface for dealing with midi files and
+     * other media files.
+     */
+    private class CustomMultiPlayer {
+        private at.aau.itec.android.mediaplayer.MediaPlayer mCurrentMediaPlayer = new at.aau.itec.android.mediaplayer.MediaPlayer();
+        private at.aau.itec.android.mediaplayer.MediaPlayer mNextMediaPlayer;
+        private Handler mHandler;
+        private boolean mIsInitialized = false;
+
+        public CustomMultiPlayer() {
+            mCurrentMediaPlayer.setWakeMode(MediaPlaybackService.this, PowerManager.PARTIAL_WAKE_LOCK);
+
+        }
+
+        public void setDataSource(String path) {
+            mIsInitialized = setDataSourceImpl(mCurrentMediaPlayer, path);
+        }
+
+        private boolean setDataSourceImpl(at.aau.itec.android.mediaplayer.MediaPlayer player, String path) {
+            try {
+                player.setOnPreparedListener(null);
+                if (path.startsWith("content://")) {
+                    player.setDataSource(MediaPlaybackService.this, Uri.parse(path));
+                } else {
+                    MediaSource source = new FileSource(new File(path));
+                    player.setDataSource(source);
+                }
+                //player.setAudioStreamType(AudioManager.STREAM_MUSIC);
+                player.setOnPreparedListener(preparedListener);
+            } catch (IOException ex) {
+                SimpleAppLog.error("Could not open file",ex);
+                return false;
+            } catch (IllegalArgumentException ex) {
+                SimpleAppLog.error("Could not open file",ex);
+                return false;
+            }
+            return true;
+        }
+
+        public boolean isInitialized() {
+            return mIsInitialized;
+        }
+
+        public void setPlaybackSpeed(float speed) {
+            mCurrentMediaPlayer.setPlaybackSpeed(speed);
+        }
+
+        public float getPlaybackSpeed() {
+            return mCurrentMediaPlayer.getPlaybackSpeed();
+        }
+
+        public void start() {
+            mCurrentMediaPlayer.start();
+        }
+
+        public void stop() {
+            mCurrentMediaPlayer.stop();
+            mIsInitialized = false;
+        }
+
+        /**
+         * You CANNOT use this player anymore after calling release()
+         */
+        public void release() {
+            stop();
+            //mCurrentMediaPlayer.release();
+        }
+
+        public void pause() {
+            mCurrentMediaPlayer.pause();
+        }
+
+        public void setHandler(Handler handler) {
+            mHandler = handler;
+        }
+
+        at.aau.itec.android.mediaplayer.MediaPlayer.OnPreparedListener preparedListener = new at.aau.itec.android.mediaplayer.MediaPlayer.OnPreparedListener() {
+            @Override
+            public void onPrepared(at.aau.itec.android.mediaplayer.MediaPlayer mp) {
+                mp.setOnCompletionListener(listener);
+                //mp.setOnErrorListener(errorListener);
+                Intent i = new Intent(AudioEffect.ACTION_OPEN_AUDIO_EFFECT_CONTROL_SESSION);
+                i.putExtra(AudioEffect.EXTRA_AUDIO_SESSION, getAudioSessionId());
+                i.putExtra(AudioEffect.EXTRA_PACKAGE_NAME, getPackageName());
+                sendBroadcast(i);
+                play();
+                notifyChange(META_CHANGED);
+            }
+        };
+
+        at.aau.itec.android.mediaplayer.MediaPlayer.OnCompletionListener listener = new at.aau.itec.android.mediaplayer.MediaPlayer.OnCompletionListener() {
+            public void onCompletion(at.aau.itec.android.mediaplayer.MediaPlayer mp) {
+                if (mp == mCurrentMediaPlayer && mNextMediaPlayer != null) {
+                    mCurrentMediaPlayer.stop();
+                    mCurrentMediaPlayer = mNextMediaPlayer;
+                    mNextMediaPlayer = null;
+                    mHandler.sendEmptyMessage(TRACK_WENT_TO_NEXT);
+                } else {
+                    // Acquire a temporary wakelock, since when we return from
+                    // this callback the MediaPlayer will release its wakelock
+                    // and allow the device to go to sleep.
+                    // This temporary wakelock is released when the RELEASE_WAKELOCK
+                    // message is processed, but just in case, put a timeout on it.
+                    mWakeLock.acquire(30000);
+                    mHandler.sendEmptyMessage(TRACK_ENDED);
+                    mHandler.sendEmptyMessage(RELEASE_WAKELOCK);
+                }
+            }
+        };
+
+
+        public long duration() {
+            return mCurrentMediaPlayer.getDuration();
+        }
+
+        public long position() {
+            return mCurrentMediaPlayer.getCurrentPosition();
+        }
+
+        public long seek(long whereto) {
+            mCurrentMediaPlayer.seekTo((int) whereto);
+            return whereto;
+        }
+
+        public void setVolume(float vol) {
+           // mCurrentMediaPlayer.setVolume(vol, vol);
+        }
+
+        public void setAudioSessionId(int sessionId) {
+            mCurrentMediaPlayer.setAudioSessionId(sessionId);
+        }
+
+        public int getAudioSessionId() {
+            return mCurrentMediaPlayer.getAudioSessionId();
         }
     }
 

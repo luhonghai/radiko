@@ -3,6 +3,8 @@ package com.gmail.radioserver2.data;
 import android.content.Context;
 import android.content.SharedPreferences;
 
+import com.gmail.radioserver2.utils.SimpleAppLog;
+
 /**
  * Created by luhonghai on 2/28/15.
  */
@@ -16,9 +18,9 @@ public class Setting {
     private static final String KEY_REGION = "region";
     private static final String KEY_TOKEN_TYPE = "token_type";
 
-    public static final float MAX_SLOW_LEVEL = -0.3f;
+    public static final float MAX_SLOW_LEVEL = 0.3f;
 
-    public static final float MIN_SLOW_LEVEL = -0.9f;
+    public static final float MIN_SLOW_LEVEL = 0.9f;
 
     public static final float MAX_FAST_LEVEL = 2.0f;
 
@@ -65,6 +67,11 @@ public class Setting {
         editor.putFloat(KEY_BACK, backLength);
         editor.putBoolean(KEY_REGION, isRegion);
         editor.putInt(KEY_TOKEN_TYPE, getTokenType());
+        SimpleAppLog.info("slowLevel: " + slowLevel);
+        SimpleAppLog.info("fastLevel: " + fastLevel);
+        SimpleAppLog.info("backLength: " + backLength);
+        SimpleAppLog.info("isRegion: " + isRegion);
+        SimpleAppLog.info("Token type: " + getTokenType());
         editor.apply();
     }
 
@@ -85,7 +92,7 @@ public class Setting {
     }
 
     public void applySlowLevel(int percent) {
-        slowLevel = - ((MAX_SLOW_LEVEL - MIN_SLOW_LEVEL) * percent) / 100 + MIN_SLOW_LEVEL;
+        slowLevel =  MIN_SLOW_LEVEL - ((MIN_SLOW_LEVEL - MAX_SLOW_LEVEL) * percent) / 100 ;
     }
 
     public int getSlowLevelPercent() {
