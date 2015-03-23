@@ -1679,7 +1679,12 @@ public class MediaPlaybackService extends Service {
 //                        mPlayer.position() >= duration - 2000) {
 //                    gotoNext(true);
 //                }
-                mPlayer.start();
+                new Handler().postDelayed(new Runnable() {
+                    @Override
+                    public void run() {
+                        mPlayer.start();
+                    }
+                }, 200);
                 // make sure we fade in, in case a previous fadein was stopped because
                 // of another focus loss
                 mMediaplayerHandler.removeMessages(FADEDOWN);

@@ -2232,8 +2232,8 @@ public class FFmpegMediaPlayer
 	
     private int initAudioTrack(int streamType, int sampleRateInHz, int channelConfig, int sessionId) {
         channelConfig = (channelConfig == 1) ? AudioFormat.CHANNEL_OUT_MONO : AudioFormat.CHANNEL_OUT_STEREO;
-        //int minBufferSize = AudioTrack.getMinBufferSize(sampleRateInHz, channelConfig, AudioFormat.ENCODING_PCM_16BIT);
-        int minBufferSize = AudioTrack.getMinBufferSize(sampleRateInHz, channelConfig, AudioFormat.ENCODING_PCM_16BIT) * 4;
+        int minBufferSize = AudioTrack.getMinBufferSize(sampleRateInHz, channelConfig, AudioFormat.ENCODING_PCM_16BIT) * 2;
+        //int minBufferSize = AudioTrack.getMinBufferSize(sampleRateInHz, channelConfig, AudioFormat.ENCODING_PCM_16BIT) * 4;
         //int minBufferSize = AVCODEC_MAX_AUDIO_FRAME_SIZE;
         recordedSampleRate = sampleRateInHz;
         recordedBufferSize = minBufferSize;
