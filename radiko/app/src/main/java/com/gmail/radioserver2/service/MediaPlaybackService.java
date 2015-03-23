@@ -199,6 +199,8 @@ public class MediaPlaybackService extends Service {
 
     private Date startRecordingTime;
 
+    private File recordedFile;
+
     private FFmpegMediaPlayer.OnRecordingListener recordingListener = new FFmpegMediaPlayer.OnRecordingListener() {
         @Override
         public void onCompleted(final int recordedSampleRate,
@@ -209,28 +211,11 @@ public class MediaPlaybackService extends Service {
                 SimpleAppLog.error("Recoding could not be completed");
                 return;
             }
-            final File rawPCM = new File(filePath);
+            final File mp3File = new File(filePath);
             new Thread(new Runnable() {
                 @Override
                 public void run() {
-                    if (!rawPCM.exists()) return;
-                    File tmpFile = new File(FileUtils.getTempDirectory(), UUID.randomUUID().toString() + ".wav");
-                    try {
-                        RecordingHelper recordingHelper = new RecordingHelper(recordedSampleRate,
-                                recordedChannel,
-                                recordedAudioEncoding,
-                                recordedBufferSize);
-                        recordingHelper.copyWaveFile(rawPCM.getAbsolutePath(), tmpFile.getAbsolutePath());
-
-                        FileUtils.forceDelete(rawPCM);
-                    } catch (IOException e) {
-                        if (recordingListener != null)
-                            recordingListener.onError("Could not move recording tmp file", e);
-                    }
-
-                    if (tmpFile.exists()) {
-                        FileHelper fileHelper = new FileHelper(getApplicationContext());
-
+                    if (mp3File.exists()) {
                         RecordedProgramDBAdapter adapter = new RecordedProgramDBAdapter(getApplicationContext());
                         RecordedProgram recordedProgram = new RecordedProgram();
                         recordedProgram.setChannelName(getResources().getString(R.string.default_channel_name));
@@ -238,14 +223,7 @@ public class MediaPlaybackService extends Service {
                         recordedProgram.setStartTime(startRecordingTime);
                         long endTime = System.currentTimeMillis();
                         recordedProgram.setEndTime(new Date(endTime));
-                        File recordedFile = new File(fileHelper.getRecordedProgramFolder(), startRecordingTime.getTime() + "-" + endTime + ".mp3");
-                        try {
-                            FileUtils.copyFile(tmpFile, recordedFile);
-                        } catch (IOException e) {
-                            SimpleAppLog.error("Could not move recorded file", e);
-                        }
-                        if (recordedFile.exists())
-                            recordedProgram.setFilePath(recordedFile.getPath());
+                        recordedProgram.setFilePath(mp3File.getPath());
                         try {
                             adapter.open();
                             adapter.insert(recordedProgram);
@@ -266,14 +244,17 @@ public class MediaPlaybackService extends Service {
     };
 
     public void stopRecord() {
-        if (isStreaming && mStreamingPlayer != null)
+        if (isStreaming && mStreamingPlayer != null) {
             mStreamingPlayer.stopRecording();
+        }
     }
 
     public void startRecord(String token, String filePath) {
+        FileHelper fileHelper = new FileHelper(getApplicationContext());
         startRecordingTime = new Date(System.currentTimeMillis());
+        recordedFile= new File(fileHelper.getRecordedProgramFolder(), startRecordingTime.getTime() + ".mp3");
         if (isStreaming && mStreamingPlayer != null)
-            mStreamingPlayer.startRecording(new File(FileUtils.getTempDirectory(), UUID.randomUUID().toString() + ".wav").getAbsolutePath());
+            mStreamingPlayer.startRecording(recordedFile.getAbsolutePath());
     }
 
     public boolean isRecording() {

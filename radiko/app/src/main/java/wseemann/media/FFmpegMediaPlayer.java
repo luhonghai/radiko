@@ -37,6 +37,7 @@ import android.media.AudioManager;
 import android.media.AudioTrack;
 
 import com.gmail.radioserver2.utils.FileHelper;
+import com.gmail.radioserver2.utils.Mp3Encoder;
 import com.gmail.radioserver2.utils.RecordingHelper;
 import com.gmail.radioserver2.utils.SimpleAppLog;
 
@@ -1357,7 +1358,7 @@ public class FFmpegMediaPlayer
      *                    time. If false, all the metadatas are considered.
      * @param apply_filter  If true, once the metadata set has been built based on
      *                     the value update_only, the current filter is applied.
-     * @param reply[out] On return contains the serialized
+      reply[out] On return contains the serialized
      *                   metadata. Valid only if the call was successful.
      * @return The status code.
      */
@@ -2264,13 +2265,12 @@ public class FFmpegMediaPlayer
     	if (mBuffer != null && mBuffer.length > 0) {
             if (mAudioTrack != null)
     		    mAudioTrack.write(mBuffer, 0, frame_size_ptr);
-            if (isRecording && fosRecording != null) {
+            if (isRecording && mp3Encoder != null) {
                 try {
-
-                    fosRecording.write(mBuffer, 0, frame_size_ptr);
+                    mp3Encoder.encode(mBuffer, 0, frame_size_ptr);
                 } catch (IOException e) {
                     if (recordingListener != null)
-                        recordingListener.onError("Could not write audio stream to tmp file " + tmpRecordingFile, e);
+                        recordingListener.onError("Could not encode audio stream to " + recordingPath, e);
                 }
             }
         }
@@ -2294,15 +2294,13 @@ public class FFmpegMediaPlayer
         public void onError(String message, Throwable e);
     }
 
-    private String recordingPath;
+    private Mp3Encoder mp3Encoder;
 
-    private File tmpRecordingFile;
+    private String recordingPath;
 
     private boolean isRecording;
 
     private OnRecordingListener recordingListener;
-
-    private FileOutputStream fosRecording;
 
     private int recordedSampleRate;
     private int recordedChannel;
@@ -2313,37 +2311,35 @@ public class FFmpegMediaPlayer
         if (!isPlaying()) return false;
         this.recordingPath = recordingPath;
         stopRecording(false);
-        tmpRecordingFile = new File(FileUtils.getTempDirectory(), UUID.randomUUID().toString() + ".tmp");
+
         try {
-            fosRecording = new FileOutputStream(tmpRecordingFile);
+            mp3Encoder = new Mp3Encoder(recordedSampleRate, (recordedChannel == 1) ? 1 : 2, new File(recordingPath));
+            mp3Encoder.initialize();
             isRecording = true;
-            return true;
         } catch (IOException e) {
+            isRecording = false;
             if (recordingListener != null)
-                recordingListener.onError("Could not open output stream for tmp file " + tmpRecordingFile, e);
+                recordingListener.onError("Could not init mp3 encoder", e);
         }
-        return false;
+
+        return true;
     }
 
     private void stopRecording(boolean saveFile) {
-        if (fosRecording != null) {
-            try {
-                fosRecording.close();
-            } catch (Exception ex) {
-                if (recordingListener != null)
-                    recordingListener.onError("Could not close recording stream", ex);
-            }
-        }
-        fosRecording = null;
         if (!isRecording) return;
+        if (mp3Encoder != null) {
+            mp3Encoder.cleanup();
+            mp3Encoder = null;
+        }
         isRecording = false;
+        File recordedFile = new File(recordingPath);
         if (saveFile) {
-            if (tmpRecordingFile != null && tmpRecordingFile.exists()) {
+            if (recordedFile.exists()) {
                 if (recordingListener != null)
                     recordingListener.onCompleted(recordedSampleRate,
                             recordedChannel,
                             recordedAudioEncoding,
-                            recordedBufferSize, tmpRecordingFile.getPath());
+                            recordedBufferSize, recordingPath);
             } else {
                 if (recordingListener != null)
                     recordingListener.onCompleted(-1,-1,-1,-1, "");
