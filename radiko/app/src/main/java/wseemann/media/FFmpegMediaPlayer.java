@@ -36,6 +36,7 @@ import android.media.AudioFormat;
 import android.media.AudioManager;
 import android.media.AudioTrack;
 
+import com.gmail.radioserver2.data.Channel;
 import com.gmail.radioserver2.utils.FileHelper;
 import com.gmail.radioserver2.utils.Mp3Encoder;
 import com.gmail.radioserver2.utils.RecordingHelper;
@@ -2265,12 +2266,12 @@ public class FFmpegMediaPlayer
     	if (mBuffer != null && mBuffer.length > 0) {
             if (mAudioTrack != null)
     		    mAudioTrack.write(mBuffer, 0, frame_size_ptr);
-            if (isRecording && mp3Encoder != null) {
+            if (isRecording && mp3Encoder != null && frame_size_ptr > 0) {
                 try {
-                    mp3Encoder.encode(mBuffer, 0, frame_size_ptr);
+                        mp3Encoder.encode(mBuffer, 0, frame_size_ptr);
                 } catch (IOException e) {
                     if (recordingListener != null)
-                        recordingListener.onError("Could not encode audio stream to " + recordingPath, e);
+                    recordingListener.onError("Could not encode audio stream to " + recordingPath, e);
                 }
             }
         }
@@ -2286,7 +2287,7 @@ public class FFmpegMediaPlayer
     }
 
     public static interface OnRecordingListener {
-        public void onCompleted(int recordedSampleRate,
+        public void onCompleted(Channel selectedChannel, int recordedSampleRate,
                                 int recordedChannel,
                                 int recordedAudioEncoding,
                                 int recordedBufferSize,
@@ -2307,11 +2308,12 @@ public class FFmpegMediaPlayer
     private int recordedAudioEncoding;
     private int recordedBufferSize;
 
-    public boolean startRecording(String recordingPath) {
-        if (!isPlaying()) return false;
-        this.recordingPath = recordingPath;
-        stopRecording(false);
+    private Channel selectedChannel;
 
+    public boolean startRecording(Channel selectedChannel, String recordingPath) {
+        this.recordingPath = recordingPath;
+        this.selectedChannel = selectedChannel;
+        stopRecording(false);
         try {
             mp3Encoder = new Mp3Encoder(recordedSampleRate, (recordedChannel == 1) ? 1 : 2, new File(recordingPath));
             mp3Encoder.initialize();
@@ -2336,13 +2338,13 @@ public class FFmpegMediaPlayer
         if (saveFile) {
             if (recordedFile.exists()) {
                 if (recordingListener != null)
-                    recordingListener.onCompleted(recordedSampleRate,
+                    recordingListener.onCompleted(selectedChannel, recordedSampleRate,
                             recordedChannel,
                             recordedAudioEncoding,
                             recordedBufferSize, recordingPath);
             } else {
                 if (recordingListener != null)
-                    recordingListener.onCompleted(-1,-1,-1,-1, "");
+                    recordingListener.onCompleted(null, -1,-1,-1,-1, "");
             }
         }
     }

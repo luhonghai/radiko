@@ -11,13 +11,18 @@ import android.widget.DatePicker;
 import android.widget.EditText;
 import android.widget.RelativeLayout;
 import android.widget.Spinner;
+import android.widget.Toast;
 
 import com.gmail.radioserver2.R;
+import com.gmail.radioserver2.data.Channel;
 import com.gmail.radioserver2.data.Timer;
 import com.gmail.radioserver2.data.sqlite.ext.TimerDBAdapter;
+import com.gmail.radioserver2.service.TimerManagerReceiver;
+import com.gmail.radioserver2.utils.Constants;
 import com.gmail.radioserver2.utils.DateHelper;
 import com.gmail.radioserver2.utils.SimpleAppLog;
 import com.gmail.radioserver2.view.dialog.CustomDatePicker;
+import com.google.gson.Gson;
 
 import java.util.Calendar;
 import java.util.Date;
@@ -51,6 +56,7 @@ public class TimerSettingsActivity extends BaseActivity implements View.OnClickL
 
     private int selectedMode;
 
+    private Channel selectedChannel;
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
@@ -83,6 +89,22 @@ public class TimerSettingsActivity extends BaseActivity implements View.OnClickL
 
         spinnerTimePicker = (Spinner) findViewById(R.id.spinnerTimePicker);
         relativeLayoutTimePicker = (RelativeLayout) findViewById(R.id.relativeLayoutTimePicker);
+
+        Gson gson = new Gson();
+        Intent intent = getIntent();
+        if (intent != null) {
+            Bundle bundle = intent.getExtras();
+            if (bundle != null) {
+                String channelSrc = bundle.getString(Constants.ARG_OBJECT);
+                if (channelSrc != null && channelSrc.length() > 0) {
+                    try {
+                        selectedChannel = gson.fromJson(channelSrc, Channel.class);
+                    } catch (Exception e) {
+                        SimpleAppLog.error("Could not parse selected channel",e);
+                    }
+                }
+            }
+        }
 
         loadStartTime();
         loadFinishHour();
@@ -131,7 +153,7 @@ public class TimerSettingsActivity extends BaseActivity implements View.OnClickL
         int finishHour = Integer.parseInt(spinnerFinishHour.getSelectedItem().toString());
 
         if (finishHour <= startHour) {
-            ArrayAdapter<CharSequence>  adapter = new ArrayAdapter<CharSequence>(this, R.layout.textview_spinner, DateHelper.getTimeList(startMinute + 1, 59));
+            ArrayAdapter<CharSequence>  adapter = new ArrayAdapter<CharSequence>(this, R.layout.textview_spinner, DateHelper.getTimeList(0, 59));
             spinnerFinishMinute.setAdapter(adapter);
             adapter.notifyDataSetChanged();
         } else if (doInit) {
@@ -169,14 +191,22 @@ public class TimerSettingsActivity extends BaseActivity implements View.OnClickL
     }
 
     private void saveTimer() {
-
+        if (selectedChannel == null) {
+            runOnUiThread(new Runnable() {
+                @Override
+                public void run() {
+                    //TODO show error to user
+                }
+            });
+            return;
+        }
         TimerDBAdapter dbAdapter = new TimerDBAdapter(this);
         try {
             dbAdapter.open();
             Timer timer = new Timer();
-            //TODO need to add channel info
-            timer.setChannelKey("");
-            timer.setChannelName(getString(R.string.default_channel_name));
+            Gson gson = new Gson();
+            timer.setChannelKey(gson.toJson(selectedChannel));
+            timer.setChannelName(selectedChannel.getName());
 
             int mode = spinnerTimerType.getSelectedItemPosition();
             int type = spinnerModeType.getSelectedItemPosition();
@@ -207,6 +237,10 @@ public class TimerSettingsActivity extends BaseActivity implements View.OnClickL
             timer.setFinishMinute(Integer.parseInt(spinnerFinishMinute.getSelectedItem().toString()));
 
             dbAdapter.insert(timer);
+
+            Intent intent = new Intent(TimerManagerReceiver.ACTION_START_TIMER);
+            sendBroadcast(intent);
+
         } catch (Exception ex) {
             SimpleAppLog.error("Could not save timer",ex);
         } finally {

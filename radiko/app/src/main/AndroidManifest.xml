@@ -1,13 +1,14 @@
 <?xml version="1.0" encoding="utf-8"?>
 <manifest xmlns:android="http://schemas.android.com/apk/res/android"
     package="com.gmail.radioserver2"
-    android:versionCode="18"
-    android:versionName="0.5.4" >
+    android:versionCode="20"
+    android:versionName="0.6" >
 
     <uses-permission android:name="android.permission.BROADCAST_STICKY" />
     <uses-permission android:name="android.permission.INTERNET" />
     <uses-permission android:name="android.permission.WRITE_EXTERNAL_STORAGE" />
    	<uses-permission android:name="android.permission.WAKE_LOCK" />
+    <uses-permission android:name="android.permission.RECEIVE_BOOT_COMPLETED"></uses-permission>
 
     <application
         android:allowBackup="true"
@@ -81,6 +82,21 @@
             android:name="com.gmail.radioserver2.provider.MediaProvider"
             android:authorities="com.gmail.radioserver2.provider.Media"
             android:exported="false" />
+
+        <receiver android:name=".service.TimerBroadcastReceiver" android:enabled="true">
+            <intent-filter>
+                <action android:name="com.gmail.radioserver2.service.TimerBroadcastReceiver.START_TIMER" />
+
+            </intent-filter>
+        </receiver>
+
+        <receiver android:name=".service.TimerManagerReceiver">
+            <intent-filter>
+                <action android:name="android.intent.action.BOOT_COMPLETED"/>
+                <action android:name="com.gmail.radioserver2.service.TimerManagerReceiver.START_TIMER" />
+            </intent-filter>
+        </receiver>
+
         <meta-data
             android:name="io.fabric.ApiKey"
             android:value="86b96442908831d7e8d34e62c1f023d2748197eb" />

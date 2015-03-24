@@ -23,6 +23,8 @@ import android.graphics.Bitmap;
 interface IMediaPlaybackService
 {
     // Added by Hai
+    String updateRtmpSuck(String token, String playUrl);
+
     void startRecord(String token, String fileName);
     void stopRecord();
     boolean isRecording();

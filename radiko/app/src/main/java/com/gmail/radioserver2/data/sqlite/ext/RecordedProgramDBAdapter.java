@@ -129,4 +129,21 @@ public class RecordedProgramDBAdapter extends DBAdapter<RecordedProgram>  {
                 null,
                 KEY_LAST_PLAYED_TIME + " DESC, " + KEY_CREATED_DATE + " DESC"));
     }
+
+    public RecordedProgram findByFilePath(String filePath) throws Exception {
+        Cursor mCursor =
+                getDB().query(true, getTableName(), getAllColumns(),
+                        KEY_FILE_PATH + "=?",
+                        new String[] { filePath },
+                        null,
+                        null,
+                        null,
+                        null);
+        if (mCursor != null) {
+            mCursor.moveToFirst();
+            return toObject(mCursor);
+        } else {
+            return null;
+        }
+    }
 }

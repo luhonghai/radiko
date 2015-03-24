@@ -33,6 +33,7 @@ import com.gmail.radioserver2.radiko.TokenFetcher;
 import com.gmail.radioserver2.service.DataPrepareService;
 import com.gmail.radioserver2.service.IMediaPlaybackService;
 import com.gmail.radioserver2.service.MusicUtils;
+import com.gmail.radioserver2.service.TimerManagerReceiver;
 import com.gmail.radioserver2.utils.Constants;
 import com.gmail.radioserver2.utils.SimpleAppLog;
 import com.gmail.radioserver2.view.ReclickableTabHost;
@@ -71,6 +72,11 @@ public class MainActivity extends BaseFragmentActivity implements ServiceConnect
                 return null;
             }
         }.execute();
+
+        // Start timer
+        Intent intent = new Intent(TimerManagerReceiver.ACTION_START_TIMER);
+        sendBroadcast(intent);
+
         setContentView(R.layout.activity_main);
 
         /*

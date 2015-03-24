@@ -46,6 +46,28 @@ public interface IMediaPlaybackService extends android.os.IInterface
                     return true;
                 }
                 // Added by Hai
+
+                case TRANSACTION_setChannelObject: {
+                    data.enforceInterface(DESCRIPTOR);
+                    java.lang.String _arg0;
+                    _arg0 = data.readString();
+                    this.setChannelObject(_arg0);
+                    reply.writeNoException();
+                    return true;
+                }
+
+                case TRANSACTION_updateRtmpSuck: {
+                    data.enforceInterface(DESCRIPTOR);
+                    java.lang.String _arg0;
+                    _arg0 = data.readString();
+                    java.lang.String _arg1;
+                    _arg1 = data.readString();
+                    String _result = this.updateRtmpSuck(_arg0, _arg1);
+                    reply.writeNoException();
+                    reply.writeString(_result);
+                    return true;
+                }
+
                 case TRANSACTION_startRecord: {
                     data.enforceInterface(DESCRIPTOR);
                     java.lang.String _arg0;
@@ -1197,6 +1219,43 @@ public interface IMediaPlaybackService extends android.os.IInterface
                 }
                 return _result;
             }
+
+            @Override public String updateRtmpSuck(String token, String playUrl) throws android.os.RemoteException
+            {
+                android.os.Parcel _data = android.os.Parcel.obtain();
+                android.os.Parcel _reply = android.os.Parcel.obtain();
+                String _result;
+                try {
+                    _data.writeInterfaceToken(DESCRIPTOR);
+                    _data.writeString(token);
+                    _data.writeString(playUrl);
+                    mRemote.transact(Stub.TRANSACTION_updateRtmpSuck, _data, _reply, 0);
+                    _reply.readException();
+                    _result = _reply.readString();
+                }
+                finally {
+                    _reply.recycle();
+                    _data.recycle();
+                }
+                return _result;
+            }
+
+            @Override public void setChannelObject(String channelObject) throws android.os.RemoteException
+            {
+                android.os.Parcel _data = android.os.Parcel.obtain();
+                android.os.Parcel _reply = android.os.Parcel.obtain();
+                try {
+                    _data.writeInterfaceToken(DESCRIPTOR);
+                    _data.writeString(channelObject);
+                    mRemote.transact(Stub.TRANSACTION_setChannelObject, _data, _reply, 0);
+                    _reply.readException();
+
+                }
+                finally {
+                    _reply.recycle();
+                    _data.recycle();
+                }
+            }
         }
         // Added by Hai
         static final int TRANSACTION_startRecord = (android.os.IBinder.FIRST_CALL_TRANSACTION + 32);
@@ -1214,6 +1273,8 @@ public interface IMediaPlaybackService extends android.os.IInterface
         static final int TRANSACTION_isStreaming = (android.os.IBinder.FIRST_CALL_TRANSACTION + 44);
         static final int TRANSACTION_openStream = (android.os.IBinder.FIRST_CALL_TRANSACTION + 45);
         static final int TRANSACTION_getChannelObject = (android.os.IBinder.FIRST_CALL_TRANSACTION + 46);
+        static final int TRANSACTION_updateRtmpSuck = (android.os.IBinder.FIRST_CALL_TRANSACTION + 47);
+        static final int TRANSACTION_setChannelObject = (android.os.IBinder.FIRST_CALL_TRANSACTION + 48);
         // Default
         static final int TRANSACTION_openFile = (android.os.IBinder.FIRST_CALL_TRANSACTION + 0);
         static final int TRANSACTION_open = (android.os.IBinder.FIRST_CALL_TRANSACTION + 1);
@@ -1250,6 +1311,7 @@ public interface IMediaPlaybackService extends android.os.IInterface
 
     }
     // Added by Hai
+    public String updateRtmpSuck(String token, String playUrl) throws RemoteException;
     public void startRecord(String token, String fileName) throws android.os.RemoteException;
     public void stopRecord() throws android.os.RemoteException;
     public boolean isRecording() throws  android.os.RemoteException;
@@ -1265,6 +1327,7 @@ public interface IMediaPlaybackService extends android.os.IInterface
     public void setStreaming(boolean isStreaming) throws RemoteException;
     public void openStream(String token, String objChannel) throws RemoteException;
     public String getChannelObject() throws RemoteException;
+    public void setChannelObject(String channelObject) throws RemoteException;
 
     // Default
     public void openFile(java.lang.String path) throws android.os.RemoteException;

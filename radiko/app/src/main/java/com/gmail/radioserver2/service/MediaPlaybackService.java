@@ -67,11 +67,9 @@ import com.gmail.radioserver2.receiver.MediaButtonIntentReceiver;
 import com.gmail.radioserver2.utils.Constants;
 import com.gmail.radioserver2.utils.FileHelper;
 import com.gmail.radioserver2.utils.InetHelper;
-import com.gmail.radioserver2.utils.RecordingHelper;
 import com.gmail.radioserver2.utils.SimpleAppLog;
 import com.google.gson.Gson;
 
-import org.apache.commons.io.FileUtils;
 
 import java.io.File;
 import java.io.FileDescriptor;
@@ -83,7 +81,6 @@ import java.util.Date;
 import java.util.List;
 import java.util.Locale;
 import java.util.Random;
-import java.util.UUID;
 import java.util.Vector;
 
 import at.aau.itec.android.mediaplayer.FileSource;
@@ -201,9 +198,10 @@ public class MediaPlaybackService extends Service {
 
     private File recordedFile;
 
+
     private FFmpegMediaPlayer.OnRecordingListener recordingListener = new FFmpegMediaPlayer.OnRecordingListener() {
         @Override
-        public void onCompleted(final int recordedSampleRate,
+        public void onCompleted(Channel channel, final int recordedSampleRate,
                                 final int recordedChannel,
                                 final int recordedAudioEncoding,
                                 final int recordedBufferSize,String filePath) {
@@ -211,31 +209,34 @@ public class MediaPlaybackService extends Service {
                 SimpleAppLog.error("Recoding could not be completed");
                 return;
             }
+            if (channel == null) return;
             final File mp3File = new File(filePath);
-            new Thread(new Runnable() {
-                @Override
-                public void run() {
-                    if (mp3File.exists()) {
-                        RecordedProgramDBAdapter adapter = new RecordedProgramDBAdapter(getApplicationContext());
-                        RecordedProgram recordedProgram = new RecordedProgram();
-                        recordedProgram.setChannelName(getResources().getString(R.string.default_channel_name));
-                        recordedProgram.setName(getResources().getString(R.string.default_recorded_program_name));
-                        recordedProgram.setStartTime(startRecordingTime);
-                        long endTime = System.currentTimeMillis();
-                        recordedProgram.setEndTime(new Date(endTime));
-                        recordedProgram.setFilePath(mp3File.getPath());
-                        try {
-                            adapter.open();
-                            adapter.insert(recordedProgram);
-                            SimpleAppLog.debug("Save recording complete");
-                        } catch (Exception e) {
-                            SimpleAppLog.error("Could not insert recorded program", e);
-                        } finally {
-                            adapter.close();
-                        }
-                    }
+            if (mp3File.exists()) {
+                Gson gson = new Gson();
+                RecordedProgramDBAdapter adapter = new RecordedProgramDBAdapter(getApplicationContext());
+                RecordedProgram recordedProgram = new RecordedProgram();
+                recordedProgram.setChannelName(channel.getName() == null ? "" : channel.getName());
+                recordedProgram.setChannelKey(gson.toJson(channel));
+                if (channel.getCurrentProgram() != null) {
+                    recordedProgram.setName(channel.getCurrentProgram().getTitle());
                 }
-            }).start();
+                if (recordedProgram.getName() == null) {
+                    recordedProgram.setName("");
+                }
+                recordedProgram.setStartTime(startRecordingTime);
+                long endTime = System.currentTimeMillis();
+                recordedProgram.setEndTime(new Date(endTime));
+                recordedProgram.setFilePath(mp3File.getPath());
+                try {
+                    adapter.open();
+                    adapter.insert(recordedProgram);
+                    SimpleAppLog.debug("Save recording complete");
+                } catch (Exception e) {
+                    SimpleAppLog.error("Could not insert recorded program", e);
+                } finally {
+                    adapter.close();
+                }
+            }
         }
         @Override
         public void onError(String message, Throwable e) {
@@ -250,11 +251,12 @@ public class MediaPlaybackService extends Service {
     }
 
     public void startRecord(String token, String filePath) {
+        if (currentChannel == null) return;
         FileHelper fileHelper = new FileHelper(getApplicationContext());
         startRecordingTime = new Date(System.currentTimeMillis());
-        recordedFile= new File(fileHelper.getRecordedProgramFolder(), startRecordingTime.getTime() + ".mp3");
+        recordedFile= new File(fileHelper.getRecordedProgramFolder(), currentChannel.getRecordedName() + "-" + startRecordingTime.getTime() + ".mp3");
         if (isStreaming && mStreamingPlayer != null)
-            mStreamingPlayer.startRecording(recordedFile.getAbsolutePath());
+            mStreamingPlayer.startRecording(currentChannel, recordedFile.getAbsolutePath());
     }
 
     public boolean isRecording() {
@@ -273,13 +275,27 @@ public class MediaPlaybackService extends Service {
 
     private Channel currentChannel;
 
+    public void setChannelObject(String channelObject) {
+        if (channelObject != null && channelObject.length() > 0) {
+            try {
+                Gson gson = new Gson();
+                currentChannel = gson.fromJson(channelObject, Channel.class);
+                notifyChange(META_CHANGED);
+            } catch (Exception e) {
+                SimpleAppLog.error("Could not parse channel object", e);
+            }
+        }
+
+    }
+
     public void openStream(String token, String channelObject) {
         if (mStreamingPlayer == null) {
             mStreamingPlayer = new MultiPlayer();
         }
+        currentChannel = null;
+        isStreaming = true;
         //mStreamingPlayer.setHandler(mMediaplayerHandler);
-        Gson gson = new Gson();
-        currentChannel = gson.fromJson(channelObject, Channel.class);
+        setChannelObject(channelObject);
         currentChannel.setLastPlayedTime(new Date(System.currentTimeMillis()));
         ChannelDBAdapter dbAdapter = new ChannelDBAdapter(getApplicationContext());
         try {
@@ -291,7 +307,7 @@ public class MediaPlaybackService extends Service {
             dbAdapter.close();
         }
         final String playUrl = currentChannel.getUrl();
-        isStreaming = true;
+
         if (playUrl.toLowerCase().startsWith("rtmpe://f-radiko.smartstream.ne.jp") && mRTMPSuck != null) {
             if (token == null || token.length() == 0) {
                 TokenFetcher tokenFetcher = TokenFetcher.getTokenFetcher(getApplicationContext(), new TokenFetcher.OnTokenListener() {
@@ -305,6 +321,7 @@ public class MediaPlaybackService extends Service {
                     @Override
                     public void onError(String message, Throwable throwable) {
                         SimpleAppLog.error(message, throwable);
+                        isStreaming = false;
                     }
                 });
                 tokenFetcher.fetch();
@@ -317,19 +334,29 @@ public class MediaPlaybackService extends Service {
         } else {
             open(playUrl);
         }
-
-
     }
 
-    private void openRadikoPlayUrl(String token, String playUrl) {
-        if (!isPlaying()) {
+    private String updateRtmpSuck(String token, String playUrl) {
+        try {
             String tcUrl = playUrl.substring(0, playUrl.lastIndexOf("/"));
             String app = tcUrl.substring("rtmpe://f-radiko.smartstream.ne.jp".length() + 1, tcUrl.length());
             SimpleAppLog.info("Update tcURL to " + tcUrl);
             SimpleAppLog.info("Update Radiko token to " + token);
             SimpleAppLog.info("Update app to " + app);
             mRTMPSuck.get().update(token, tcUrl, app);
-            open("rtmp://127.0.0.1:" + currentRtmpPort + playUrl.substring("rtmpe://f-radiko.smartstream.ne.jp".length(), playUrl.length()));
+            return "rtmp://127.0.0.1:" + currentRtmpPort + playUrl.substring("rtmpe://f-radiko.smartstream.ne.jp".length(), playUrl.length());
+        } catch (Exception e) {
+            SimpleAppLog.error("Could not create radiko stream url",e);
+            return "";
+        }
+    }
+
+    private void openRadikoPlayUrl(String token, String playUrl) {
+        try {
+            open(updateRtmpSuck(token, playUrl));
+        } catch (Exception e) {
+            SimpleAppLog.error("Could not open radiko stream",e);
+            isStreaming = false;
         }
     }
 
@@ -659,46 +686,48 @@ public class MediaPlaybackService extends Service {
         public void onTokenFound(final String token, String rawAreaId) {
             SimpleAppLog.info("Found token: " + token);
             currentAreaId = rawAreaId;
-            new Thread(new Runnable() {
-                @Override
-                public void run() {
-                    try {
-                        if (mRTMPSuck != null) {
-                            final RTMPSuck rtmpSuck = mRTMPSuck.get();
-                            if (rtmpSuck != null) {
-                                rtmpSuck.stop();
-                            }
-                        }
-
-                        SimpleAppLog.info("Force start RTMPSuck");
-                        int count = 0;
-                        String ip = "127.0.0.1";
-                        currentRtmpPort = 1935;
-                        while(InetHelper.isPortOpen(ip, currentRtmpPort, 300)) {
-                            currentRtmpPort += new Random().nextInt(10);
-                            SimpleAppLog.info("Try to test an other port " + currentRtmpPort);
-                            count++;
-                            if (count > 5);
-                        }
-                        RTMPSuck rtmpSuck = new RTMPSuck();
-                        mRTMPSuck = new WeakReference<RTMPSuck>(rtmpSuck);
-                        mRTMPSuck.get().init("S:" + token, currentRtmpPort);
-                    } catch (Exception ex) {
-                        //
-                    }
-                }
-            }).start();
         }
         @Override
         public void onError(final String message, Throwable throwable) {
         }
     };
 
+    private void initRtmpSuck() {
+        new Thread(new Runnable() {
+            @Override
+            public void run() {
+                try {
+                    if (mRTMPSuck != null) {
+                        final RTMPSuck rtmpSuck = mRTMPSuck.get();
+                        if (rtmpSuck != null) {
+                            rtmpSuck.stop();
+                        }
+                    }
+                    SimpleAppLog.info("Force start RTMPSuck");
+                    int count = 0;
+                    String ip = "127.0.0.1";
+                    currentRtmpPort = 1935;
+                    while(InetHelper.isPortOpen(ip, currentRtmpPort, 300)) {
+                        currentRtmpPort += new Random().nextInt(10);
+                        SimpleAppLog.info("Try to test an other port " + currentRtmpPort);
+                        count++;
+                        if (count > 5);
+                    }
+                    RTMPSuck rtmpSuck = new RTMPSuck();
+                    mRTMPSuck = new WeakReference<RTMPSuck>(rtmpSuck);
+                    mRTMPSuck.get().init("S:", currentRtmpPort);
+                } catch (Exception ex) {
+                    SimpleAppLog.error("Could not start RTMPSuck",ex);
+                }
+            }
+        }).start();
+    }
+
 
     @Override
     public void onCreate() {
         super.onCreate();
-
+        initRtmpSuck();
         mAudioManager = (AudioManager) getSystemService(Context.AUDIO_SERVICE);
         ComponentName rec = new ComponentName(getPackageName(),
                 MediaButtonIntentReceiver.class.getName());
@@ -780,8 +809,10 @@ public class MediaPlaybackService extends Service {
         i.putExtra(AudioEffect.EXTRA_AUDIO_SESSION, getAudioSessionId());
         i.putExtra(AudioEffect.EXTRA_PACKAGE_NAME, getPackageName());
         sendBroadcast(i);
-        mPlayer.release();
-        mPlayer = null;
+        try {
+            mPlayer.release();
+            mPlayer = null;
+        } catch (Exception e) {}
 
         mStreamingPlayer.release();
         mStreamingPlayer = null;
@@ -1103,7 +1134,7 @@ public class MediaPlaybackService extends Service {
         // Take a snapshot of the current playlist
         saveQueue(true);
 
-        if (isPlaying() || mPausedByTransientLossOfFocus) {
+        if (isPlaying() || isStreaming || mPausedByTransientLossOfFocus) {
             // something is currently playing, or will be playing once 
             // an in-progress action requesting audio focus ends, so don't stop the service now.
             return true;
@@ -1127,7 +1158,7 @@ public class MediaPlaybackService extends Service {
         @Override
         public void handleMessage(Message msg) {
             // Check again to make sure nothing is playing right now
-            if (isPlaying() || mPausedByTransientLossOfFocus || mServiceInUse
+            if (isPlaying() || isStreaming || mPausedByTransientLossOfFocus || mServiceInUse
                     || mMediaplayerHandler.hasMessages(TRACK_ENDED)) {
                 return;
             }
@@ -1431,6 +1462,7 @@ public class MediaPlaybackService extends Service {
 
     private void openCurrentAndNext() {
         synchronized (this) {
+            currentChannel = null;
             if (mCursor != null) {
                 mCursor.close();
                 mCursor = null;
@@ -1554,13 +1586,44 @@ public class MediaPlaybackService extends Service {
                     }
                 }
             } else {
+                RecordedProgramDBAdapter dbAdapter = new RecordedProgramDBAdapter(getApplicationContext());
+                try {
+                    dbAdapter.open();
+                    RecordedProgram program = dbAdapter.findByFilePath(mFileToPlay);
+                    if (program != null) {
+                        String channelSrc = program.getChannelKey();
+                        Channel channel = null;
+                        Gson gson = new Gson();
+                        SimpleAppLog.info("Channel source: " + channelSrc);
+                        if (channelSrc != null && channelSrc.length() > 0) {
+                            try {
+                                channel = gson.fromJson(channelSrc, Channel.class);
+                            } catch (Exception e) {
+                                SimpleAppLog.error("Could not parse channel", e);
+                            }
+                        }
+                        if (channel != null) {
+                            if (channel.getCurrentProgram() != null) {
+                                channel.getCurrentProgram().setFromTime(program.getStartTime().getTime());
+                                channel.getCurrentProgram().setToTime(program.getEndTime().getTime());
+                            }
+                            setChannelObject(gson.toJson(channel));
+                        }
+
+                    } else {
+                        SimpleAppLog.info("Could not found program info");
+                    }
+                } catch (Exception ex) {
+                    SimpleAppLog.error("Could not get recorded program info",ex);
+                } finally {
+                    dbAdapter.close();
+                }
                 mPlayer.setDataSource(mFileToPlay);
                 if (mPlayer.isInitialized()) {
                     mOpenFailedCounter = 0;
                     return true;
                 }
             }
-
             stop(true);
             return false;
         }
@@ -1687,46 +1750,60 @@ public class MediaPlaybackService extends Service {
     }
 
     private void updateCurrentProgram(final Channel channel, final String rawAreaId) {
-        new AsyncTask<Void, Void, Void>() {
-            @Override
-            protected Void doInBackground(Void... params) {
-                boolean done = false;
-                try {
-                    APIRequester requester = new APIRequester(new FileHelper(getApplicationContext()).getApiCachedFolder());
-                    RadioChannel.Channel rChannel = new RadioChannel.Channel();
-                    rChannel.setName(channel.getName());
-                    rChannel.setService(channel.getType());
-                    rChannel.setServiceChannelId(channel.getUrl());
-                    rChannel.setServiceChannelId(channel.getKey());
+        if (isStreaming) {
+            new AsyncTask<Void, Void, Void>() {
+                @Override
+                protected Void doInBackground(Void... params) {
+                    boolean done = false;
+                    try {
+                        APIRequester requester = new APIRequester(new FileHelper(getApplicationContext()).getApiCachedFolder());
+                        RadioChannel.Channel rChannel = new RadioChannel.Channel();
+                        rChannel.setName(currentChannel.getName());
+                        rChannel.setService(currentChannel.getType());
+                        rChannel.setServiceChannelId(currentChannel.getUrl());
+                        rChannel.setServiceChannelId(currentChannel.getKey());
 
-                    RadioProgram radioProgram = requester.getPrograms(rChannel, RadioArea.getArea(rawAreaId, channel.getType()));
-                    if (radioProgram != null) {
-                        List<RadioProgram.Program> programList =  radioProgram.getPrograms();
-                        if (programList != null && programList.size() > 0) {
-                            for (RadioProgram.Program program : programList) {
-                                long now = System.currentTimeMillis();
-                                if (now > program.getFromTime() && now < program.getToTime()) {
-                                    SimpleDateFormat sdf = new SimpleDateFormat("HH:mm", Locale.JAPANESE);
-                                    final StringBuffer sb = new StringBuffer();
-                                    sb.append(program.getTitle()).append("\n");
-                                    sb.append(sdf.format(new Date(program.getFromTime())));
-                                    sb.append( " - ").append(sdf.format(new Date(program.getToTime())));
-                                    showServiceNotification(channel.getName(), sb.toString());
-                                    done = true;
-                                    break;
+                        RadioProgram radioProgram = requester.getPrograms(rChannel, RadioArea.getArea(rawAreaId, currentChannel.getType()));
+                        if (radioProgram != null) {
+                            List<RadioProgram.Program> programList = radioProgram.getPrograms();
+                            if (programList != null && programList.size() > 0) {
+                                for (RadioProgram.Program program : programList) {
+                                    long now = System.currentTimeMillis();
+                                    if (now > program.getFromTime() && now < program.getToTime()) {
+                                        currentChannel.setCurrentProgram(program);
+                                        SimpleDateFormat sdf = new SimpleDateFormat("HH:mm", Locale.JAPANESE);
+                                        final StringBuffer sb = new StringBuffer();
+                                        sb.append(program.getTitle()).append("\n");
+                                        sb.append(sdf.format(new Date(program.getFromTime())));
+                                        sb.append(" - ").append(sdf.format(new Date(program.getToTime())));
+                                        showServiceNotification(currentChannel.getName(), sb.toString());
+                                        done = true;
+                                        notifyChange(META_CHANGED);
+                                        break;
+                                    }
                                 }
                             }
                         }
+                    } catch (Exception e) {
+                        SimpleAppLog.error("Could not fetch programs", e);
                     }
-                } catch (Exception e) {
-                    SimpleAppLog.error("Could not fetch programs",e);
+                    if (!done) {
+                        showServiceNotification(currentChannel.getName(), "");
+                    }
+                    return null;
                 }
-                if (!done) {
-                    showServiceNotification(channel.getName(), "");
-                }
-                return null;
+            }.execute();
+        } else {
+            RadioProgram.Program program = currentChannel.getCurrentProgram();
+            SimpleDateFormat sdf = new SimpleDateFormat("HH:mm", Locale.JAPANESE);
+            final StringBuffer sb = new StringBuffer("");
+            if (program != null) {
+                sb.append(program.getTitle()).append("\n");
+                sb.append(sdf.format(new Date(program.getFromTime())));
+                sb.append(" - ").append(sdf.format(new Date(program.getToTime())));
             }
-        }.execute();
+            showServiceNotification(currentChannel.getName(), sb.toString());
+        }
     }
 
     private void showServiceNotification(String title, String description) {
@@ -1774,14 +1851,14 @@ public class MediaPlaybackService extends Service {
 
     private void stop(boolean remove_status_icon) {
         mIsSupposedToBePlaying = false;
-        currentChannel = null;
+        isStreaming = false;
         stopFast();
         stopSlow();
         stopAB();
 //        if (isStreaming && mStreamingPlayer.isInitialized()) {
 //            mStreamingPlayer.stop();
 //        }
-        if (isStreaming && mStreamingPlayer != null) {
+        if (mStreamingPlayer != null) {
             try {
                 if (mStreamingPlayer.isInitialized())
                     mStreamingPlayer.stop();
@@ -2766,8 +2843,8 @@ public class MediaPlaybackService extends Service {
             mCurrentMediaPlayer.setOnRecordingListener(recordingListener);
         }
 
-        public void startRecording(String path) {
-            mCurrentMediaPlayer.startRecording(path);
+        public void startRecording(Channel selectedChannel, String path) {
+            mCurrentMediaPlayer.startRecording(selectedChannel, path);
         }
 
         public void stopRecording() {
@@ -2973,6 +3050,12 @@ public class MediaPlaybackService extends Service {
         ServiceStub(MediaPlaybackService service) {
             mService = new WeakReference<MediaPlaybackService>(service);
         }
+
+        @Override
+        public String updateRtmpSuck(String token, String playUrl) throws RemoteException {
+            return mService.get().updateRtmpSuck(token, playUrl);
+        }
+
         // Added by Hai
         @Override
         public void startRecord(String token, String fileName) throws RemoteException {
@@ -3047,6 +3130,11 @@ public class MediaPlaybackService extends Service {
         @Override
         public String getChannelObject() throws RemoteException {
             return mService.get().getChannelObject();
+        }
+
+        @Override
+        public void setChannelObject(String channelObject) throws RemoteException {
+            mService.get().setChannelObject(channelObject);
         }
 
         // Default

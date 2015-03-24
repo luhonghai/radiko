@@ -36,6 +36,7 @@ import com.gmail.radioserver2.radiko.TokenFetcher;
 import com.gmail.radioserver2.service.IMediaPlaybackService;
 import com.gmail.radioserver2.service.MediaPlaybackService;
 import com.gmail.radioserver2.service.MusicUtils;
+import com.gmail.radioserver2.utils.Constants;
 import com.gmail.radioserver2.utils.FileHelper;
 import com.gmail.radioserver2.utils.SimpleAppLog;
 import com.google.gson.Gson;
@@ -141,6 +142,7 @@ public class PlayerFragmentTab extends FragmentTab implements ServiceConnection,
         isLoading = false;
         gifView = (WebView) v.findViewById(R.id.gifView);
         loadGifLoader();
+
         btnBack = (Button) v.findViewById(R.id.btnBack);
         btnBack.setOnClickListener(this);
         btnTimer = (Button) v.findViewById(R.id.btnTimer);
@@ -192,79 +194,51 @@ public class PlayerFragmentTab extends FragmentTab implements ServiceConnection,
         gifView.loadData(html, "text/html", "UTF-8");
     }
 
-    private void updateCurrentProgram(final Channel channel, final String rawAreaId) {
-        new AsyncTask<Void, Void, Void>() {
-            @Override
-            protected Void doInBackground(Void... params) {
-                if (getActivity() == null || !PlayerFragmentTab.this.isAdded()) return null;
-                APIRequester requester = new APIRequester(new FileHelper(getActivity()).getApiCachedFolder());
-                RadioChannel.Channel rChannel = new RadioChannel.Channel();
-                rChannel.setName(channel.getName());
-                rChannel.setService(channel.getType());
-                rChannel.setServiceChannelId(channel.getUrl());
-                rChannel.setServiceChannelId(channel.getKey());
-                try {
-                    RadioProgram radioProgram = requester.getPrograms(rChannel, RadioArea.getArea(rawAreaId, channel.getType()));
-                    if (radioProgram != null) {
-                        List<RadioProgram.Program> programList =  radioProgram.getPrograms();
-                        if (programList != null && programList.size() > 0) {
-                            for (RadioProgram.Program program : programList) {
-                                long now = System.currentTimeMillis();
-                                if (now > program.getFromTime() && now < program.getToTime()) {
-                                    SimpleDateFormat sdf = new SimpleDateFormat("HH:mm");
-                                    final StringBuffer sb = new StringBuffer();
-                                    if (getActivity() == null || !PlayerFragmentTab.this.isAdded()) return null;
-                                    sb.append(getString(R.string.current_program)).append(":\n");
-                                    sb.append(program.getTitle()).append("\n");
+    private void showProgramInfo(RadioProgram.Program program) {
+        if (program == null) return;
+        SimpleDateFormat sdf = new SimpleDateFormat("HH:mm");
+        final StringBuffer sb = new StringBuffer();
+        if (getActivity() == null || !PlayerFragmentTab.this.isAdded()) return;
+        sb.append(getString(R.string.current_program)).append(":\n");
+        sb.append(program.getTitle()).append("\n");
 
-                                    sb.append(sdf.format(new Date(program.getFromTime())));
-                                    sb.append( " - ").append(sdf.format(new Date(program.getToTime())));
-                                    getActivity().runOnUiThread(new Runnable() {
-                                        @Override
-                                        public void run() {
-                                            if (txtDescription != null)
-                                                txtDescription.setText(sb.toString());
-                                        }
-                                    });
-                                    break;
-                                }
-                            }
-                        }
-                    }
-                } catch (Exception e) {
-                    SimpleAppLog.error("Could not fetch programs",e);
-                }
-                return null;
+        sb.append(sdf.format(new Date(program.getFromTime())));
+        sb.append( " - ").append(sdf.format(new Date(program.getToTime())));
+        getActivity().runOnUiThread(new Runnable() {
+            @Override
+            public void run() {
+                if (txtDescription != null)
+                    txtDescription.setText(sb.toString());
             }
-        }.execute();
+        });
     }
+
+    private Channel selectedChannel;
 
     private void updateInformation() {
         if (mService == null) return;
         String obj = null;
         try {
-            if (mService.isStreaming()) {
-                obj = mService.getChannelObject();
-                if (obj != null && obj.length() > 0) {
+            obj = mService.getChannelObject();
+            if (obj != null && obj.length() > 0) {
+                try {
                     Gson gson = new Gson();
-                    final Channel channel = gson.fromJson(obj, Channel.class);
-                    txtTitle.setText(channel.getName());
-                    TokenFetcher.getTokenFetcher(getActivity(), new TokenFetcher.OnTokenListener() {
-                        @Override
-                        public void onTokenFound(String token, String rawAreaId) {
-                            updateCurrentProgram(channel, rawAreaId);
-                        }
-                        @Override
-                        public void onError(String message, Throwable throwable) {
-
-                        }
-                    }).fetch();
+                    selectedChannel = gson.fromJson(obj, Channel.class);
+                } catch (Exception e) {
+                    SimpleAppLog.error("Could not parse channel",e);
                 }
             }
+
         } catch (RemoteException e) {
             SimpleAppLog.error("Could not get channel object", e);
         }
-
+        if (selectedChannel != null) {
+            txtTitle.setText(selectedChannel.getName());
+            showProgramInfo(selectedChannel.getCurrentProgram());
+        } else {
+            txtTitle.setText("");
+            txtDescription.setText("");
+        }
     }
 
     private void showPlayerInit() {
@@ -540,9 +514,16 @@ public class PlayerFragmentTab extends FragmentTab implements ServiceConnection,
                 }
                 break;
             case R.id.btnTimer:
-                Intent intent = new Intent();
-                intent.setClass(getActivity(), TimerSettingsActivity.class);
-                startActivity(intent);
+                if (mService != null) {
+                    try {
+                        Intent intent = new Intent();
+                        intent.setClass(getActivity(), TimerSettingsActivity.class);
+                        intent.putExtra(Constants.ARG_OBJECT, mService.getChannelObject());
+                        startActivity(intent);
+                    } catch (RemoteException e) {
+                        SimpleAppLog.error("Could not get current channel", e);
+                    }
+                }
                 break;
         }
     }

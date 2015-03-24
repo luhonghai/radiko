@@ -3,6 +3,7 @@ package com.gmail.radioserver2.data;
 import android.content.ContentValues;
 import android.content.Context;
 
+import com.dotohsoft.radio.data.RadioProgram;
 import com.gmail.radioserver2.data.sqlite.DBAdapter;
 import com.gmail.radioserver2.utils.DateHelper;
 
@@ -25,6 +26,16 @@ public class Channel extends AbstractData<Channel> {
     private Date lastPlayedTime;
 
     private String url;
+
+    private RadioProgram.Program currentProgram;
+
+    public String getRecordedName() {
+        if (currentProgram == null) {
+            return name + "-" + key +"-" + type;
+        } else {
+            return name + "-" + key +"-" + type + "-" + currentProgram.getTitle();
+        }
+    }
 
     @Override
     public String toPrettyString(Context context) {
@@ -97,5 +108,13 @@ public class Channel extends AbstractData<Channel> {
 
     public void setLastPlayedTime(Date lastPlayedTime) {
         this.lastPlayedTime = lastPlayedTime;
+    }
+
+    public RadioProgram.Program getCurrentProgram() {
+        return currentProgram;
+    }
+
+    public void setCurrentProgram(RadioProgram.Program currentProgram) {
+        this.currentProgram = currentProgram;
     }
 }

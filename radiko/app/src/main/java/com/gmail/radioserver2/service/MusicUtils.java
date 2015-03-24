@@ -77,6 +77,18 @@ public class MusicUtils {
         return null;
     }
 
+    public static ServiceToken bindToService(Context context, ServiceConnection callback) {
+        ContextWrapper cw = new ContextWrapper(context);
+        cw.startService(new Intent(cw, MediaPlaybackService.class));
+        ServiceBinder sb = new ServiceBinder(callback);
+        if (cw.bindService((new Intent()).setClass(cw, MediaPlaybackService.class), sb, 0)) {
+            sConnectionMap.put(cw, sb);
+            return new ServiceToken(cw);
+        }
+        Log.e("Music", "Failed to bind to service");
+        return null;
+    }
+
     public static void unbindFromService(ServiceToken token) {
         if (token == null) {
             Log.e("MusicUtils", "Trying to unbind with null token");
@@ -473,7 +485,6 @@ public class MusicUtils {
     private static Time sTime = new Time();
 
     static void debugLog(Object o) {
-
         sMusicLog[sLogPtr] = new LogEntry(o);
         sLogPtr++;
         if (sLogPtr >= sMusicLog.length) {
