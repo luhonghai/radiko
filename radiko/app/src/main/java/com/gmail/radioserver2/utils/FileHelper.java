@@ -76,12 +76,16 @@ public class FileHelper {
     }
 
     public File getRecordedProgramFolder() {
-        return new File(Environment.getExternalStorageDirectory(),RECORDED_PROGRAM_DIR);
+        File dir = new File(Environment.getExternalStorageDirectory(),RECORDED_PROGRAM_DIR);
+        if (!dir.exists() || !dir.isDirectory()) {
+            dir.mkdirs();
+        }
+        return dir;
     }
 
     public File getApiCachedFolder() {
         File folder= new File(getApplicationDir(), API_CACHED_FOLDER);
-        if (!folder.exists()) {
+        if (!folder.exists() || !folder.isDirectory()) {
             folder.mkdirs();
         }
         return folder;
