@@ -2,6 +2,8 @@ package com.gmail.radioserver2.fragment;
 
 import android.content.Intent;
 import android.os.Bundle;
+import android.os.RemoteException;
+import android.os.SystemClock;
 import android.view.LayoutInflater;
 import android.view.View;
 import android.view.ViewGroup;
@@ -17,6 +19,7 @@ import com.gmail.radioserver2.data.Setting;
 import com.gmail.radioserver2.data.sqlite.ext.ChannelDBAdapter;
 import com.gmail.radioserver2.utils.Constants;
 import com.gmail.radioserver2.utils.SimpleAppLog;
+import com.gmail.radioserver2.view.CustomSeekBar;
 import com.infteh.comboseekbar.ComboSeekBar;
 
 import java.util.Arrays;
@@ -27,9 +30,11 @@ import java.util.List;
  */
 public class SettingFragmentTab extends FragmentTab implements View.OnClickListener {
 
-    private SeekBar seekBarFastLevel;
-    private SeekBar seekBarSlowLevel;
-    private SeekBar seekBarBackLength;
+    private static final int MAX_PROCESS = 100;
+
+    private CustomSeekBar seekBarFastLevel;
+    private CustomSeekBar seekBarSlowLevel;
+    private CustomSeekBar seekBarBackLength;
 
     private EditText txtChannelName;
     private EditText txtChannelURL;
@@ -42,26 +47,38 @@ public class SettingFragmentTab extends FragmentTab implements View.OnClickListe
     public View onCreateView(LayoutInflater inflater, ViewGroup container, Bundle savedInstanceState) {
         View v = inflater.inflate(R.layout.fragment_setting, container, false);
         v.findViewById(R.id.btnSave).setOnClickListener(this);
-        seekBarFastLevel = (SeekBar) v.findViewById(R.id.seekBarFastLevel);
-        seekBarSlowLevel = (SeekBar) v.findViewById(R.id.seekBarSlowLevel);
-        seekBarBackLength = (SeekBar) v.findViewById(R.id.seekBarBackLength);
+        seekBarFastLevel = (CustomSeekBar) v.findViewById(R.id.seekBarFastLevel);
+        seekBarSlowLevel = (CustomSeekBar) v.findViewById(R.id.seekBarSlowLevel);
+        seekBarBackLength = (CustomSeekBar) v.findViewById(R.id.seekBarBackLength);
         txtChannelName = (EditText) v.findViewById(R.id.txtChannelName);
         txtChannelURL = (EditText) v.findViewById(R.id.txtChannelURL);
         switchRegion = (Switch) v.findViewById(R.id.switchRegion);
         spinnerTokenType = (Spinner) v.findViewById(R.id.spinnerTokenType);
         v.findViewById(R.id.lblTokenType).setVisibility(getResources().getBoolean(R.bool.is_debug_mode) ? View.VISIBLE : View.GONE);
         v.findViewById(R.id.rlTokenType).setVisibility(getResources().getBoolean(R.bool.is_debug_mode) ? View.VISIBLE : View.GONE);
+        initSeekbar();
         loadData();
         return v;
     }
 
     private void initSeekbar() {
-//        List<String> slowStep = Arrays.asList("x0.9", "x0.7", "x0.5", "x0.3");
-//        List<String> fastStep = Arrays.asList("x1.3", "x1.5", "x1.7", "x2.0");
-//        List<String> backStep = Arrays.asList("10s", "7s", "5s", "3s");
-//        seekBarSlowLevel.setAdapter(slowStep);
-//        seekBarFastLevel.setAdapter(fastStep);
-//        seekBarBackLength.setAdapter(backStep);
+        String[] slowStep = new String[]{"x0.9", "x0.7", "x0.5", "x0.3"};
+        String[] fastStep = new String[]{"x1.3", "x1.5", "x1.7", "x2.0"};
+        String[] backStep = new String[]{"10s", "7s", "5s", "3s"};
+        seekBarSlowLevel.setMax(MAX_PROCESS);
+        seekBarSlowLevel.setItems(slowStep);
+        seekBarSlowLevel.setOnSeekBarChangeListener(mSeekListener);
+        seekBarSlowLevel.invalidate();
+
+        seekBarFastLevel.setMax(MAX_PROCESS);
+        seekBarFastLevel.setItems(fastStep);
+        seekBarFastLevel.setOnSeekBarChangeListener(mSeekListener);
+        seekBarFastLevel.invalidate();
+
+        seekBarBackLength.setMax(MAX_PROCESS);
+        seekBarBackLength.setItems(backStep);
+        seekBarBackLength.setOnSeekBarChangeListener(mSeekListener);
+        seekBarBackLength.invalidate();
     }
 
     private void loadData() {
@@ -128,4 +145,25 @@ public class SettingFragmentTab extends FragmentTab implements View.OnClickListe
                 break;
         }
     }
+
+
+    private SeekBar.OnSeekBarChangeListener mSeekListener = new SeekBar.OnSeekBarChangeListener() {
+
+        public void onStartTrackingTouch(SeekBar bar) {
+
+        }
+
+        public void onProgressChanged(SeekBar bar, int progress, boolean fromuser) {
+            if (fromuser) {
+                int pos = progress % (MAX_PROCESS / 3);
+                int desPros = (pos > MAX_PROCESS / 6) ? progress + ((MAX_PROCESS / 3) - pos) : progress - pos;
+                if (desPros < 0) desPros = 0;
+                if (desPros > MAX_PROCESS) desPros = MAX_PROCESS;
+                bar.setProgress(desPros);
+            }
+        }
+        public void onStopTrackingTouch(SeekBar bar) {
+
+        }
+    };
 }

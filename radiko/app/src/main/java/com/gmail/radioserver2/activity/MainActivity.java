@@ -164,15 +164,10 @@ public class MainActivity extends BaseFragmentActivity implements ServiceConnect
                     pushFragments(Constants.TAB_HOME, mStacks.get(Constants.TAB_HOME).lastElement(), false,false);
                 }
             } else if (index == Constants.TAB_RECORDED_PROGRAM_ID) {
-                if (mStacks.get(Constants.TAB_RECORDED_PROGRAM).size() == 0){
-                    RecordedProgramFragmentTab recordedProgramFragmentTab = new RecordedProgramFragmentTab();
-                    recordedProgramFragmentTab.setSelectedLibrary(selectedLibrary);
-                    pushFragments(Constants.TAB_RECORDED_PROGRAM, recordedProgramFragmentTab, false, true);
-                } else {
-                    RecordedProgramFragmentTab recordedProgramFragmentTab = (RecordedProgramFragmentTab) mStacks.get(Constants.TAB_RECORDED_PROGRAM).lastElement();
-                    recordedProgramFragmentTab.setSelectedLibrary(selectedLibrary);
-                    pushFragments(Constants.TAB_RECORDED_PROGRAM, recordedProgramFragmentTab, false, false);
-                }
+                selectedLibrary = null;
+                RecordedProgramFragmentTab recordedProgramFragmentTab = new RecordedProgramFragmentTab();
+                recordedProgramFragmentTab.setSelectedLibrary(null);
+                pushFragments(Constants.TAB_RECORDED_PROGRAM, recordedProgramFragmentTab, false, false);
             }
         }
     };

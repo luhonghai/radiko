@@ -2328,6 +2328,7 @@ public class FFmpegMediaPlayer
     }
 
     private void stopRecording(boolean saveFile) {
+
         if (!isRecording) return;
         if (mp3Encoder != null) {
             mp3Encoder.cleanup();

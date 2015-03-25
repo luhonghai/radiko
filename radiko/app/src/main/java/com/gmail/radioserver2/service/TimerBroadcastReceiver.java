@@ -11,7 +11,6 @@ import android.os.Handler;
 import android.os.IBinder;
 import android.os.RemoteException;
 
-import com.dotohsoft.radio.Constant;
 import com.dotohsoft.radio.api.APIRequester;
 import com.dotohsoft.radio.data.RadioArea;
 import com.dotohsoft.radio.data.RadioChannel;
@@ -27,7 +26,6 @@ import com.gmail.radioserver2.utils.SimpleAppLog;
 import com.google.gson.Gson;
 
 import java.io.File;
-import java.io.IOException;
 import java.lang.ref.WeakReference;
 import java.text.SimpleDateFormat;
 import java.util.Calendar;

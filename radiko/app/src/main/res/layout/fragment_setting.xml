@@ -18,7 +18,7 @@
             android:background="@color/default_button_color"
             android:text="@string/label_slow_play"
             android:minWidth="100dp"/>
-        <SeekBar
+        <com.gmail.radioserver2.view.CustomSeekBar
             android:id="@+id/seekBarSlowLevel"
             android:layout_width="0dp"
             android:layout_height="wrap_content"
@@ -42,7 +42,7 @@
             android:background="@color/default_button_color"
             android:text="@string/label_fast_play"
             android:minWidth="100dp"/>
-        <SeekBar
+        <com.gmail.radioserver2.view.CustomSeekBar
             android:id="@+id/seekBarFastLevel"
             android:layout_width="0dp"
             android:layout_height="wrap_content"
@@ -66,7 +66,7 @@
             android:background="@color/default_button_color"
             android:text="@string/label_back"
             android:minWidth="100dp"/>
-        <SeekBar
+        <com.gmail.radioserver2.view.CustomSeekBar
             android:id="@+id/seekBarBackLength"
             android:layout_width="0dp"
             android:layout_height="wrap_content"

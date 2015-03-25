@@ -83,16 +83,15 @@ public class RecordedProgramDBAdapter extends DBAdapter<RecordedProgram>  {
                 args));
     }
 
-    public boolean addToLibrary(RecordedProgram program, Library library) throws Exception {
-        // Delete old record if exist
+    public void deleteAllMapping(RecordedProgram program) throws Exception {
         getDB().delete(TABLE_RECORDED_PROGRAM_LIBRARY,
                 KEY_PRIMARY_MAPPING + "=?",
                 new String[] {
                         Long.toString(program.getId())
                 });
-        //getDB().delete(TABLE_RECORDED_PROGRAM_LIBRARY,
-         //       KEY_PRIMARY_MAPPING + "=" + program.getId() + " and " + KEY_SECONDARY_MAPPING + "=" +library.getId(),
-         //       null);
+    }
+
+    public boolean addToLibrary(RecordedProgram program, Library library) throws Exception {
         // Insert new mapping
         ContentValues cv = new ContentValues();
         cv.put(KEY_PRIMARY_MAPPING, program.getId());

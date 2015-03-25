@@ -48,16 +48,11 @@ public class LibraryDBAdapter extends DBAdapter<Library> {
         };
     }
 
-    public Library findByRecordedProgram(RecordedProgram program) {
-        Cursor cursor = getDB().rawQuery(QUERY_SELECT_LIBRARY_BY_RECORDED_PROGRAM,
+    public Collection<Library> findByRecordedProgram(RecordedProgram program) {
+        return toCollection(getDB().rawQuery(QUERY_SELECT_LIBRARY_BY_RECORDED_PROGRAM,
                 new String[] {
                         Long.toString(program.getId())
-                });
-        if (cursor != null && cursor.getCount() > 0) {
-            cursor.moveToFirst();
-            return toObject(cursor);
-        }
-        return null;
+                }));
     }
 
     @Override
