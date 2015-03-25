@@ -5,12 +5,15 @@ import android.view.LayoutInflater;
 import android.view.View;
 import android.view.ViewGroup;
 import android.widget.Button;
+import android.widget.CheckBox;
 import android.widget.RadioButton;
 import android.widget.TextView;
 
 import com.gmail.radioserver2.data.Library;
 import com.gmail.radioserver2.view.swipelistview.SwipeListView;
 import com.gmail.radioserver2.R;
+
+import java.util.List;
 
 /**
  * Created by luhonghai on 2/17/15.
@@ -22,19 +25,37 @@ public class LibraryPickerAdapter extends DefaultAdapter<Library> {
     }
 
     public void setSelectedIndex(int selectedIndex) {
+        Library seLibrary = getObjects()[selectedIndex];
+        if (selectedItems.contains(seLibrary)) {
+            selectedItems.remove(seLibrary);
+        } else {
+            selectedItems.add(seLibrary);
+        }
+        getListItemAction().onSelectItem(seLibrary);
+        getListItemAction().onSelectIndex(selectedIndex);
         this.selectedIndex = selectedIndex;
     }
 
     static class ViewHolder {
         TextView txtTitle;
         Button btnDelete;
-        RadioButton rdSelect;
+        CheckBox cbxSelectLib;
     }
 
     private int selectedIndex = -1;
 
-    public LibraryPickerAdapter(Context context, Library[] objects, OnListItemActionListener<Library> onListItemActionListener) {
+    private final List<Library> selectedItems;
+
+    public LibraryPickerAdapter(Context context,
+                                    Library[] objects,
+                                    List<Library> selectedItems,
+                                    OnListItemActionListener<Library> onListItemActionListener) {
         super(context, R.layout.list_item_library_picker, objects, onListItemActionListener);
+        this.selectedItems = selectedItems;
+    }
+
+    public List<Library> getSelectedItems() {
+        return selectedItems;
     }
 
     @Override
@@ -46,7 +67,7 @@ public class LibraryPickerAdapter extends DefaultAdapter<Library> {
             holder = new ViewHolder();
             holder.txtTitle = (TextView) convertView.findViewById(R.id.txtTitle);
             holder.btnDelete = (Button) convertView.findViewById(R.id.btnDelete);
-            holder.rdSelect = (RadioButton) convertView.findViewById(R.id.rdSelect);
+            holder.cbxSelectLib = (CheckBox) convertView.findViewById(R.id.cbxSelectLib);
             convertView.setTag(holder);
         } else {
             holder = (ViewHolder) convertView.getTag();
@@ -62,26 +83,26 @@ public class LibraryPickerAdapter extends DefaultAdapter<Library> {
             public void onClick(View v) {
                 setSelectedIndex((Integer) v.getTag());
                 notifyDataSetInvalidated();
-                getListItemAction().onSelectItem(getObjects()[getSelectedIndex()]);
-                getListItemAction().onSelectIndex(getSelectedIndex());
             }
         });
         holder.btnDelete.setTag(object);
         holder.btnDelete.setOnClickListener(new View.OnClickListener() {
             @Override
             public void onClick(View v) {
-                getListItemAction().onDeleteItem((Library) v.getTag());
+                Library lib = (Library) v.getTag();
+                if (selectedItems.contains(lib)) {
+                    selectedItems.remove(lib);
+                }
+                getListItemAction().onDeleteItem(lib);
             }
         });
-        holder.rdSelect.setChecked(position == getSelectedIndex());
-        holder.rdSelect.setTag(position);
-        holder.rdSelect.setOnClickListener(new View.OnClickListener() {
+        holder.cbxSelectLib.setChecked(selectedItems.contains(object));
+        holder.cbxSelectLib.setTag(position);
+        holder.cbxSelectLib.setOnClickListener(new View.OnClickListener() {
             @Override
             public void onClick(View v) {
                 setSelectedIndex((Integer) v.getTag());
                 notifyDataSetInvalidated();
-                getListItemAction().onSelectItem(getObjects()[getSelectedIndex()]);
-                getListItemAction().onSelectIndex(getSelectedIndex());
             }
         });
 

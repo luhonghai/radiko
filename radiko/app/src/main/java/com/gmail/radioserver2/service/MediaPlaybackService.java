@@ -1851,7 +1851,6 @@ public class MediaPlaybackService extends Service {
 
     private void stop(boolean remove_status_icon) {
         mIsSupposedToBePlaying = false;
-        isStreaming = false;
         stopFast();
         stopSlow();
         stopAB();

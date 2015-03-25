@@ -112,7 +112,7 @@ public class Mp3Encoder {
             out.write(mp3Buf, 0, bytesEncoded);
             // TODO: write Xing VBR/INFO tag to mp3 file here
             out.flush();
-        } catch (IOException e) {
+        } catch (Exception e) {
             e.printStackTrace();
         }
 

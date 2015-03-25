@@ -648,10 +648,13 @@ public class PlayerFragmentTab extends FragmentTab implements ServiceConnection,
         }
     };
 
-    private long mLastSeekEventTime;
+
     private long mPosOverride = -1;
-    private boolean mFromTouch = false;
+
     private long mDuration;
+
+    private long mLastSeekEventTime;
+    private boolean mFromTouch = false;
 
     private SeekBar.OnSeekBarChangeListener mSeekListener = new SeekBar.OnSeekBarChangeListener() {
         public void onStartTrackingTouch(SeekBar bar) {

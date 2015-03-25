@@ -36,5 +36,6 @@
 
     <!-- Setting screen -->
     <dimen name="layout_item_height">36dp</dimen>
+    <dimen name="layout_seekbar_height">50dp</dimen>
 
 </resources>

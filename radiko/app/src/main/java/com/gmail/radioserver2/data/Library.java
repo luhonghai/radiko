@@ -31,7 +31,16 @@ public class Library extends AbstractData<Library> {
         return cv;
     }
 
+    @Override
+    public boolean equals(Object o) {
+        if (o != null && o instanceof Library) {
+            return this.getName().equalsIgnoreCase(((Library) o).getName());
+        }
+        return super.equals(o);
+    }
+
     public String getName() {
+        if (name == null) return "";
         return name;
     }
 
