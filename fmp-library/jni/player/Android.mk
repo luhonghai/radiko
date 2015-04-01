@@ -3,8 +3,8 @@ LOCAL_PATH:= $(call my-dir)
 include $(CLEAR_VARS)
 
 LOCAL_MODULE := ffmpeg_mediaplayer_jni
-LOCAL_CFLAGS := 
-LOCAL_SRC_FILES := wseemann_media_MediaPlayer.cpp \
+LOCAL_CFLAGS :=
+LOCAL_SRC_FILES := coffeecatch.c coffeejni.c wseemann_media_MediaPlayer.cpp \
 		mediaplayer.cpp \
 		ffmpeg_mediaplayer.c \
                 player.c

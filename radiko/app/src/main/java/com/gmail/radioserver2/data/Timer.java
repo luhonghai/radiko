@@ -73,7 +73,7 @@ public class Timer extends AbstractData<Timer> {
         }
         sb.append(" ").append(DateHelper.toTimeNumberString(startHour)).append(":").append(DateHelper.toTimeNumberString(startMinute));
         sb.append(" - ");
-        sb.append(DateHelper.toTimeNumberString(finishHour)).append(":").append(DateHelper.toTimeNumberString(finishHour));
+        sb.append(DateHelper.toTimeNumberString(finishHour)).append(":").append(DateHelper.toTimeNumberString(finishMinute));
         sb.append(" ");
         sb.append(channelName);
         //sb.append(" | ").append(status ? context.getString(R.string.switch_text_on) : context.getString(R.string.switch_text_off));

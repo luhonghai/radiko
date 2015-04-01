@@ -84,6 +84,7 @@ public class APIRequester {
     }
 
     public RadioProgram getPrograms(RadioChannel.Channel channel, RadioArea area) throws IOException {
+        if (area == null || channel == null) return null;
         String strCachedFile = "program_" + area.getProvider() + "_" + channel.getServiceChannelId() + "_" + area.getId() + "_" + sdf.format(now) + ".json";
         File cachedFile = new File(cachedFolder, strCachedFile);
         if (!cachedFile.exists()) {

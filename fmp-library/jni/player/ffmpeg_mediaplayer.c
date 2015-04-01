@@ -23,6 +23,8 @@
 #include <libswscale/swscale.h>
 #include <ffmpeg_mediaplayer.h>
 #include <android/log.h>
+#include "coffeecatch.h"
+#include "coffeejni.h"
 
 #include <stdio.h>
 
@@ -39,6 +41,7 @@ const int SUCCESS = 0;
 const int FAILURE = -1;
 
 static pthread_mutex_t *lock;
+static pthread_mutex_t *lock_prepare;
 
 int decode_interrupt_cb(void *opaque) {
 	State *state = (State *) opaque;
@@ -48,38 +51,37 @@ int decode_interrupt_cb(void *opaque) {
 
 void clear_l(State **ps)
 {
+
 	State *state = *ps;
 	        
-	if (state) {
-		if (state->pFormatCtx) {
-			avformat_close_input(&state->pFormatCtx);
-	    }
+	if (state && state->pFormatCtx) {
+		avformat_close_input(&state->pFormatCtx);
 	}
 	
 	if (state && state->fd != -1) {
 		close(state->fd);
 	}
 	
-    //if (!state) {
+    if (!state) {
         state = av_mallocz(sizeof(State));
-    //}
-    
-	state->pFormatCtx = NULL;
-	state->audio_stream = -1;
-	state->video_stream = -1;
-	state->audio_st = NULL;
-	state->video_st = NULL;
-	state->buffer_size = -1;
-	state->abort_request = 0;
-	state->paused = 0;
-	state->last_paused = -1;
-	state->filename[0] = '\0';
-	state->headers[0] = '\0';
-	state->fd = -1;
-	state->offset = 0;
-	state->player_started = 0;
-    
-    *ps = state;
+    }
+    if (state) {
+        state->pFormatCtx = NULL;
+        state->audio_stream = -1;
+        state->video_stream = -1;
+        state->audio_st = NULL;
+        state->video_st = NULL;
+        state->buffer_size = -1;
+        state->abort_request = 0;
+        state->paused = 0;
+        state->last_paused = -1;
+        state->filename[0] = '\0';
+        state->headers[0] = '\0';
+        state->fd = -1;
+        state->offset = 0;
+        state->player_started = 0;
+        *ps = state;
+	}
 }
 
 void disconnect(State **ps)
@@ -94,8 +96,8 @@ void disconnect(State **ps)
 		if (state && state->fd != -1) {
 			close(state->fd);
 		}
-		
-	    av_freep(&state);
+		if (state)
+	        av_freep(&state);
 	    *ps = NULL;
 	}
 }
@@ -342,9 +344,10 @@ int decode_frame_from_packet(State *state, AVPacket *aPacket, int *frame_size_pt
 	struct SwrContext *swr_ctx;
 	double t;
     int ret;
+    int data_size = 0;
 
-    if (aPacket->stream_index == state->audio_stream) {
-        	
+    if (state && !state->abort_request && aPacket->stream_index == state->audio_stream) {
+        COFFEE_TRY() {
     	if (!decoded_frame) {
     		if (!(decoded_frame = avcodec_alloc_frame())) {
     			__android_log_print(ANDROID_LOG_INFO, "TAG", "Could not allocate audio frame\n");
@@ -356,8 +359,6 @@ int decode_frame_from_packet(State *state, AVPacket *aPacket, int *frame_size_pt
     		__android_log_print(ANDROID_LOG_ERROR, "TAG", "avcodec_decode_audio4() decoded no frame");
     		return -2;
     	}
-    	
-    	int data_size = 0;
     	
     	if (got_frame) {
     		/* if a frame has been decoded, output it */
@@ -483,14 +484,22 @@ int decode_frame_from_packet(State *state, AVPacket *aPacket, int *frame_size_pt
         if(pkt->pts != AV_NOPTS_VALUE) {
         	state->audio_clock = av_q2d(state->audio_st->time_base) * pkt->pts;
         }
-    	
+    	} COFFEE_CATCH() {
+                      const char*const message = coffeecatch_get_message();
+                                                __android_log_print(ANDROID_LOG_ERROR, "TAG", "**FATAL ERROR: player decode_frame_from_packet #1 %s\n", message);
+        } COFFEE_END();
         //*frame_size_ptr = data_size;
-        state->write_audio_callback(state->clazz, samples, data_size, from_thread);
-        
-    	avcodec_free_frame(&decoded_frame);
-        
-        free(samples);
-        
+        if (state) {
+            state->write_audio_callback(state->clazz, samples, data_size, from_thread);
+        }
+        COFFEE_TRY() {
+            avcodec_free_frame(&decoded_frame);
+
+            free(samples);
+        } COFFEE_CATCH() {
+              const char*const message = coffeecatch_get_message();
+                                        __android_log_print(ANDROID_LOG_ERROR, "TAG", "**FATAL ERROR: player decode_frame_from_packet #2 %s\n", message);
+        } COFFEE_END();
     	return AUDIO_DATA_ID;
     }
 
@@ -632,117 +641,156 @@ int player_prepare(State **ps, int from_thread)
 	int i;
 
 	State *state = *ps;
-	
-	if (state && state->pFormatCtx) {
-		avformat_close_input(&state->pFormatCtx);
-	}
-
-	state->pFormatCtx = NULL;
-	state->audio_stream = -1;
-	state->video_stream = -1;
-	state->audio_st = NULL;
-	state->video_st = NULL;
-
-    printf("Path: %s\n", state->filename);
-
-    AVDictionary *options = NULL;
-    av_dict_set(&options, "icy", "1", 0);
-    av_dict_set(&options, "user-agent", "NSPlayer/7.10.0.3059", 0);
-    
-    if (state->headers) {
-    	av_dict_set(&options, "headers", state->headers, 0);
+	if (state && state->abort_request) {
+	    return SUCCESS;
     }
-    
-    if (state->offset > 0) {
-        state->pFormatCtx = avformat_alloc_context();
-        state->pFormatCtx->skip_initial_bytes = state->offset;
-    }
-    
-    if (avformat_open_input(&state->pFormatCtx, state->filename, NULL, &options) != 0) {
-	    printf("Input file could not be opened\n");
-		state->notify_callback(state->clazz, MEDIA_ERROR, MEDIA_ERROR_UNKNOWN, 0, from_thread);
-		*ps = NULL;
-    	return MEDIA_ERROR;
-    }
+    COFFEE_TRY() {
+        if (state && state->pFormatCtx) {
+            avformat_close_input(&state->pFormatCtx);
+        }
+        if (state) {
+            state->pFormatCtx = NULL;
+            state->audio_stream = -1;
+            state->video_stream = -1;
+            state->audio_st = NULL;
+            state->video_st = NULL;
+        }
 
-	if (avformat_find_stream_info(state->pFormatCtx, NULL) < 0) {
+    } COFFEE_CATCH() {
+        const char*const message = coffeecatch_get_message();
+        __android_log_print(ANDROID_LOG_ERROR, "TAG", "**FATAL ERROR: player prepare #1 %s\n", message);
+    } COFFEE_END();
+    int rst = 0;
+    COFFEE_TRY() {
+        AVDictionary *options = NULL;
+        av_dict_set(&options, "icy", "1", 0);
+        av_dict_set(&options, "user-agent", "NSPlayer/7.10.0.3059", 0);
+
+        if (state->headers) {
+            av_dict_set(&options, "headers", state->headers, 0);
+        }
+
+        if (state->offset > 0) {
+            state->pFormatCtx = avformat_alloc_context();
+            state->pFormatCtx->skip_initial_bytes = state->offset;
+        }
+
+        rst = avformat_open_input(&state->pFormatCtx, state->filename, NULL, &options);
+    } COFFEE_CATCH() {
+        const char*const message = coffeecatch_get_message();
+                __android_log_print(ANDROID_LOG_ERROR, "TAG", "**FATAL ERROR: player prepare #2 %s\n", message);
+    } COFFEE_END();
+    if (rst != 0 && state) {
+        printf("Input file could not be opened\n");
+        if (state && !state->abort_request) {
+    	    state->notify_callback(state->clazz, MEDIA_ERROR, MEDIA_ERROR_UNKNOWN, 0, from_thread);
+    	}
+    	*ps = NULL;
+        return MEDIA_ERROR;
+    }
+    if (state->abort_request) {
+        return SUCCESS;
+    }
+    rst = -1;
+    COFFEE_TRY() {
+        rst = avformat_find_stream_info(state->pFormatCtx, NULL);
+    } COFFEE_CATCH() {
+        const char*const message = coffeecatch_get_message();
+                __android_log_print(ANDROID_LOG_ERROR, "TAG", "**FATAL ERROR: player prepare #3 %s\n", message);
+    } COFFEE_END();
+	if (rst < 0) {
 	    printf("Stream information could not be retrieved\n");
-	    avformat_close_input(&state->pFormatCtx);
-		state->notify_callback(state->clazz, MEDIA_ERROR, MEDIA_ERROR_UNKNOWN, 0, from_thread);
+	    if (state && state->pFormatCtx) {
+            avformat_close_input(&state->pFormatCtx);
+        }
+        if (state && !state->abort_request) {
+		    state->notify_callback(state->clazz, MEDIA_ERROR, MEDIA_ERROR_UNKNOWN, 0, from_thread);
+		}
 		*ps = NULL;
     	return MEDIA_ERROR;
 	}
-
 	char duration[30] = "0";
-	get_duration(state->pFormatCtx, duration);
-	av_dict_set(&state->pFormatCtx->metadata, DURATION, duration, 0);
-	
-	get_shoutcast_metadata(state->pFormatCtx);
-	
-    // Find the first audio and video stream
-	for (i = 0; i < state->pFormatCtx->nb_streams; i++) {
-		if (state->pFormatCtx->streams[i]->codec->codec_type == AVMEDIA_TYPE_VIDEO && video_index < 0) {
-			video_index = i;
-		}
+    COFFEE_TRY() {
+        if (state && !state->abort_request) {
+            get_duration(state->pFormatCtx, duration);
+            av_dict_set(&state->pFormatCtx->metadata, DURATION, duration, 0);
+            get_shoutcast_metadata(state->pFormatCtx);
 
-		if (state->pFormatCtx->streams[i]->codec->codec_type == AVMEDIA_TYPE_AUDIO && audio_index < 0) {
-			audio_index = i;
-		}
-		
-		set_codec(state->pFormatCtx, i);
-	}
+            // Find the first audio and video stream
+            for (i = 0; i < state->pFormatCtx->nb_streams; i++) {
+                if (state->pFormatCtx->streams[i]->codec->codec_type == AVMEDIA_TYPE_VIDEO && video_index < 0) {
+                    video_index = i;
+                }
 
-	if (audio_index >= 0) {
-		stream_component_open(state, audio_index, from_thread);
-	}
+                if (state->pFormatCtx->streams[i]->codec->codec_type == AVMEDIA_TYPE_AUDIO && audio_index < 0) {
+                    audio_index = i;
+                }
 
-	if (video_index >= 0) {
-		stream_component_open(state, video_index, from_thread);
-	}
+                set_codec(state->pFormatCtx, i);
+            }
+            if (audio_index >= 0) {
+                stream_component_open(state, audio_index, from_thread);
+            }
 
-	if (state->video_stream < 0 && state->audio_stream < 0) {
+            if (video_index >= 0) {
+                stream_component_open(state, video_index, from_thread);
+            }
+        }
+    } COFFEE_CATCH() {
+        const char*const message = coffeecatch_get_message();
+        __android_log_print(ANDROID_LOG_ERROR, "TAG", "**FATAL ERROR: player prepare #4 %s\n", message);
+    } COFFEE_END();
+	if (state && state->video_stream < 0 && state->audio_stream < 0) {
 	    avformat_close_input(&state->pFormatCtx);
 		state->notify_callback(state->clazz, MEDIA_ERROR, MEDIA_ERROR_UNKNOWN, 0, from_thread);
 		*ps = NULL;
 		return MEDIA_ERROR;
 	}
-
-    set_rotation(state);
-    set_framerate(state);
-	
-	state->pFormatCtx->interrupt_callback.callback = decode_interrupt_cb;
-	state->pFormatCtx->interrupt_callback.opaque = state;
-	
+    COFFEE_TRY() {
+        if (state && !state->abort_request) {
+            set_rotation(state);
+            set_framerate(state);
+            state->pFormatCtx->interrupt_callback.callback = decode_interrupt_cb;
+            state->pFormatCtx->interrupt_callback.opaque = state;
+        }
+    } COFFEE_CATCH() {
+            const char*const message = coffeecatch_get_message();
+                __android_log_print(ANDROID_LOG_ERROR, "TAG", "**FATAL ERROR: player prepare #5 %s\n", message);
+    } COFFEE_END();
     // fill the inital buffer
-	AVPacket packet;
-	memset(&packet, 0, sizeof(packet)); //make sure we can safely free it
-
-	int j, ret;
+    AVPacket packet;
+    memset(&packet, 0, sizeof(packet)); //make sure we can safely free it
+    int j, ret;
     int bytes_written = 0;
-	
-	while (bytes_written < state->buffer_size) {
-		for (j = 0; j < state->pFormatCtx->nb_streams; j++) {
-			//av_init_packet(&packet);
-			ret = av_read_frame(state->pFormatCtx, &packet);
-
-			if (ret < 0) {
-				if (ret == AVERROR_EOF || url_feof(state->pFormatCtx->pb)) {
-					//break;
-			    }
-			}
-
-			int frame_size_ptr = 0;
-			ret = decode_frame_from_packet(state, &packet, &frame_size_ptr, from_thread);
-		    __android_log_print(ANDROID_LOG_ERROR, "TAG", "Fill buffer: %d -> %d", frame_size_ptr, state->buffer_size);
-			bytes_written = bytes_written + frame_size_ptr;
-			av_free_packet(&packet);
-		}
+    while (state && !state->abort_request && bytes_written < state->buffer_size) {
+            for (j = 0; j < state->pFormatCtx->nb_streams; j++) {
+                if (!state || state->abort_request) {
+                    return SUCCESS;
+                }
+                COFFEE_TRY() {
+                    ret = av_read_frame(state->pFormatCtx, &packet);
+                    if (ret < 0) {
+                        if (ret == AVERROR_EOF || url_feof(state->pFormatCtx->pb)) {
+                            //break;
+                        }
+                    }
+                } COFFEE_CATCH() {
+                            const char*const message = coffeecatch_get_message();
+                                __android_log_print(ANDROID_LOG_ERROR, "TAG", "**FATAL ERROR: player prepare #6 %s\n", message);
+                } COFFEE_END();
+                int frame_size_ptr = 0;
+                if (state && !state->abort_request) {
+                    ret = decode_frame_from_packet(state, &packet, &frame_size_ptr, from_thread);
+                    __android_log_print(ANDROID_LOG_ERROR, "TAG", "Fill buffer: %d -> %d", frame_size_ptr, state->buffer_size);
+                    bytes_written = bytes_written + frame_size_ptr;
+                }
+                av_free_packet(&packet);
+            }
+    }
+    if (state && !state->abort_request) {
+        *ps = state;
+        state->notify_callback(state->clazz, MEDIA_PREPARED, 0, 0, from_thread);
 	}
-		
-	*ps = state;
-
-	state->notify_callback(state->clazz, MEDIA_PREPARED, 0, 0, from_thread);
-
 	return SUCCESS;
 }
 
@@ -755,6 +803,7 @@ int prepare(State **ps)
 {
     printf("prepare\n");
     return player_prepare(ps, NOT_FROM_THREAD);
+    //return player_prepare(ps, FROM_THREAD);
 }
 
 void player_prepare_thread(void *data)
@@ -765,8 +814,10 @@ void player_prepare_thread(void *data)
 
 int prepareAsync(State **ps)
 {
-    pthread_t prepare_thread;
-    pthread_create(&prepare_thread, NULL, (void *) &player_prepare_thread, ps);
+    State *state = *ps;
+    pthread_mutex_lock(lock_prepare);
+    pthread_create(&state->prepare_thread, NULL, (void *) &player_prepare_thread, ps);
+    pthread_mutex_unlock(lock_prepare);
     return SUCCESS;
 }
 
@@ -869,19 +920,28 @@ int seekTo(State **ps, int msec)
 
 int reset(State **ps)
 {
-	State *state = *ps;
-	
-    pthread_mutex_lock(lock);
+        State *state = *ps;
 
-    if (state) {
-    	state->abort_request = 1;
-    	pthread_join(state->decoder_thread, NULL);
-    }
-    
-    pthread_mutex_unlock(lock);
-	
-    clear_l(ps);
-    
+        pthread_mutex_lock(lock_prepare);
+
+        if (state) {
+            state->abort_request = 1;
+            pthread_join(state->prepare_thread, NULL);
+        }
+
+        pthread_mutex_unlock(lock_prepare);
+
+        pthread_mutex_lock(lock);
+
+        if (state) {
+            state->abort_request = 1;
+            pthread_join(state->decoder_thread, NULL);
+        }
+
+        pthread_mutex_unlock(lock);
+
+        clear_l(ps);
+
     return 0;
 }
 

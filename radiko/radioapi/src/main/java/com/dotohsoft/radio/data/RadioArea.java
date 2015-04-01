@@ -23,9 +23,10 @@ public class RadioArea {
 
     public static RadioArea getArea(String rawResponse, String provider) {
         RadioArea area = new RadioArea();
+        if (provider == null || rawResponse == null) return null;
         area.provider = provider.toLowerCase();
         area.id = RadioArea.AREA_ID_TOKYO;
-        if (rawResponse != null && rawResponse.length() > 0) {
+        if (rawResponse.length() > 0) {
             rawResponse = rawResponse.replace("\n", " ");
             while (rawResponse.contains("  ")) {
                 rawResponse = rawResponse.replace("  ", " ");

@@ -2242,13 +2242,15 @@ public class FFmpegMediaPlayer
         recordedAudioEncoding = AudioFormat.ENCODING_PCM_16BIT;
         recordedChannel = channelConfig;
 
-        Log.i(TAG, "Minimum buffer size set to: " + minBufferSize + ". Sample rate: " + sampleRateInHz);
+        SimpleAppLog.info("Minimum buffer size set to: " + minBufferSize + ". Sample rate: " + sampleRateInHz);
         if (!isRecordingOnly) {
             if (mAudioTrack != null) {
                 try {
                     mAudioTrack.release();
                     mAudioTrack = null;
-                } catch (Exception ex) {}
+                } catch (Exception ex) {
+                    ex.printStackTrace();
+                }
             }
             if (sessionId != 0) {
                 mAudioTrack = setAudioSessionIdCompat(streamType, sampleRateInHz, channelConfig,
@@ -2269,7 +2271,7 @@ public class FFmpegMediaPlayer
             if (isRecording && mp3Encoder != null && frame_size_ptr > 0) {
                 try {
                         mp3Encoder.encode(mBuffer, 0, frame_size_ptr);
-                } catch (IOException e) {
+                } catch (Exception e) {
                     if (recordingListener != null)
                     recordingListener.onError("Could not encode audio stream to " + recordingPath, e);
                 }
@@ -2311,42 +2313,46 @@ public class FFmpegMediaPlayer
     private Channel selectedChannel;
 
     public boolean startRecording(Channel selectedChannel, String recordingPath) {
-        this.recordingPath = recordingPath;
-        this.selectedChannel = selectedChannel;
-        stopRecording(false);
         try {
+            this.recordingPath = recordingPath;
+            this.selectedChannel = selectedChannel;
+            stopRecording(false);
             mp3Encoder = new Mp3Encoder(recordedSampleRate, (recordedChannel == 1) ? 1 : 2, new File(recordingPath));
             mp3Encoder.initialize();
             isRecording = true;
-        } catch (IOException e) {
+        } catch (Exception e) {
+            e.printStackTrace();
             isRecording = false;
             if (recordingListener != null)
                 recordingListener.onError("Could not init mp3 encoder", e);
         }
-
         return true;
     }
 
     private void stopRecording(boolean saveFile) {
-
-        if (!isRecording) return;
-        if (mp3Encoder != null) {
-            mp3Encoder.cleanup();
-            mp3Encoder = null;
-        }
-        isRecording = false;
-        File recordedFile = new File(recordingPath);
-        if (saveFile) {
-            if (recordedFile.exists()) {
-                if (recordingListener != null)
-                    recordingListener.onCompleted(selectedChannel, recordedSampleRate,
-                            recordedChannel,
-                            recordedAudioEncoding,
-                            recordedBufferSize, recordingPath);
-            } else {
-                if (recordingListener != null)
-                    recordingListener.onCompleted(null, -1,-1,-1,-1, "");
+        try {
+            if (!isRecording) return;
+            if (mp3Encoder != null) {
+                mp3Encoder.cleanup();
+                mp3Encoder = null;
             }
+            isRecording = false;
+            File recordedFile = new File(recordingPath);
+            if (saveFile) {
+                if (recordedFile.exists()) {
+                    if (recordingListener != null)
+                        recordingListener.onCompleted(selectedChannel, recordedSampleRate,
+                                recordedChannel,
+                                recordedAudioEncoding,
+                                recordedBufferSize, recordingPath);
+                } else {
+                    if (recordingListener != null)
+                        recordingListener.onCompleted(null, -1, -1, -1, -1, "");
+                }
+            }
+        } catch (Exception ex) {
+            ex.printStackTrace();
+            recordingListener.onCompleted(null, -1, -1, -1, -1, "");
         }
     }
 

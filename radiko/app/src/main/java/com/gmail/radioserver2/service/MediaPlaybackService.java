@@ -289,13 +289,20 @@ public class MediaPlaybackService extends Service {
     }
 
     public void openStream(String token, String channelObject) {
-        if (mStreamingPlayer == null) {
-            mStreamingPlayer = new MultiPlayer();
-        }
         currentChannel = null;
         isStreaming = true;
         //mStreamingPlayer.setHandler(mMediaplayerHandler);
         setChannelObject(channelObject);
+
+        if (mStreamingPlayer == null) {
+            mStreamingPlayer = new MultiPlayer();
+        }
+        openStream(token);
+    }
+
+    private void openStream(String token) {
+        if (currentChannel == null) return;
+
         currentChannel.setLastPlayedTime(new Date(System.currentTimeMillis()));
         ChannelDBAdapter dbAdapter = new ChannelDBAdapter(getApplicationContext());
         try {
@@ -306,6 +313,8 @@ public class MediaPlaybackService extends Service {
         } finally {
             dbAdapter.close();
         }
+        mIsSupposedToBePlaying = true;
+        notifyChange(META_CHANGED);
         final String playUrl = currentChannel.getUrl();
 
         if (playUrl.toLowerCase().startsWith("rtmpe://f-radiko.smartstream.ne.jp") && mRTMPSuck != null) {
@@ -317,7 +326,6 @@ public class MediaPlaybackService extends Service {
                         SimpleAppLog.info("Found token " + token + ". Area: " + rawAreaId);
                         openRadikoPlayUrl("S:" + token, playUrl);
                     }
-
                     @Override
                     public void onError(String message, Throwable throwable) {
                         SimpleAppLog.error(message, throwable);
@@ -475,7 +483,7 @@ public class MediaPlaybackService extends Service {
     private void stopFast() {
         if (isStreaming || !mPlayer.isInitialized()) return;
         try {
-          //  fastHandler.removeCallbacks(fastRunnable);
+            //  fastHandler.removeCallbacks(fastRunnable);
             mPlayer.setPlaybackSpeed(1.0f);
         } catch (Exception ex) {
 
@@ -507,7 +515,7 @@ public class MediaPlaybackService extends Service {
     private void doSlow(float level) {
         stopFast();
         stopSlow();
-       // slowHandler.post(slowRunnable);
+        // slowHandler.post(slowRunnable);
         if (!isStreaming && mPlayer.isInitialized()) {
             mPlayer.setPlaybackSpeed(level);
         }
@@ -517,7 +525,7 @@ public class MediaPlaybackService extends Service {
 
         try {
             mPlayer.setPlaybackSpeed(1.0f);
-        //    slowHandler.removeCallbacks(slowRunnable);
+            //    slowHandler.removeCallbacks(slowRunnable);
         } catch (Exception ex) {
 
         }
@@ -537,8 +545,8 @@ public class MediaPlaybackService extends Service {
                         mCurrentVolume = .2f;
                     }
                     if (isStreaming) {
-                      //  if (mStreamingPlayer != null)
-                          //  mStreamingPlayer.setVolume(mCurrentVolume);
+                        //  if (mStreamingPlayer != null)
+                        //  mStreamingPlayer.setVolume(mCurrentVolume);
                     } else {
                         //mPlayer.setVolume(mCurrentVolume);
                     }
@@ -552,7 +560,7 @@ public class MediaPlaybackService extends Service {
                     }
                     if (isStreaming) {
                         //if (mStreamingPlayer != null)
-                         //   mStreamingPlayer.setVolume(mCurrentVolume);
+                        //   mStreamingPlayer.setVolume(mCurrentVolume);
                     } else {
                         //mPlayer.setVolume(mCurrentVolume);
                     }
@@ -812,10 +820,15 @@ public class MediaPlaybackService extends Service {
         try {
             mPlayer.release();
             mPlayer = null;
-        } catch (Exception e) {}
-
-        mStreamingPlayer.release();
-        mStreamingPlayer = null;
+        } catch (Exception e) {
+            e.printStackTrace();
+        }
+        try {
+            mStreamingPlayer.release();
+            mStreamingPlayer = null;
+        } catch (Exception e) {
+            e.printStackTrace();
+        }
 
         mAudioManager.abandonAudioFocus(mAudioFocusListener);
         //mAudioManager.unregisterRemoteControlClient(mRemoteControlClient);
@@ -1861,11 +1874,11 @@ public class MediaPlaybackService extends Service {
             try {
                 if (mStreamingPlayer.isInitialized())
                     mStreamingPlayer.stop();
+                //mStreamingPlayer = null;
                 mStreamingPlayer.setHandler(null);
             } catch (Exception ex) {
                 SimpleAppLog.error("Could not stop ffmpeg stream",ex);
             }
-            //mStreamingPlayer = null;
         }
         if (mPlayer != null && mPlayer.isInitialized()) {
             try {
@@ -2516,8 +2529,8 @@ public class MediaPlaybackService extends Service {
             if (isStreaming)
                 if (mStreamingPlayer != null)
                     mStreamingPlayer.setAudioSessionId(sessionId);
-            else
-                mPlayer.setAudioSessionId(sessionId);
+                else
+                    mPlayer.setAudioSessionId(sessionId);
         }
     }
 
@@ -2663,7 +2676,7 @@ public class MediaPlaybackService extends Service {
         }
 
         public void setVolume(float vol) {
-           // mCurrentMediaPlayer.setVolume(vol, vol);
+            // mCurrentMediaPlayer.setVolume(vol, vol);
         }
 
         public void setAudioSessionId(int sessionId) {
@@ -2793,7 +2806,7 @@ public class MediaPlaybackService extends Service {
                         mHandler.sendMessageDelayed(mHandler.obtainMessage(SERVER_DIED), 2000);
                         return true;
                     default:
-                        Log.d("MultiPlayer", "Error: " + what + "," + extra);
+                        Log.d("DefaultMultiPlayer", "Error: " + what + "," + extra);
                         break;
                 }
                 return false;
@@ -2832,52 +2845,86 @@ public class MediaPlaybackService extends Service {
      */
 
     private class MultiPlayer {
-        private FFmpegMediaPlayer mCurrentMediaPlayer = new FFmpegMediaPlayer();
-        private FFmpegMediaPlayer mNextMediaPlayer;
+
+        private static final int MIN_RECONNECT_TIMEOUT = 1000;
+
+        private static final int EXTRA_RECONNECT_TIMEOUT = 2000;
+
+        private final WeakReference<FFmpegMediaPlayer> mCurrentMediaPlayer = new WeakReference<FFmpegMediaPlayer>(new FFmpegMediaPlayer());
+        //private FFmpegMediaPlayer mNextMediaPlayer;
         private Handler mHandler;
         private boolean mIsInitialized = false;
 
+        private long lastTryOpen;
+
+
+
+        private Runnable openStreamRunnable = new Runnable() {
+            @Override
+            public void run() {
+                openStream("");
+            }
+        };
+
         public MultiPlayer() {
-            mCurrentMediaPlayer.setWakeMode(MediaPlaybackService.this, PowerManager.PARTIAL_WAKE_LOCK);
-            mCurrentMediaPlayer.setOnRecordingListener(recordingListener);
+
+            mCurrentMediaPlayer.get().setWakeMode(MediaPlaybackService.this, PowerManager.PARTIAL_WAKE_LOCK);
+            mCurrentMediaPlayer.get().setOnRecordingListener(recordingListener);
+
         }
 
         public void startRecording(Channel selectedChannel, String path) {
-            mCurrentMediaPlayer.startRecording(selectedChannel, path);
+
+            mCurrentMediaPlayer.get().startRecording(selectedChannel, path);
+
         }
 
         public void stopRecording() {
-            mCurrentMediaPlayer.stopRecording();
+
+            mCurrentMediaPlayer.get().stopRecording();
+
         }
 
         public boolean isRecording() {
-            return mCurrentMediaPlayer.isRecording();
+
+            return mCurrentMediaPlayer.get().isRecording();
+
         }
 
         public void setDataSource(String path) {
-            mIsInitialized = setDataSourceImpl(mCurrentMediaPlayer, path);
+
+            mIsInitialized = setDataSourceImpl(mCurrentMediaPlayer.get(), path);
+
         }
 
         private boolean setDataSourceImpl(FFmpegMediaPlayer player, String path) {
             try {
-                player.reset();
-                player.setOnPreparedListener(null);
+                mCurrentMediaPlayer.get().reset();
+                mCurrentMediaPlayer.get().setOnPreparedListener(null);
+                mCurrentMediaPlayer.get().setOnCompletionListener(null);
+                mCurrentMediaPlayer.get().setOnErrorListener(null);
                 if (path.startsWith("content://")) {
                     player.setDataSource(MediaPlaybackService.this, Uri.parse(path));
                 } else {
                     player.setDataSource(path);
                 }
-                player.setAudioStreamType(AudioManager.STREAM_MUSIC);
-                player.setOnPreparedListener(preparedListener);
-                player.prepare();
+                mCurrentMediaPlayer.get().setAudioStreamType(AudioManager.STREAM_MUSIC);
+                mCurrentMediaPlayer.get().setOnPreparedListener(preparedListener);
+                mCurrentMediaPlayer.get().setOnCompletionListener(listener);
+                mCurrentMediaPlayer.get().setOnErrorListener(errorListener);
+                lastTryOpen = System.currentTimeMillis();
+                mCurrentMediaPlayer.get().prepareAsync();
+//                prepareThread = new Thread(prepareRunnable);
+//                prepareThread.start();
             } catch (IOException ex) {
-                SimpleAppLog.error("Could not set data source",ex);
+                SimpleAppLog.error("Could not set data source", ex);
                 return false;
             } catch (IllegalArgumentException ex) {
-                SimpleAppLog.error("Could not set data source",ex);
+                SimpleAppLog.error("Could not set data source", ex);
                 return false;
             }
             return true;
+
         }
 
         public boolean isInitialized() {
@@ -2885,13 +2932,19 @@ public class MediaPlaybackService extends Service {
         }
 
         public void start() {
+
             MusicUtils.debugLog(new Exception("MultiPlayer.start called"));
-            mCurrentMediaPlayer.start();
+            mCurrentMediaPlayer.get().start();
+
         }
 
         public void stop() {
-            mCurrentMediaPlayer.reset();
+            mCurrentMediaPlayer.get().setOnPreparedListener(null);
+            mCurrentMediaPlayer.get().setOnCompletionListener(null);
+            mCurrentMediaPlayer.get().setOnErrorListener(null);
+            mCurrentMediaPlayer.get().reset();
             mIsInitialized = false;
+
         }
 
         /**
@@ -2899,11 +2952,11 @@ public class MediaPlaybackService extends Service {
          */
         public void release() {
             stop();
-            mCurrentMediaPlayer.release();
+            mCurrentMediaPlayer.get().release();
         }
 
         public void pause() {
-            mCurrentMediaPlayer.pause();
+            mCurrentMediaPlayer.get().pause();
         }
 
         public void setHandler(Handler handler) {
@@ -2913,8 +2966,6 @@ public class MediaPlaybackService extends Service {
         FFmpegMediaPlayer.OnPreparedListener preparedListener = new FFmpegMediaPlayer.OnPreparedListener() {
             @Override
             public void onPrepared(FFmpegMediaPlayer mp) {
-                mp.setOnCompletionListener(listener);
-                mp.setOnErrorListener(errorListener);
                 Intent i = new Intent(AudioEffect.ACTION_OPEN_AUDIO_EFFECT_CONTROL_SESSION);
                 i.putExtra(AudioEffect.EXTRA_AUDIO_SESSION, getAudioSessionId());
                 i.putExtra(AudioEffect.EXTRA_PACKAGE_NAME, getPackageName());
@@ -2925,77 +2976,56 @@ public class MediaPlaybackService extends Service {
             }
         };
 
+        private void reconnect() {
+            Handler mainHandler = new Handler(getApplicationContext().getMainLooper());
+            mainHandler.removeCallbacks(openStreamRunnable);
+            mainHandler.postDelayed(openStreamRunnable, EXTRA_RECONNECT_TIMEOUT);
+        }
+
         FFmpegMediaPlayer.OnCompletionListener listener = new FFmpegMediaPlayer.OnCompletionListener() {
             public void onCompletion(FFmpegMediaPlayer mp) {
-                if (mp == mCurrentMediaPlayer && mNextMediaPlayer != null) {
-                    mCurrentMediaPlayer.release();
-                    mCurrentMediaPlayer = mNextMediaPlayer;
-                    mNextMediaPlayer = null;
-                    if (mHandler != null)
-                        mHandler.sendEmptyMessage(TRACK_WENT_TO_NEXT);
-                } else {
-                    // Acquire a temporary wakelock, since when we return from
-                    // this callback the MediaPlayer will release its wakelock
-                    // and allow the device to go to sleep.
-                    // This temporary wakelock is released when the RELEASE_WAKELOCK
-                    // message is processed, but just in case, put a timeout on it.
-                    mWakeLock.acquire(30000);
-                    if (mHandler != null) {
-                        mHandler.sendEmptyMessage(TRACK_ENDED);
-                        mHandler.sendEmptyMessage(RELEASE_WAKELOCK);
-                    }
-                }
+                SimpleAppLog.error("Error from proxy - try to reconnect");
+                reconnect();
             }
         };
 
         FFmpegMediaPlayer.OnErrorListener errorListener = new FFmpegMediaPlayer.OnErrorListener() {
             public boolean onError(FFmpegMediaPlayer mp, int what, int extra) {
-                switch (what) {
-                    case MediaPlayer.MEDIA_ERROR_SERVER_DIED:
-                        try {
-                          //  mIsInitialized = false;
-                          //  mCurrentMediaPlayer.release();
-                            // Creating a new MediaPlayer and settings its wakemode does not
-                            // require the media service, so it's OK to do this now, while the
-                            // service is still being restarted
-                          //  mCurrentMediaPlayer = new FFmpegMediaPlayer();
-                          //  mCurrentMediaPlayer.setWakeMode(MediaPlaybackService.this, PowerManager.PARTIAL_WAKE_LOCK);
-                          //  mHandler.sendMessageDelayed(mHandler.obtainMessage(SERVER_DIED), 2000);
-                        } catch (Exception e) {
+                SimpleAppLog.error("MultiPlayer - Error: " + what + "," + extra);
+                //SimpleAppLog.info("Error from player - try to reconnect");
 
-                        }
-                        return true;
-                    default:
-                        Log.d("MultiPlayer", "Error: " + what + "," + extra);
-                        break;
-                }
+                //reconnect();
+
+                notifyChange(META_CHANGED);
                 return false;
             }
         };
 
         public long duration() {
-            return mCurrentMediaPlayer.getDuration();
+
+            return mCurrentMediaPlayer.get().getDuration();
+
         }
 
         public long position() {
-            return mCurrentMediaPlayer.getCurrentPosition();
+            return mCurrentMediaPlayer.get().getCurrentPosition();
         }
 
         public long seek(long whereto) {
-            mCurrentMediaPlayer.seekTo((int) whereto);
+            mCurrentMediaPlayer.get().seekTo((int) whereto);
             return whereto;
         }
 
         public void setVolume(float vol) {
-            mCurrentMediaPlayer.setVolume(vol, vol);
+            mCurrentMediaPlayer.get().setVolume(vol, vol);
         }
 
         public void setAudioSessionId(int sessionId) {
-            mCurrentMediaPlayer.setAudioSessionId(sessionId);
+            mCurrentMediaPlayer.get().setAudioSessionId(sessionId);
         }
 
         public int getAudioSessionId() {
-            return mCurrentMediaPlayer.getAudioSessionId();
+            return mCurrentMediaPlayer.get().getAudioSessionId();
         }
     }
 
@@ -3246,7 +3276,7 @@ public class MediaPlaybackService extends Service {
         writer.println(getPath());
         writer.println("playing: " + mIsSupposedToBePlaying);
         if (isStreaming && mStreamingPlayer != null)
-            writer.println("actual: " + mStreamingPlayer.mCurrentMediaPlayer.isPlaying());
+            writer.println("actual: " + mStreamingPlayer.mCurrentMediaPlayer.get().isPlaying());
         else
             writer.println("actual: " + mPlayer.mCurrentMediaPlayer.isPlaying());
         writer.println("shuffle mode: " + mShuffleMode);

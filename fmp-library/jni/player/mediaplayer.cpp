@@ -25,6 +25,8 @@
 #include <Errors.h>
 #include <pthread.h>
 #include <mediaplayer.h>
+#include "coffeecatch.h"
+#include "coffeejni.h"
 
 extern "C" {
     #include "libavcodec/avcodec.h"
@@ -67,6 +69,7 @@ MediaPlayer::~MediaPlayer()
 
 void MediaPlayer::disconnect()
 {
+    COFFEE_TRY() {
 	__android_log_write(ANDROID_LOG_VERBOSE, LOG_TAG, "disconnect");
     State *p = NULL;
     {
@@ -78,6 +81,11 @@ void MediaPlayer::disconnect()
     if (state != 0) {
         ::disconnect(&state);
     }
+    } COFFEE_CATCH() {
+            /** Caught a signal. **/
+            const char*const message = coffeecatch_get_message();
+            __android_log_print(ANDROID_LOG_ERROR, LOG_TAG, "**FATAL ERROR: when disconnect %s\n", message);
+    } COFFEE_END();
 }
 
 // always call with lock held
@@ -240,6 +248,7 @@ int MediaPlayer::prepareAsync_l()
         setAudioStreamType(mStreamType);
         mCurrentState = MEDIA_PLAYER_PREPARING;
         return ::prepareAsync(&state);
+        //return ::prepareAsync(&state);
     }
     __android_log_print(ANDROID_LOG_ERROR, LOG_TAG, "prepareAsync called in state %d", mCurrentState);
     return INVALID_OPERATION;
@@ -457,23 +466,28 @@ status_t MediaPlayer::seekTo(int msec)
 
 status_t MediaPlayer::reset()
 {
-	__android_log_write(ANDROID_LOG_VERBOSE, LOG_TAG, "reset");
-    //Mutex::Autolock _l(mLock);
-    mLoop = false;
-    if (mCurrentState == MEDIA_PLAYER_IDLE) return NO_ERROR;
-    mPrepareSync = false;
-    if (state != 0) {
-        status_t ret = ::reset(&state);
-        if (ret != NO_ERROR) {
-        	__android_log_print(ANDROID_LOG_ERROR, LOG_TAG, "reset() failed with return code (%d)", ret);
-            mCurrentState = MEDIA_PLAYER_STATE_ERROR;
-        } else {
-            mCurrentState = MEDIA_PLAYER_IDLE;
+        __android_log_write(ANDROID_LOG_VERBOSE, LOG_TAG, "reset");
+        //Mutex::Autolock _l(mLock);
+        mLoop = false;
+        if (mCurrentState == MEDIA_PLAYER_IDLE) return NO_ERROR;
+        mPrepareSync = false;
+        if (state != 0) {
+            __android_log_write(ANDROID_LOG_VERBOSE, LOG_TAG, "reset #1");
+            status_t ret = ::reset(&state);
+            if (ret != NO_ERROR) {
+                __android_log_print(ANDROID_LOG_ERROR, LOG_TAG, "reset() failed with return code (%d)", ret);
+                mCurrentState = MEDIA_PLAYER_STATE_ERROR;
+            } else {
+                __android_log_write(ANDROID_LOG_VERBOSE, LOG_TAG, "reset #2");
+                mCurrentState = MEDIA_PLAYER_IDLE;
+            }
+            return ret;
         }
-        return ret;
-    }
-    clear_l();
-    return NO_ERROR;
+        __android_log_write(ANDROID_LOG_VERBOSE, LOG_TAG, "reset #3");
+        clear_l();
+        __android_log_write(ANDROID_LOG_VERBOSE, LOG_TAG, "reset #4");
+        return NO_ERROR;
+
 }
 
 status_t MediaPlayer::setAudioStreamType(int type)

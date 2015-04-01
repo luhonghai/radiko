@@ -91,6 +91,7 @@ public class Channel extends AbstractData<Channel> {
     }
 
     public void setUrl(String url) {
+        if (url != null) url = url.trim();
         this.url = url;
     }
 

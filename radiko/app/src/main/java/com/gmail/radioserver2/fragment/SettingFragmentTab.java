@@ -23,6 +23,7 @@ import com.gmail.radioserver2.view.CustomSeekBar;
 import com.infteh.comboseekbar.ComboSeekBar;
 
 import java.util.Arrays;
+import java.util.Date;
 import java.util.List;
 
 /**
@@ -111,6 +112,7 @@ public class SettingFragmentTab extends FragmentTab implements View.OnClickListe
                 Channel channel = new Channel();
                 channel.setName(channelName);
                 channel.setUrl(channelURL);
+                channel.setLastPlayedTime(new Date(System.currentTimeMillis()));
                 adapter.insert(channel);
             } catch (Exception ex) {
                 SimpleAppLog.error("Could not save channel", ex);

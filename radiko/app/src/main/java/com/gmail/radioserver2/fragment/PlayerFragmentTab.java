@@ -399,22 +399,8 @@ public class PlayerFragmentTab extends FragmentTab implements ServiceConnection,
                     if (mService.isPlaying()) {
                         if (mService.isStreaming()) {
                             lastChannelObject = mService.getChannelObject();
-                            new Thread(new Runnable() {
-                                @Override
-                                public void run() {
-                                    try {
-                                        mService.stop();
-                                        getActivity().runOnUiThread(new Runnable() {
-                                            @Override
-                                            public void run() {
-                                                showPlayer();
-                                            }
-                                        });
-                                    } catch (RemoteException e) {
-                                        SimpleAppLog.error("Could not stop streaming",e);
-                                    }
-                                }
-                            }).start();
+                            mService.stop();
+                            showPlayer();
                         } else {
                             mService.pause();
                             showPlayer();

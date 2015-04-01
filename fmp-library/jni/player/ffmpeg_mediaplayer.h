@@ -66,6 +66,7 @@ typedef struct State {
 	int loop;
 
 	pthread_t decoder_thread;
+	pthread_t prepare_thread;
 	int abort_request;
 	int paused;
 	int last_paused;

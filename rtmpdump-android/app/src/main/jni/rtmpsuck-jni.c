@@ -43,6 +43,9 @@
 
 #include "thread.h"
 
+#include "coffeecatch.h"
+#include "coffeejni.h"
+
 #ifdef linux
 #include <linux/netfilter_ipv4.h>
 #endif
@@ -329,6 +332,7 @@ int
 ServeInvoke(STREAMING_SERVER *server, int which, RTMPPacket *pack, const char *body)
 {
   int ret = 0, nRes;
+  COFFEE_TRY() {
   int nBodySize = pack->m_nBodySize;
 
   if (body > pack->m_body)
@@ -533,14 +537,20 @@ ServeInvoke(STREAMING_SERVER *server, int which, RTMPPacket *pack, const char *b
     }
 out:
   AMF_Reset(&obj);
+  } COFFEE_CATCH() {
+                      /** Caught a signal. **/
+                      const char*const message = coffeecatch_get_message();
+                      __android_log_print(ANDROID_LOG_ERROR, LOG_TAG, "**FATAL ERROR: when invoke RTMPSuck %s\n", message);
+  } COFFEE_END();
   return ret;
+
 }
 
 int
 ServePacket(STREAMING_SERVER *server, int which, RTMPPacket *packet)
 {
   int ret = 0;
-
+    
   RTMP_Log(RTMP_LOGDEBUG, "%s, %s sent packet type %02X, size %u bytes", __FUNCTION__,
     cst[which], packet->m_packetType, packet->m_nBodySize);
 
@@ -797,6 +807,7 @@ controlServerThread(void *unused)
 
 TFTYPE doServe(void *arg)	// server socket and state (our listening socket)
 {
+    COFFEE_TRY() {
   STREAMING_SERVER *server = arg;
   RTMPPacket pc = { 0 }, ps = { 0 };
   RTMPChunk rk = { 0 };
@@ -857,8 +868,8 @@ TFTYPE doServe(void *arg)	// server socket and state (our listening socket)
   pc.m_chunk = &rk;
 
   /* We have our own timeout in select() */
-  server->rc.Link.timeout = 10000;
-  server->rs.Link.timeout = 10000;
+  server->rc.Link.timeout = 3000;
+  server->rs.Link.timeout = 3000;
   while (RTMP_IsConnected(&server->rs) || RTMP_IsConnected(&server->rc))
     {
       int n;
@@ -896,7 +907,7 @@ TFTYPE doServe(void *arg)	// server socket and state (our listening socket)
                       continue;
                     }
                 }
-	      RTMP_Log(RTMP_LOGERROR, "Request timeout/select failed, ignoring request");
+	      RTMP_Log(RTMP_LOGERROR, "Request timeout/select failed, ignoring request #2");
 	      goto cleanup;
 	    }
           if (server->rs.m_sb.sb_socket > 0 &&
@@ -914,7 +925,6 @@ TFTYPE doServe(void *arg)	// server socket and state (our listening socket)
               {
               char *ptrs = ps.m_body+2;
                 int streamId = AMF_DecodeInt32(ptrs);
-                RTMP_Log(RTMP_LOGWARNING, "Request client id %d", streamId);
                 if (streamId == 1) {
                      RTMP_Log(RTMP_LOGWARNING, "=> Fix client id to %d", server->rc.m_stream_id);
                     AMF_EncodeInt32(ptrs, ptrs+4, server->rc.m_stream_id);
@@ -1059,8 +1069,13 @@ TFTYPE doServe(void *arg)	// server socket and state (our listening socket)
         RTMP_Close(&server->rc);
         }
     }
-
+     } COFFEE_CATCH() {
+                    /** Caught a signal. **/
+                    const char*const message = coffeecatch_get_message();
+                    __android_log_print(ANDROID_LOG_ERROR, LOG_TAG, "**FATAL ERROR: when stop RTMPSuck %s\n", message);
+        } COFFEE_END();
 cleanup:
+    COFFEE_TRY() {
   RTMP_LogPrintf("Closing connection... ");
   RTMP_Close(&server->rs);
   RTMP_Close(&server->rc);
@@ -1084,7 +1099,11 @@ cleanup:
   server->rc.Link.auth.av_val = NULL;
   server->rc.Link.flashVer.av_val = NULL;
   RTMP_LogPrintf("done!\n\n");
-
+    } COFFEE_CATCH() {
+                    /** Caught a signal. **/
+                    const char*const message = coffeecatch_get_message();
+                    __android_log_print(ANDROID_LOG_ERROR, LOG_TAG, "**FATAL ERROR: when cleanup RTMPSuck %s\n", message);
+    } COFFEE_END();
 quit:
   if (server->state == STREAMING_IN_PROGRESS)
     server->state = STREAMING_ACCEPTING;
@@ -1105,7 +1124,6 @@ serverThread(void *arg)
       STREAMING_SERVER *srv2 = malloc(sizeof(STREAMING_SERVER));
       int sockfd =
 	accept(server->socket, (struct sockaddr *) &addr, &addrlen);
-
       if (sockfd > 0)
 	{
 #ifdef linux
@@ -1223,8 +1241,8 @@ startStreaming(const char *address, int port,
 void
 stopStreaming(STREAMING_SERVER * server)
 {
-  assert(server);
 
+  assert(server);
   if (server->state != STREAMING_STOPPED)
     {
       int fd = server->socket;
@@ -1244,6 +1262,7 @@ stopStreaming(STREAMING_SERVER * server)
 
       server->state = STREAMING_STOPPED;
     }
+
 }
 
 
@@ -1287,7 +1306,7 @@ main_rtmpsuck(int argc, char **argv, char *sToken, int nRtmpStreamingPort)
  uint32_t dSeek = 0;		// seek position in resume mode, 0 otherwise
  uint32_t dStartOffset = 0;	// seek position in non-live mode
  uint32_t dStopOffset = 0;
- int timeout = 30000;
+ int timeout = 3000;
     AVal swfUrl = { 0, 0 };
     AVal tcUrl = { 0, 0 };
     AVal pageUrl = { 0, 0 };
@@ -1692,6 +1711,7 @@ main_rtmpsuck(int argc, char **argv, char *sToken, int nRtmpStreamingPort)
 
 JNIEXPORT void JNICALL Java_com_dotohsoft_rtmpdump_RTMPSuck_update(JNIEnv * env, jobject obj, jstring token, jstring tcURL, jstring app)
 {
+    COFFEE_TRY() {
     const char *nativeToken = (*env)->GetStringUTFChars(env, token, 0);
     const char *nativeApp = (*env)->GetStringUTFChars(env, app, 0);
     const char *nativeTcURL = (*env)->GetStringUTFChars(env, tcURL, 0);
@@ -1700,32 +1720,45 @@ JNIEXPORT void JNICALL Java_com_dotohsoft_rtmpdump_RTMPSuck_update(JNIEnv * env,
     currentToken = strdup(nativeToken);
     currentApp = strdup(nativeApp);
     currentTcURL = strdup(nativeTcURL);
+     } COFFEE_CATCH() {
+                    /** Caught a signal. **/
+                    const char*const message = coffeecatch_get_message();
+                    __android_log_print(ANDROID_LOG_ERROR, LOG_TAG, "**FATAL ERROR: when update RTMPSuck %s\n", message);
+               coffeecatch_throw_exception(env);
+    } COFFEE_END();
 }
 
 JNIEXPORT void JNICALL Java_com_dotohsoft_rtmpdump_RTMPSuck_init(JNIEnv * env, jobject obj, jstring token, jint rPort)
 {
-    RTMP_ctrlC = FALSE;
-    const char *nativeToken = (*env)->GetStringUTFChars(env, token, 0);
-    int port = (int) rPort;
-    RTMP_LogPrintf("Start rtmp server. Token: %s. Port %d\n", nativeToken,
-    	    port);
-    char *v[] = {
-            "-v",
-            "-l", "2",
-            "-t", "rtmpe://f-radiko.smartstream.ne.jp/TBS/_definst_",
-            "-n", "f-radiko.smartstream.ne.jp",
-            "--app", "TBS/_definst_",
-            "--playpath", "simul-stream.stream"
-            };
-    char **argv = v;
-    currentToken = strdup(nativeToken);
-    int argc = 11;
-    main_rtmpsuck(argc, argv, currentToken, port);
+    COFFEE_TRY() {
+        RTMP_ctrlC = FALSE;
+        const char *nativeToken = (*env)->GetStringUTFChars(env, token, 0);
+        int port = (int) rPort;
+        RTMP_LogPrintf("Start rtmp server. Token: %s. Port %d\n", nativeToken,
+                port);
+        char *v[] = {
+                "-v",
+                "-l", "2",
+                "-t", "rtmpe://f-radiko.smartstream.ne.jp/TBS/_definst_",
+                "-n", "f-radiko.smartstream.ne.jp",
+                "--app", "TBS/_definst_",
+                "--playpath", "simul-stream.stream"
+                };
+        char **argv = v;
+        currentToken = strdup(nativeToken);
+        int argc = 11;
+        main_rtmpsuck(argc, argv, currentToken, port);
+     } COFFEE_CATCH() {
+                    /** Caught a signal. **/
+                    const char*const message = coffeecatch_get_message();
+                    __android_log_print(ANDROID_LOG_ERROR, LOG_TAG, "**FATAL ERROR: when init RTMPSuck %s\n", message);
+               coffeecatch_throw_exception(env);
+    } COFFEE_END();
 }
 
 JNIEXPORT void JNICALL Java_com_dotohsoft_rtmpdump_RTMPSuck_stop(JNIEnv * env, jobject obj)
 {
-  //try{
+    COFFEE_TRY() {
     RTMP_LogPrintf("Force stop server\n");
      RTMP_LogPrintf("Stop streaming... socket %d", rtmpServer->socket);
      int fd = rtmpServer->socket;
@@ -1772,18 +1805,10 @@ JNIEXPORT void JNICALL Java_com_dotohsoft_rtmpdump_RTMPSuck_stop(JNIEnv * env, j
         RTMP_LogPrintf("Cleanup socket...");
         CleanupSockets();
         RTMP_LogPrintf("Done!");
-//    } catch (std::exception &e) {
-//        throwJavaException (env, e.what());
-//    }
-}
-
-void throwJavaException(JNIEnv *env, const char *msg)
-{
-    // You can put your own exception here
-    jclass c = (*env)->FindClass(env,"com/dotohsoft/rtmpdump/RTMPException");
-    if (NULL == c)
-    {
-        c = (*env)->FindClass(env,"java/lang/NullPointerException");
-    }
-    (*env)->ThrowNew(env,c, msg);
+    } COFFEE_CATCH() {
+                /** Caught a signal. **/
+                const char*const message = coffeecatch_get_message();
+                __android_log_print(ANDROID_LOG_ERROR, LOG_TAG, "**FATAL ERROR: when stop RTMPSuck %s\n", message);
+           coffeecatch_throw_exception(env);
+    } COFFEE_END();
 }

@@ -185,6 +185,8 @@ public class MainActivity extends BaseFragmentActivity implements ServiceConnect
            *    We are adding a new fragment which is not present in stack. So add to stack is true.
            */
                 if(tabId.equals(Constants.TAB_HOME)){
+                    // clear selected library
+                    selectedLibrary = null;
                     pushFragments(tabId, new HomeFragmentTab(), false,true);
                 }else if(tabId.equals(Constants.TAB_RECORDED_PROGRAM)){
                     RecordedProgramFragmentTab programFragmentTab = new RecordedProgramFragmentTab();
@@ -322,38 +324,33 @@ public class MainActivity extends BaseFragmentActivity implements ServiceConnect
                     break;
                 case Constants.ACTION_SELECT_CHANNEL_ITEM:
                     final String selectedObj = bundle.getString(Constants.ARG_OBJECT);
-                    new Thread(new Runnable() {
-                        @Override
-                        public void run() {
-                            boolean isNew = true;
-                            try {
-                                if (mService.isPlaying()) {
-                                    if (mService.isStreaming()) {
-                                        Gson gson = new Gson();
-                                        String obj = mService.getChannelObject();
-                                        Channel selectedChannel = gson.fromJson(selectedObj, Channel.class);
-                                        Channel currentChannel = gson.fromJson(obj, Channel.class);
-                                        if (currentChannel.getUrl().equalsIgnoreCase(selectedChannel.getUrl())) {
-                                            isNew = false;
-                                        }
-                                    }
-                                    if (isNew)
-                                        mService.stop();
-                                }
-                            } catch (RemoteException e) {
-                                SimpleAppLog.error("Could not stop old stream",e);
-                            }
-                            if (isNew) {
-                                try {
-                                    mService.setStreaming(true);
-                                    mService.stop();
-                                    mService.openStream("", selectedObj);
-                                } catch (RemoteException e) {
-                                    SimpleAppLog.error("Could not open stream", e);
+                    boolean isNew = true;
+                    try {
+                        if (mService.isPlaying()) {
+                            if (mService.isStreaming()) {
+                                Gson gson = new Gson();
+                                String obj = mService.getChannelObject();
+                                Channel selectedChannel = gson.fromJson(selectedObj, Channel.class);
+                                Channel currentChannel = gson.fromJson(obj, Channel.class);
+                                if (currentChannel.getUrl().equalsIgnoreCase(selectedChannel.getUrl())) {
+                                    isNew = false;
                                 }
                             }
+                            if (isNew)
+                                mService.stop();
                         }
-                    }).start();
+                    } catch (RemoteException e) {
+                        SimpleAppLog.error("Could not stop old stream",e);
+                    }
+                    if (isNew) {
+                        try {
+                            mService.setStreaming(true);
+                            mService.stop();
+                            mService.openStream("", selectedObj);
+                        } catch (RemoteException e) {
+                            SimpleAppLog.error("Could not open stream", e);
+                        }
+                    }
                     pushFragments(Constants.TAB_PLAY_SCREEN, new PlayerFragmentTab(), true,false);
                     break;
                 case Constants.ACTION_SELECT_RECORDED_PROGRAM_ITEM:

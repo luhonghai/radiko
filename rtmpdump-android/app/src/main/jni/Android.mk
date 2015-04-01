@@ -36,13 +36,13 @@ include $(BUILD_SHARED_LIBRARY)
 
 include $(CLEAR_VARS)
 LOCAL_MODULE := rtmpdump
-LOCAL_SRC_FILES := rtmpdump-jni.c
+LOCAL_SRC_FILES := coffeecatch.c coffeejni.c rtmpdump-jni.c
 LOCAL_SHARED_LIBRARIES := rtmp
 include $(BUILD_SHARED_LIBRARY)
 
 include $(CLEAR_VARS)
 LOCAL_CFLAGS := -DRTMPDUMP_VERSION=v2.4 -DCRYPTO=OPENSSL
 LOCAL_MODULE := rtmpsuck
-LOCAL_SRC_FILES := rtmpsuck-jni.c
+LOCAL_SRC_FILES := coffeecatch.c coffeejni.c rtmpsuck-jni.c
 LOCAL_SHARED_LIBRARIES := rtmp
 include $(BUILD_SHARED_LIBRARY)
