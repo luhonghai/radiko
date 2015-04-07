@@ -8,6 +8,7 @@ import android.content.IntentFilter;
 import android.content.ServiceConnection;
 import android.os.AsyncTask;
 import android.os.Bundle;
+import android.os.Handler;
 import android.os.IBinder;
 import android.os.PersistableBundle;
 import android.os.RemoteException;
@@ -309,6 +310,44 @@ public class MainActivity extends BaseFragmentActivity implements ServiceConnect
         mStacks.get(mCurrentTab).lastElement().onActivityResult(requestCode, resultCode, data);
     }
 
+    private Runnable startStreamingRunnable = new Runnable() {
+
+        @Override
+        public void run() {
+            if (selectedObj == null || selectedObj.length() ==0) return;
+            boolean isNew = true;
+            try {
+                if (mService.isPlaying()) {
+                    if (mService.isStreaming()) {
+                        Gson gson = new Gson();
+                        String obj = mService.getChannelObject();
+                        Channel selectedChannel = gson.fromJson(selectedObj, Channel.class);
+                        Channel currentChannel = gson.fromJson(obj, Channel.class);
+                        if (currentChannel.getUrl().equalsIgnoreCase(selectedChannel.getUrl())) {
+                            isNew = false;
+                        }
+                    }
+                }
+                if (isNew)
+                    mService.stop();
+            } catch (RemoteException e) {
+                SimpleAppLog.error("Could not stop old stream",e);
+            }
+            if (isNew) {
+                try {
+                    mService.setStreaming(true);
+                    mService.openStream("", selectedObj);
+                } catch (RemoteException e) {
+                    SimpleAppLog.error("Could not open stream", e);
+                }
+            }
+        }
+
+    };
+
+    private String selectedObj;
+
+    private Handler startStreamingHandler = new Handler();
     private final BroadcastReceiver mHandleAction = new BroadcastReceiver() {
         @Override
         public void onReceive(Context context, Intent intent) {
@@ -323,34 +362,9 @@ public class MainActivity extends BaseFragmentActivity implements ServiceConnect
                     }
                     break;
                 case Constants.ACTION_SELECT_CHANNEL_ITEM:
-                    final String selectedObj = bundle.getString(Constants.ARG_OBJECT);
-                    boolean isNew = true;
-                    try {
-                        if (mService.isPlaying()) {
-                            if (mService.isStreaming()) {
-                                Gson gson = new Gson();
-                                String obj = mService.getChannelObject();
-                                Channel selectedChannel = gson.fromJson(selectedObj, Channel.class);
-                                Channel currentChannel = gson.fromJson(obj, Channel.class);
-                                if (currentChannel.getUrl().equalsIgnoreCase(selectedChannel.getUrl())) {
-                                    isNew = false;
-                                }
-                            }
-                            if (isNew)
-                                mService.stop();
-                        }
-                    } catch (RemoteException e) {
-                        SimpleAppLog.error("Could not stop old stream",e);
-                    }
-                    if (isNew) {
-                        try {
-                            mService.setStreaming(true);
-                            mService.stop();
-                            mService.openStream("", selectedObj);
-                        } catch (RemoteException e) {
-                            SimpleAppLog.error("Could not open stream", e);
-                        }
-                    }
+                    selectedObj = bundle.getString(Constants.ARG_OBJECT);
+                    startStreamingHandler.removeCallbacks(startStreamingRunnable);
+                    startStreamingHandler.post(startStreamingRunnable);
                     pushFragments(Constants.TAB_PLAY_SCREEN, new PlayerFragmentTab(), true,false);
                     break;
                 case Constants.ACTION_SELECT_RECORDED_PROGRAM_ITEM:

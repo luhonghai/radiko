@@ -81,6 +81,30 @@ public class Timer extends AbstractData<Timer> {
     }
 
     @Override
+    public boolean equals(Object o) {
+        if (o instanceof Timer) {
+            Timer obj = (Timer) o;
+            if (this.getMode() != obj.getMode() || !this.getChannelName().equalsIgnoreCase(obj.getChannelName())) return false;
+            Calendar c1 = Calendar.getInstance();
+            Calendar c2 = Calendar.getInstance();
+            c1.setTime(this.getEventDate());
+            c2.setTime(obj.getEventDate());
+            if (this.getMode() == MODE_ONE_TIME) {
+                if (c1.get(Calendar.YEAR) != c2.get(Calendar.YEAR)
+                        || c1.get(Calendar.MONTH) != c2.get(Calendar.MONTH)
+                        || c1.get(Calendar.DAY_OF_MONTH) != c2.get(Calendar.DAY_OF_MONTH))
+                    return false;
+            } else if (this.getMode() == MODE_WEEKLY) {
+                if (c1.get(Calendar.DAY_OF_WEEK) != c2.get(Calendar.DAY_OF_WEEK))
+                    return false;
+            }
+            return this.startHour == obj.startHour && this.finishHour == obj.finishHour
+                    && this.startMinute == obj.startMinute && this.finishMinute == obj.finishMinute;
+        }
+        return super.equals(o);
+    }
+
+    @Override
     public ContentValues toContentValues() {
         ContentValues cv = new ContentValues();
         cv.put(DBAdapter.KEY_MODE, this.getMode());
@@ -116,6 +140,7 @@ public class Timer extends AbstractData<Timer> {
     }
 
     public String getChannelName() {
+        if (channelName == null) channelName = "";
         return channelName;
     }
 

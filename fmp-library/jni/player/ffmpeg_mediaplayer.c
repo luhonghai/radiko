@@ -23,8 +23,7 @@
 #include <libswscale/swscale.h>
 #include <ffmpeg_mediaplayer.h>
 #include <android/log.h>
-#include "coffeecatch.h"
-#include "coffeejni.h"
+
 
 #include <stdio.h>
 
@@ -347,7 +346,7 @@ int decode_frame_from_packet(State *state, AVPacket *aPacket, int *frame_size_pt
     int data_size = 0;
 
     if (state && !state->abort_request && aPacket->stream_index == state->audio_stream) {
-        COFFEE_TRY() {
+
     	if (!decoded_frame) {
     		if (!(decoded_frame = avcodec_alloc_frame())) {
     			__android_log_print(ANDROID_LOG_INFO, "TAG", "Could not allocate audio frame\n");
@@ -442,6 +441,9 @@ int decode_frame_from_packet(State *state, AVPacket *aPacket, int *frame_size_pt
             	__android_log_print(ANDROID_LOG_INFO, "TAG", "Error while converting\n");
                 //goto end;
             }
+
+
+
             dst_bufsize = av_samples_get_buffer_size(&dst_linesize, dst_nb_channels,
                                                      ret, dst_sample_fmt, 1);
             if (dst_bufsize < 0) {
@@ -484,22 +486,15 @@ int decode_frame_from_packet(State *state, AVPacket *aPacket, int *frame_size_pt
         if(pkt->pts != AV_NOPTS_VALUE) {
         	state->audio_clock = av_q2d(state->audio_st->time_base) * pkt->pts;
         }
-    	} COFFEE_CATCH() {
-                      const char*const message = coffeecatch_get_message();
-                                                __android_log_print(ANDROID_LOG_ERROR, "TAG", "**FATAL ERROR: player decode_frame_from_packet #1 %s\n", message);
-        } COFFEE_END();
+
         //*frame_size_ptr = data_size;
         if (state) {
             state->write_audio_callback(state->clazz, samples, data_size, from_thread);
         }
-        COFFEE_TRY() {
-            avcodec_free_frame(&decoded_frame);
+        avcodec_free_frame(&decoded_frame);
 
-            free(samples);
-        } COFFEE_CATCH() {
-              const char*const message = coffeecatch_get_message();
-                                        __android_log_print(ANDROID_LOG_ERROR, "TAG", "**FATAL ERROR: player decode_frame_from_packet #2 %s\n", message);
-        } COFFEE_END();
+        free(samples);
+
     	return AUDIO_DATA_ID;
     }
 
@@ -644,7 +639,7 @@ int player_prepare(State **ps, int from_thread)
 	if (state && state->abort_request) {
 	    return SUCCESS;
     }
-    COFFEE_TRY() {
+
         if (state && state->pFormatCtx) {
             avformat_close_input(&state->pFormatCtx);
         }
@@ -656,12 +651,8 @@ int player_prepare(State **ps, int from_thread)
             state->video_st = NULL;
         }
 
-    } COFFEE_CATCH() {
-        const char*const message = coffeecatch_get_message();
-        __android_log_print(ANDROID_LOG_ERROR, "TAG", "**FATAL ERROR: player prepare #1 %s\n", message);
-    } COFFEE_END();
     int rst = 0;
-    COFFEE_TRY() {
+
         AVDictionary *options = NULL;
         av_dict_set(&options, "icy", "1", 0);
         av_dict_set(&options, "user-agent", "NSPlayer/7.10.0.3059", 0);
@@ -676,10 +667,7 @@ int player_prepare(State **ps, int from_thread)
         }
 
         rst = avformat_open_input(&state->pFormatCtx, state->filename, NULL, &options);
-    } COFFEE_CATCH() {
-        const char*const message = coffeecatch_get_message();
-                __android_log_print(ANDROID_LOG_ERROR, "TAG", "**FATAL ERROR: player prepare #2 %s\n", message);
-    } COFFEE_END();
+
     if (rst != 0 && state) {
         printf("Input file could not be opened\n");
         if (state && !state->abort_request) {
@@ -692,12 +680,9 @@ int player_prepare(State **ps, int from_thread)
         return SUCCESS;
     }
     rst = -1;
-    COFFEE_TRY() {
+
         rst = avformat_find_stream_info(state->pFormatCtx, NULL);
-    } COFFEE_CATCH() {
-        const char*const message = coffeecatch_get_message();
-                __android_log_print(ANDROID_LOG_ERROR, "TAG", "**FATAL ERROR: player prepare #3 %s\n", message);
-    } COFFEE_END();
+
 	if (rst < 0) {
 	    printf("Stream information could not be retrieved\n");
 	    if (state && state->pFormatCtx) {
@@ -710,7 +695,7 @@ int player_prepare(State **ps, int from_thread)
     	return MEDIA_ERROR;
 	}
 	char duration[30] = "0";
-    COFFEE_TRY() {
+
         if (state && !state->abort_request) {
             get_duration(state->pFormatCtx, duration);
             av_dict_set(&state->pFormatCtx->metadata, DURATION, duration, 0);
@@ -736,27 +721,21 @@ int player_prepare(State **ps, int from_thread)
                 stream_component_open(state, video_index, from_thread);
             }
         }
-    } COFFEE_CATCH() {
-        const char*const message = coffeecatch_get_message();
-        __android_log_print(ANDROID_LOG_ERROR, "TAG", "**FATAL ERROR: player prepare #4 %s\n", message);
-    } COFFEE_END();
+
 	if (state && state->video_stream < 0 && state->audio_stream < 0) {
 	    avformat_close_input(&state->pFormatCtx);
 		state->notify_callback(state->clazz, MEDIA_ERROR, MEDIA_ERROR_UNKNOWN, 0, from_thread);
 		*ps = NULL;
 		return MEDIA_ERROR;
 	}
-    COFFEE_TRY() {
+
         if (state && !state->abort_request) {
             set_rotation(state);
             set_framerate(state);
             state->pFormatCtx->interrupt_callback.callback = decode_interrupt_cb;
             state->pFormatCtx->interrupt_callback.opaque = state;
         }
-    } COFFEE_CATCH() {
-            const char*const message = coffeecatch_get_message();
-                __android_log_print(ANDROID_LOG_ERROR, "TAG", "**FATAL ERROR: player prepare #5 %s\n", message);
-    } COFFEE_END();
+
     // fill the inital buffer
     AVPacket packet;
     memset(&packet, 0, sizeof(packet)); //make sure we can safely free it
@@ -767,17 +746,14 @@ int player_prepare(State **ps, int from_thread)
                 if (!state || state->abort_request) {
                     return SUCCESS;
                 }
-                COFFEE_TRY() {
+
                     ret = av_read_frame(state->pFormatCtx, &packet);
                     if (ret < 0) {
                         if (ret == AVERROR_EOF || url_feof(state->pFormatCtx->pb)) {
                             //break;
                         }
                     }
-                } COFFEE_CATCH() {
-                            const char*const message = coffeecatch_get_message();
-                                __android_log_print(ANDROID_LOG_ERROR, "TAG", "**FATAL ERROR: player prepare #6 %s\n", message);
-                } COFFEE_END();
+
                 int frame_size_ptr = 0;
                 if (state && !state->abort_request) {
                     ret = decode_frame_from_packet(state, &packet, &frame_size_ptr, from_thread);

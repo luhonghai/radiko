@@ -39,6 +39,8 @@ public class Decoder {
     private File inFile;
     private File outFile;
 
+    private Lame lame;
+
     private BufferedInputStream in;
 
     public Decoder(File inFile, File outFile) {
@@ -47,18 +49,19 @@ public class Decoder {
     }
 
     public void initialize() throws IOException {
+        lame = new Lame();
         in = new BufferedInputStream(new FileInputStream(inFile),
                 INPUT_STREAM_BUFFER);
         lameInitialize(in);
 
-        waveWriter = new WaveWriter(outFile, Lame.getDecoderSampleRate(), Lame.getDecoderChannels(), 16);
+        waveWriter = new WaveWriter(outFile, lame.getDecoderSampleRate(), lame.getDecoderChannels(), 16);
         waveWriter.createWaveFile();
     }
 
-    private static int lameInitialize(BufferedInputStream in) throws IOException {
+    private int lameInitialize(BufferedInputStream in) throws IOException {
         int ret = 0;
-        ret = Lame.initializeDecoder();
-        ret = Lame.configureDecoder(in);
+        ret = lame.initializeDecoder();
+        ret = lame.configureDecoder(in);
         return ret;
     }
 
@@ -66,10 +69,10 @@ public class Decoder {
         if (waveWriter != null && in != null) {
             int samplesRead = 0, offset = 0;
             int skip_start = 0, skip_end = 0;
-            int delay = Lame.getDecoderDelay();
-            int padding = Lame.getDecoderPadding();
-            int frameSize = Lame.getDecoderFrameSize();
-            int totalFrames = Lame.getDecoderTotalFrames();
+            int delay = lame.getDecoderDelay();
+            int padding = lame.getDecoderPadding();
+            int frameSize = lame.getDecoderFrameSize();
+            int totalFrames = lame.getDecoderTotalFrames();
             int frame = 0;
             short[] leftBuffer = new short[DEFAULT_FRAME_SIZE];
             short[] rightBuffer = new short[DEFAULT_FRAME_SIZE];
@@ -86,7 +89,7 @@ public class Decoder {
             }
 
             while (true) {
-                samplesRead = Lame.decodeFrame(in, leftBuffer, rightBuffer);
+                samplesRead = lame.decodeFrame(in, leftBuffer, rightBuffer);
                 offset = skip_start < samplesRead ? skip_start : samplesRead;
                 skip_start -= offset;
                 frame += samplesRead / frameSize;
@@ -98,7 +101,7 @@ public class Decoder {
                         samplesRead -= skip_end;
                     }
 
-                    if (Lame.getDecoderChannels() == 2) {
+                    if (lame.getDecoderChannels() == 2) {
                         waveWriter.write(leftBuffer, rightBuffer, offset, samplesRead);
                     } else {
                         waveWriter.write(leftBuffer, offset, samplesRead);
@@ -123,6 +126,6 @@ public class Decoder {
             // TODO: actually handle an error here
             e.printStackTrace();
         }
-        Lame.closeDecoder();
+        lame.closeDecoder();
     }
 }

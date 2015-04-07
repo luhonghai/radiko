@@ -65,6 +65,17 @@ public class TimerDBAdapter extends DBAdapter<Timer> {
         return timer;
     }
 
+    public Collection<Timer> findByChannelName(String name) throws Exception {
+        return toCollection(getDB().query(getTableName(), getAllColumns(),
+                KEY_CHANNEL_NAME + " = ?",
+                new String[] {
+                    name
+                },
+                null,
+                null,
+                KEY_CREATED_DATE + " DESC"));
+    }
+
     @Override
     public Collection<Timer> search(String s) throws Exception {
         return findAll();

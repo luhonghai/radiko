@@ -32,7 +32,7 @@ import java.io.IOException;
 
 public class Mp3Encoder {
 
-    private static final int OUTPUT_STREAM_BUFFER = 8192;
+    private static final int OUTPUT_STREAM_BUFFER = 200000;
 
     private final File outFile;
 
@@ -45,26 +45,35 @@ public class Mp3Encoder {
 
     byte[] mp3Buf = new byte[OUTPUT_STREAM_BUFFER];
 
+    private boolean flag = false;
+
+    private boolean isInit = false;
+
+    private Lame lame;
+
+    public boolean isInit() {
+        return  isInit;
+    }
+
     public Mp3Encoder(int sampleRate, int channels, File out) {
         this.outFile = out;
         this.sampleRate = sampleRate;
         this.channels = channels;
+        isInit = false;
+        lame = new Lame();
     }
 
     public void initialize() throws FileNotFoundException, IOException {
         out = new BufferedOutputStream(new FileOutputStream(outFile),
                 OUTPUT_STREAM_BUFFER);
-        Lame.initializeEncoder(sampleRate,
+        flag = false;
+        lame.initializeEncoder(sampleRate,
                 channels);
-    }
-
-    public void setPreset(int preset) {
-        if (out != null) {
-            Lame.setEncoderPreset(preset);
-        }
+        isInit = true;
     }
 
     public void encode(byte[] buffer, int offset, int length) throws IOException {
+
         short[] left = new short[channels == 2 ? buffer.length / 4 : buffer.length / 2];
         short[] right = new short[channels == 2 ? buffer.length / 4 : buffer.length / 2];
         int samplesRead;
@@ -84,48 +93,68 @@ public class Mp3Encoder {
             samplesRead = index;
 
             if (samplesRead > 0) {
-                bytesEncoded = Lame.encode(left, right,
+                if (!flag) {
+                    flag = true;
+                }
+                if (!isInit) return;
+                bytesEncoded = lame.encode(left, right,
                         samplesRead, mp3Buf, OUTPUT_STREAM_BUFFER);
-                out.write(mp3Buf, 0, bytesEncoded);
+                if (bytesEncoded > 0 && mp3Buf.length > 0)
+                    out.write(mp3Buf, 0, bytesEncoded);
+                else
+                    SimpleAppLog.error("bytesEncoded: " + bytesEncoded);
             }
         } else {
             int index = 0;
-
             for (int i = 0; i < length; i+=2) {
                 left[index] = byteToShortLE(buffer[i], buffer[i+1]);
                 index++;
             }
             samplesRead = index;
             if (samplesRead > 0) {
-                bytesEncoded = Lame.encode(left, left,
+                if (!flag) {
+                    flag = true;
+                }
+                if (!isInit) return;
+                bytesEncoded = lame.encode(left, left,
                         samplesRead, mp3Buf, OUTPUT_STREAM_BUFFER);
-                out.write(mp3Buf, 0, bytesEncoded);
+                if (bytesEncoded > 0 && mp3Buf.length > 0)
+                    out.write(mp3Buf, 0, bytesEncoded);
+                else
+                    SimpleAppLog.error("bytesEncoded: " + bytesEncoded);
             }
         }
     }
 
 
     public void cleanup() {
-        int bytesEncoded;
-        try {
-            bytesEncoded = Lame.flushEncoder(mp3Buf, mp3Buf.length);
-            out.write(mp3Buf, 0, bytesEncoded);
-            // TODO: write Xing VBR/INFO tag to mp3 file here
-            out.flush();
-        } catch (Exception e) {
-            e.printStackTrace();
+        boolean doClose = isInit;
+        isInit = false;
+        if (flag) {
+            int bytesEncoded = 0;
+            try {
+                SimpleAppLog.info("Call Lame.flushEncoder");
+                //bytesEncoded = lame.flushEncoder(mp3Buf, mp3Buf.length);
+                if (bytesEncoded > 0 && mp3Buf.length > 0) {
+                    out.write(mp3Buf, 0, bytesEncoded);
+                    // TODO: write Xing VBR/INFO tag to mp3 file here
+                    out.flush();
+                }
+            } catch (Exception e) {
+                SimpleAppLog.error("Could not flush encoder", e);
+            }
         }
-
         try {
             if (out != null) {
                 out.close();
             }
         } catch (IOException e) {
-            // failed to close wave file or close output file
-            // TODO: actually handle an error here
-            e.printStackTrace();
+            SimpleAppLog.error("Could not close output stream",e);
         }
-        Lame.closeEncoder();
+        if (doClose) {
+            SimpleAppLog.info("Call Lame.closeEncoder");
+            lame.closeEncoder();
+        }
     }
 
 

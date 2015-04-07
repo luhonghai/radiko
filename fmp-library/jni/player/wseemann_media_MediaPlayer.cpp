@@ -25,8 +25,7 @@
 #include <assert.h>
 #include <string.h>
 #include "jni.h"
-#include "coffeecatch.h"
-#include "coffeejni.h"
+
 #include "Errors.h"  // for int
 
 extern "C" {

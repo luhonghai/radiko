@@ -299,6 +299,7 @@ lame_encode_mp3_frame(       /* Output */
                          unsigned char *mp3buf, /* Output */
                          int mp3buf_size)
 {                       /* Output */
+    if (!gfp) return 0;
     int     mp3count;
     III_psy_ratio masking_LR[2][2]; /*LR masking & energy */
     III_psy_ratio masking_MS[2][2]; /*MS masking & energy */

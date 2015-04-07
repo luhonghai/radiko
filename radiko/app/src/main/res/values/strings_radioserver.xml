@@ -37,7 +37,7 @@
     <string name="button_set_timer">この条件で設定</string>
 
     <!-- Home screen -->
-    <string name="hint_search_channel">チャンネル名または番組名等を入力</string>
+    <string name="hint_search_channel">チャンネル名を入力</string>
     <string name="label_recent_channels">最近検索したチャンネル</string>
 
     <!-- Recorded programs -->
@@ -78,6 +78,7 @@
     <string name="label_finish">タイマー終了時刻</string>
     <string name="label_mode">タイマー内容</string>
     <string name="button_timer_list">タイマー設定一覧</string>
+    <string name="invalid_date_range">タイマー時刻が不正確です</string>
 
     <string-array name="timer_type">
         <item>毎日</item>

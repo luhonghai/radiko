@@ -26,7 +26,6 @@ import com.gmail.radioserver2.utils.SimpleAppLog;
 import com.google.gson.Gson;
 
 import java.io.File;
-import java.lang.ref.WeakReference;
 import java.text.SimpleDateFormat;
 import java.util.Calendar;
 import java.util.Date;
@@ -57,7 +56,7 @@ public class TimerBroadcastReceiver extends BroadcastReceiver implements Service
 
     private Context mContext;
 
-    final WeakReference<FFmpegMediaPlayer> recorder = new WeakReference<FFmpegMediaPlayer>(new FFmpegMediaPlayer());
+    private FFmpegMediaPlayer recorder;
 
     @Override
     public void onReceive(Context context, Intent intent) {
@@ -135,18 +134,16 @@ public class TimerBroadcastReceiver extends BroadcastReceiver implements Service
                         @Override
                         public void run() {
                             try {
-                                if (recorder.get().isPlaying()) {
-                                    recorder.get().stopRecording();
-                                    recorder.get().stop();
-                                    recorder.get().release();
+                                if (recorder != null) {
+                                    recorder.stopRecording();
+                                    recorder.stop();
+                                    recorder.release();
                                 }
                             } catch (Exception e) {
                                 SimpleAppLog.error("Could not stop recording", e);
                             }
                         }
                     }, recordingLength);
-
-
 
                     TokenFetcher.getTokenFetcher(mContext, new TokenFetcher.OnTokenListener() {
                         @Override
@@ -218,8 +215,9 @@ public class TimerBroadcastReceiver extends BroadcastReceiver implements Service
         if (channel != null && selectedTimer != null) {
             try {
                 final long startTime = System.currentTimeMillis();
-                recorder.get().setRecordingOnly(true);
-                recorder.get().setOnRecordingListener(new FFmpegMediaPlayer.OnRecordingListener() {
+                recorder = new FFmpegMediaPlayer();
+                recorder.setRecordingOnly(true);
+                recorder.setOnRecordingListener(new FFmpegMediaPlayer.OnRecordingListener() {
                     @Override
                     public void onCompleted(Channel selectedChannel, int recordedSampleRate, int recordedChannel, int recordedAudioEncoding, int recordedBufferSize, String filePath) {
                         if (filePath == null || filePath.length() == 0) {
@@ -263,20 +261,17 @@ public class TimerBroadcastReceiver extends BroadcastReceiver implements Service
                     }
                 });
                 final FileHelper fileHelper = new FileHelper(mContext);
-                recorder.get().setDataSource(url);
-                recorder.get().setOnPreparedListener(new FFmpegMediaPlayer.OnPreparedListener() {
+                recorder.setDataSource(url);
+                recorder.setOnPreparedListener(new FFmpegMediaPlayer.OnPreparedListener() {
                     @Override
                     public void onPrepared(FFmpegMediaPlayer mp) {
-                        recorder.get().start();
-                        new Handler().postDelayed(new Runnable() {
-                            @Override
-                            public void run() {
-                                recorder.get().startRecording(channel, new File(fileHelper.getRecordedProgramFolder(), channel.getRecordedName() + "-" + startTime + ".mp3").getAbsolutePath());
-                            }
-                        }, 2000);
+                        SimpleAppLog.info("Start recorder");
+                        recorder.start();
+                        recorder.startRecording(channel, new File(fileHelper.getRecordedProgramFolder(), channel.getRecordedName() + "-" + startTime + ".mp3").getAbsolutePath());
                     }
                 });
-                recorder.get().prepare();
+                SimpleAppLog.info("Prepare recorder");
+                recorder.prepare();
             } catch (Exception e) {
                 SimpleAppLog.error("Could not start recording", e);
                 stop();

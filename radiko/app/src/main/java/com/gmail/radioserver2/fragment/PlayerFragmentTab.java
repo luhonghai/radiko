@@ -106,7 +106,21 @@ public class PlayerFragmentTab extends FragmentTab implements ServiceConnection,
         btnPrev = null;
         btnNext = null;
         seekBarPlayer = null;
+        destroyWebView(gifView);
         gifView = null;
+    }
+
+    void destroyWebView( WebView wv ){
+        wv.stopLoading();
+
+        wv.clearFormData();
+        wv.clearAnimation();
+        wv.clearDisappearingChildren();
+        wv.clearView();
+        wv.clearHistory();
+        wv.destroyDrawingCache();
+        wv.freeMemory();
+        wv.destroy();
     }
 
     @Override
@@ -141,6 +155,7 @@ public class PlayerFragmentTab extends FragmentTab implements ServiceConnection,
 
         isLoading = false;
         gifView = (WebView) v.findViewById(R.id.gifView);
+        gifView.setVisibility(View.INVISIBLE);
         loadGifLoader();
 
         btnBack = (Button) v.findViewById(R.id.btnBack);
@@ -191,7 +206,9 @@ public class PlayerFragmentTab extends FragmentTab implements ServiceConnection,
         sb.append("</div>");
         String html = sb.toString();
         //SimpleAppLog.info("Gifview html: " + html);
-        gifView.loadData(html, "text/html", "UTF-8");
+        if (gifView != null) {
+            gifView.loadData(html, "text/html", "UTF-8");
+        }
     }
 
     private void showProgramInfo(RadioProgram.Program program) {
@@ -233,11 +250,14 @@ public class PlayerFragmentTab extends FragmentTab implements ServiceConnection,
             SimpleAppLog.error("Could not get channel object", e);
         }
         if (selectedChannel != null) {
-            txtTitle.setText(selectedChannel.getName());
+            if (txtTitle != null)
+                txtTitle.setText(selectedChannel.getName());
             showProgramInfo(selectedChannel.getCurrentProgram());
         } else {
-            txtTitle.setText("");
-            txtDescription.setText("");
+            if (txtTitle != null)
+                txtTitle.setText("");
+            if (txtDescription != null)
+                txtDescription.setText("");
         }
     }
 
@@ -398,9 +418,27 @@ public class PlayerFragmentTab extends FragmentTab implements ServiceConnection,
                 try {
                     if (mService.isPlaying()) {
                         if (mService.isStreaming()) {
-                            lastChannelObject = mService.getChannelObject();
-                            mService.stop();
-                            showPlayer();
+                            new Thread(new Runnable() {
+                                @Override
+                                public void run() {
+                                    try {
+                                        lastChannelObject = mService.getChannelObject();
+                                        mService.stop();
+                                    } catch (RemoteException e) {
+                                        e.printStackTrace();
+                                    }
+                                    try {
+                                        getActivity().runOnUiThread(new Runnable() {
+                                            @Override
+                                            public void run() {
+                                                showPlayer();
+                                            }
+                                        });
+                                    } catch ( Exception e) {
+                                        e.printStackTrace();
+                                    }
+                                }
+                            }).start();
                         } else {
                             mService.pause();
                             showPlayer();

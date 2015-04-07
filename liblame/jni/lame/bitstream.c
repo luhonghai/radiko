@@ -173,6 +173,7 @@ putbits_noheaders(lame_internal_flags * gfc, int val, int j)
 inline static void
 drain_into_ancillary(lame_global_flags const *gfp, int remainingBits)
 {
+    if (!gfp) return;
     lame_internal_flags *const gfc = gfp->internal_flags;
     int     i;
     assert(remainingBits >= 0);
@@ -265,6 +266,7 @@ CRC_writeheader(lame_internal_flags const *gfc, char *header)
 inline static void
 encodeSideInfo2(lame_global_flags const *gfp, int bitsPerFrame)
 {
+    if (!gfp) return;
     lame_internal_flags *const gfc = gfp->internal_flags;
     III_side_info_t *l3_side;
     int     gr, ch;
@@ -801,6 +803,7 @@ compute_flushbits(const lame_global_flags * gfp, int *total_bytes_output)
 void
 flush_bitstream(lame_global_flags const *gfp)
 {
+    if (!gfp) return;
     lame_internal_flags *const gfc = gfp->internal_flags;
     III_side_info_t *l3_side;
     int     nbytes;
@@ -882,6 +885,7 @@ add_dummy_byte(lame_global_flags const *const gfp, unsigned char val, unsigned i
 int
 format_bitstream(lame_global_flags const *gfp)
 {
+    if (!gfp) return -1;
     lame_internal_flags *const gfc = gfp->internal_flags;
     int     bits, nbytes;
     III_side_info_t *l3_side;

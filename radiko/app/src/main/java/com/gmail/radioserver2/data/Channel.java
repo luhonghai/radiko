@@ -6,6 +6,7 @@ import android.content.Context;
 import com.dotohsoft.radio.data.RadioProgram;
 import com.gmail.radioserver2.data.sqlite.DBAdapter;
 import com.gmail.radioserver2.utils.DateHelper;
+import com.gmail.radioserver2.utils.StringUtil;
 
 import java.util.Date;
 
@@ -62,7 +63,7 @@ public class Channel extends AbstractData<Channel> {
     }
 
     public void setName(String name) {
-        this.name = name;
+        this.name = StringUtil.escapeJapanSpecialChar(name);
     }
 
     public String getKey() {

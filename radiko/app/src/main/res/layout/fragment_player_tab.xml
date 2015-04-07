@@ -168,7 +168,7 @@
                 android:text="@string/button_repeat"
                 android:drawableTop="@drawable/icon_repeat"
                 android:background="@drawable/rounded_corner_button"
-                android:textSize="10sp"
+                android:textSize="9sp"
                 android:layout_margin="@dimen/button_media_margin"
                 android:gravity="center_vertical|center_horizontal" />
         </LinearLayout>

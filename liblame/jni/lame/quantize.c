@@ -700,6 +700,7 @@ static void
 amp_scalefac_bands(lame_global_flags const *gfp,
                    gr_info * const cod_info, FLOAT const *distort, FLOAT xrpow[576], int bRefine)
 {
+    if (!gfp) return;
     lame_internal_flags *const gfc = gfp->internal_flags;
     int     j, sfb;
     FLOAT   ifqstep34, trigger;
@@ -997,6 +998,7 @@ outer_loop(lame_global_flags const *gfp, gr_info * const cod_info, const FLOAT *
            FLOAT xrpow[576], /* coloured magnitudes of spectral */
            const int ch, const int targ_bits)
 {                       /* maximum allowed bits */
+    if (!gfp) return 0;
     lame_internal_flags *const gfc = gfp->internal_flags;
     gr_info cod_info_w;
     FLOAT   save_xrpow[576];
@@ -1230,6 +1232,7 @@ VBR_encode_granule(lame_global_flags const *gfp, gr_info * const cod_info, const
                    FLOAT xrpow[576], /* coloured magnitudes of spectral values */
                    const int ch, int min_bits, int max_bits)
 {
+    if (!gfp) return;
     lame_internal_flags *const gfc = gfp->internal_flags;
     gr_info bst_cod_info;
     FLOAT   bst_xrpow[576];
@@ -1325,6 +1328,7 @@ VBR_encode_granule(lame_global_flags const *gfp, gr_info * const cod_info, const
 static void
 get_framebits(lame_global_flags const *gfp, int frameBits[15])
 {
+    if (!gfp) return;
     lame_internal_flags *const gfc = gfp->internal_flags;
     int     bitsPerFrame, i;
 
@@ -1377,6 +1381,7 @@ VBR_old_prepare(lame_global_flags const *gfp,
                 FLOAT l3_xmin[2][2][SFBMAX],
                 int frameBits[16], int min_bits[2][2], int max_bits[2][2], int bands[2][2])
 {
+    if (!gfp) return 0;
     lame_internal_flags *const gfc = gfp->internal_flags;
 
 
@@ -1474,6 +1479,7 @@ void
 VBR_old_iteration_loop(lame_global_flags const *gfp, FLOAT pe[2][2],
                        FLOAT ms_ener_ratio[2], III_psy_ratio ratio[2][2])
 {
+    if (!gfp) return;
     lame_internal_flags *const gfc = gfp->internal_flags;
     FLOAT   l3_xmin[2][2][SFBMAX];
 
@@ -1566,6 +1572,7 @@ VBR_new_prepare(lame_global_flags const *gfp,
                 FLOAT pe[2][2], III_psy_ratio ratio[2][2],
                 FLOAT l3_xmin[2][2][SFBMAX], int frameBits[16], int max_bits[2][2])
 {
+    if (!gfp) return 0;
     lame_internal_flags *const gfc = gfp->internal_flags;
 
     int     gr, ch;
@@ -1621,6 +1628,7 @@ VBR_new_prepare(lame_global_flags const *gfp,
 static int
 getFramesizeInBytesPerSecond(lame_global_flags const *gfp, int bits_used)
 {
+    if (!gfp) return 0;
     lame_internal_flags const *gfc = gfp->internal_flags;
     int const tmp = (gfp->version == 0) ? 72 : 144;
     int const bytes_used = (bits_used + 7) / 8;
@@ -1632,6 +1640,7 @@ getFramesizeInBytesPerSecond(lame_global_flags const *gfp, int bits_used)
 static int
 getFramesize_kbps(lame_global_flags const *gfp, int bits_used)
 {
+    if (!gfp) return 0;
     int const bytes_per_second = getFramesizeInBytesPerSecond(gfp, bits_used);
     int const kbps = (bytes_per_second + 999) / 1000;
     return kbps;
@@ -1643,6 +1652,7 @@ void
 VBR_new_iteration_loop(lame_global_flags const *gfp, FLOAT pe[2][2],
                        FLOAT ms_ener_ratio[2], III_psy_ratio ratio[2][2])
 {
+    if (!gfp) return;
     lame_internal_flags *const gfc = gfp->internal_flags;
     FLOAT   l3_xmin[2][2][SFBMAX];
 
@@ -1747,6 +1757,7 @@ calc_target_bits(lame_global_flags const *gfp,
                  FLOAT const ms_ener_ratio[2],
                  int targ_bits[2][2], int *analog_silence_bits, int *max_frame_bits)
 {
+    if (!gfp) return;
     lame_internal_flags *const gfc = gfp->internal_flags;
     III_side_info_t const *const l3_side = &gfc->l3_side;
     FLOAT   res_factor;
@@ -1876,6 +1887,7 @@ void
 ABR_iteration_loop(lame_global_flags const *gfp, FLOAT pe[2][2],
                    FLOAT ms_ener_ratio[2], III_psy_ratio ratio[2][2])
 {
+    if (!gfp) return;
     lame_internal_flags *const gfc = gfp->internal_flags;
     FLOAT   l3_xmin[SFBMAX];
     FLOAT   xrpow[576];
@@ -1963,6 +1975,7 @@ void
 CBR_iteration_loop(lame_global_flags const *gfp, FLOAT pe[2][2],
                    FLOAT ms_ener_ratio[2], III_psy_ratio ratio[2][2])
 {
+    if (!gfp) return;
     lame_internal_flags *const gfc = gfp->internal_flags;
     FLOAT   l3_xmin[SFBMAX];
     FLOAT   xrpow[576];

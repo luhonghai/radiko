@@ -44,14 +44,14 @@ public class Lame {
      *
      * @return 0 if encoder initialized successfully, -1 otherwise
      */
-    public static native int initializeEncoder(int sampleRate, int numChannels);
+    public native int initializeEncoder(int sampleRate, int numChannels);
 
     /**
      * Set the LAME encoding preset to use
      *
      * @param preset  preset to use, defaults to LAME_PRESET_DEFAULT
      */
-    public static native void setEncoderPreset(int preset);
+    public native void setEncoderPreset(int preset);
 
     /**
      * Encode data in left&right channel buffers
@@ -64,7 +64,7 @@ public class Lame {
      *
      * @return -1 if error occured, otherwise number of bytes encoded
      */
-    public static native int encode(short[] leftChannel,
+    public native int encode(short[] leftChannel,
             short[] rightChannel, int channelSamples, byte[] mp3Buffer,
             int bufferSize);
 
@@ -76,70 +76,70 @@ public class Lame {
      *
      * @return -1 if error occured, otherwise number of bytes flushed
      */
-    public static native int flushEncoder(byte[] mp3Buffer, int bufferSize);
+    public native int flushEncoder(byte[] mp3Buffer, int bufferSize);
 
     /**
      * Close LAME encoder
      *
      * @return -1 if error occured, otherwise 0
      */
-    public static native int closeEncoder();
+    public native int closeEncoder();
 
     /**
      * Initialize LAME for decoding MP3 data
      *
      * @return -1 if error occured, otherwise 0
      */
-    public static native int initializeDecoder();
+    public native int initializeDecoder();
 
     /**
      * Get the sample rate from input MP3
      *
      * @return sample rate
      */
-    public static native int getDecoderSampleRate();
+    public native int getDecoderSampleRate();
 
     /**
      * Get the number of channels from input MP3
      *
      * @return number of channels
      */
-    public static native int getDecoderChannels();
+    public native int getDecoderChannels();
 
     /**
      * Get the encoder delay from input MP3
      *
      * @return delay in number of samples
      */
-    public static native int getDecoderDelay();
+    public native int getDecoderDelay();
 
     /**
      * Get the encoder padding from input MP3
      *
      * @return padding in number of samples
      */
-    public static native int getDecoderPadding();
+    public native int getDecoderPadding();
 
     /**
      * Get the total number of frames from input MP3
      *
      * @return number of frames in MP3 input
      */
-    public static native int getDecoderTotalFrames();
+    public native int getDecoderTotalFrames();
 
     /**
      * Get the frame size from input MP3
      *
      * @return size of an MP3 frame in bytes
      */
-    public static native int getDecoderFrameSize();
+    public native int getDecoderFrameSize();
 
     /**
      * Get the bitrate from input MP3
      *
      * @return bitrate
      */
-    public static native int getDecoderBitrate();
+    public native int getDecoderBitrate();
 
     /**
      * Configure LAME decoder to decode data from an input stream
@@ -148,7 +148,7 @@ public class Lame {
      *
      * @return -1 if error occurred, 0 on success
      */
-    public static int configureDecoder(InputStream input) throws IOException {
+    public int configureDecoder(InputStream input) throws IOException {
         int size = 100;
         int id3Length, aidLength;
         byte[] buf = new byte[size];
@@ -203,20 +203,20 @@ public class Lame {
         return -1;
     }
 
-    private static boolean isId3Header(byte[] buf) {
+    private boolean isId3Header(byte[] buf) {
         return (buf[0] == 'I' &&
                 buf[1] == 'D' &&
                 buf[2] == '3');
     }
 
-    private static boolean isAidHeader(byte[] buf) {
+    private boolean isAidHeader(byte[] buf) {
         return (buf[0] == 'A' &&
                 buf[1] == 'i' &&
                 buf[2] == 'D' &&
                 buf[3] == '\1');
     }
 
-    private static boolean isMp123SyncWord(byte[] buf) {
+    private boolean isMp123SyncWord(byte[] buf) {
         // function taken from LAME to identify MP3 syncword
         char[] abl2 = new char[] { 0, 7, 7, 7, 0, 7, 0, 0, 0, 0, 0, 8, 8, 8, 8, 8 };
         if ((buf[0] & 0xFF) != 0xFF) {
@@ -252,7 +252,7 @@ public class Lame {
         return true;
     }
 
-    private static native int nativeConfigureDecoder(byte[] inputBuffer, int bufferSize);
+    private native int nativeConfigureDecoder(byte[] inputBuffer, int bufferSize);
 
     /**
      * Decode a single MP3 frame from an input stream
@@ -263,7 +263,7 @@ public class Lame {
      *
      * @return -1 if error occurred, number of bytes decoded otherwise
      */
-    public static int decodeFrame(InputStream input,
+    public int decodeFrame(InputStream input,
             short[] pcmLeft, short[] pcmRight) throws IOException {
         int len = 0;
         int samplesRead = 0;
@@ -289,7 +289,7 @@ public class Lame {
         return samplesRead;
     }
 
-    private static native int nativeDecodeFrame(byte[] inputBuffer, int bufferSize,
+    private  native int nativeDecodeFrame(byte[] inputBuffer, int bufferSize,
             short[] pcmLeft, short[] pcmRight);
 
     /**
@@ -297,5 +297,5 @@ public class Lame {
      *
      * @return -1 if error occurred, 0 on success
      */
-    public static native int closeDecoder();
+    public  native int closeDecoder();
 }

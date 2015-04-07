@@ -249,6 +249,7 @@ compute_ffts(lame_global_flags const *gfp,
              FLOAT(*wsamp_s)[3][BLKSIZE_s], int gr_out, int chn, const sample_t * buffer[2]
     )
 {
+    if (!gfp) return;
     int     b, j;
     lame_internal_flags *const gfc = gfp->internal_flags;
     if (chn < 2) {
@@ -540,6 +541,7 @@ vbrpsy_mask_add(FLOAT m1, FLOAT m2, int b)
 static void
 calc_interchannel_masking(lame_global_flags const *gfp, FLOAT ratio)
 {
+    if (!gfp) return;
     lame_internal_flags *const gfc = gfp->internal_flags;
     int     sb, sblock;
     FLOAT   l, r;
@@ -759,6 +761,7 @@ static void
 compute_masking_s(lame_global_flags const *gfp,
                   FLOAT(*fftenergy_s)[HBLKSIZE_s], FLOAT * eb, FLOAT * thr, int chn, int sblock)
 {
+    if (!gfp) return;
     lame_internal_flags *const gfc = gfp->internal_flags;
     int     i, j, b;
 
@@ -808,6 +811,7 @@ compute_masking_s(lame_global_flags const *gfp,
 static void
 block_type_set(lame_global_flags const *gfp, int *uselongblock, int *blocktype_d, int *blocktype)
 {
+    if (!gfp) return;
     lame_internal_flags *const gfc = gfp->internal_flags;
     int     chn;
 
@@ -1075,8 +1079,9 @@ L3psycho_anal_ns(lame_global_flags const *gfp,
  * (Note: these static variables have been moved to the gfc-> struct,
  * and their order in memory is layed out in util.h)
  */
+    if (!gfp) return 0;
     lame_internal_flags *const gfc = gfp->internal_flags;
-
+    if (!gfp || !gfc) return 0;
     /* fft and energy calculation   */
     FLOAT   wsamp_L[2][BLKSIZE];
     FLOAT   wsamp_S[2][3][BLKSIZE_s];
@@ -1100,7 +1105,7 @@ L3psycho_anal_ns(lame_global_flags const *gfp,
     unsigned char mask_idx_l[CBANDS + 2], mask_idx_s[CBANDS + 2];
 
     memset(mask_idx_s, 0, sizeof(mask_idx_s));
-
+    if (!gfp || !gfc) return 0;
     numchn = gfc->channels_out;
     /* chn=2 and 3 = Mid and Side channels */
     if (gfp->mode == JOINT_STEREO)
@@ -1453,6 +1458,7 @@ static void
 vbrpsy_compute_fft_l(lame_global_flags const *gfp, const sample_t * buffer[2], int chn, int gr_out,
                      FLOAT fftenergy[HBLKSIZE], FLOAT(*wsamp_l)[BLKSIZE])
 {
+    if (!gfp) return;
     lame_internal_flags *const gfc = gfp->internal_flags;
     int     j;
 
@@ -1503,6 +1509,7 @@ static void
 vbrpsy_compute_fft_s(lame_global_flags const *gfp, const sample_t * buffer[2], int chn, int sblock,
                      FLOAT(*fftenergy_s)[HBLKSIZE_s], FLOAT(*wsamp_s)[3][BLKSIZE_s])
 {
+    if (!gfp) return;
     lame_internal_flags *const gfc = gfp->internal_flags;
     int     j;
 
@@ -1540,6 +1547,7 @@ static void
 vbrpsy_compute_loudness_approximation_l(lame_global_flags const *gfp, int gr_out, int chn,
                                         FLOAT fftenergy[HBLKSIZE])
 {
+    if (!gfp) return;
     lame_internal_flags *const gfc = gfp->internal_flags;
     if (gfp->athaa_loudapprox == 2 && chn < 2) { /*no loudness for mid/side ch */
         gfc->loudness_sq[gr_out][chn] = gfc->loudness_sq_save[chn];
@@ -1558,6 +1566,7 @@ vbrpsy_attack_detection(lame_global_flags const *gfp, const sample_t * buffer[2]
                         FLOAT energy[4], FLOAT sub_short_factor[4][3], int ns_attacks[4][4],
                         int uselongblock[2])
 {
+    if (!gfp) return;
     FLOAT   ns_hpfsmpl[2][576];
     lame_internal_flags *const gfc = gfp->internal_flags;
     int const n_chn_out = gfc->channels_out;
@@ -1830,6 +1839,7 @@ static void
 vbrpsy_compute_masking_s(lame_global_flags const *gfp, FLOAT(*fftenergy_s)[HBLKSIZE_s], FLOAT * eb,
                          FLOAT * thr, int chn, int sblock)
 {
+    if (!gfp) return;
     lame_internal_flags *const gfc = gfp->internal_flags;
     FLOAT   max[CBANDS], avg[CBANDS];
     int     i, j, b;
@@ -2055,6 +2065,7 @@ vbrpsy_compute_masking_l(lame_internal_flags * gfc, FLOAT fftenergy[HBLKSIZE], F
 static void
 vbrpsy_compute_block_type(lame_global_flags const *gfp, int *uselongblock)
 {
+    if (!gfp) return;
     lame_internal_flags *const gfc = gfp->internal_flags;
     int     chn;
 
@@ -2080,6 +2091,7 @@ vbrpsy_compute_block_type(lame_global_flags const *gfp, int *uselongblock)
 static void
 vbrpsy_apply_block_type(lame_global_flags const *gfp, int const *uselongblock, int *blocktype_d)
 {
+    if (!gfp) return;
     lame_internal_flags *const gfc = gfp->internal_flags;
     int     chn;
 
@@ -2191,6 +2203,7 @@ L3psycho_anal_vbr(lame_global_flags const *gfp,
                   FLOAT percep_entropy[2], FLOAT percep_MS_entropy[2],
                   FLOAT energy[4], int blocktype_d[2])
 {
+    if (!gfp) return 0;
     lame_internal_flags *const gfc = gfp->internal_flags;
 
     /* fft and energy calculation   */

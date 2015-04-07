@@ -211,23 +211,24 @@ public class MediaPlaybackService extends Service {
             }
             if (channel == null) return;
             final File mp3File = new File(filePath);
+            Gson gson = new Gson();
+            RecordedProgramDBAdapter adapter = new RecordedProgramDBAdapter(getApplicationContext());
             if (mp3File.exists()) {
-                Gson gson = new Gson();
-                RecordedProgramDBAdapter adapter = new RecordedProgramDBAdapter(getApplicationContext());
-                RecordedProgram recordedProgram = new RecordedProgram();
-                recordedProgram.setChannelName(channel.getName() == null ? "" : channel.getName());
-                recordedProgram.setChannelKey(gson.toJson(channel));
-                if (channel.getCurrentProgram() != null) {
-                    recordedProgram.setName(channel.getCurrentProgram().getTitle());
-                }
-                if (recordedProgram.getName() == null) {
-                    recordedProgram.setName("");
-                }
-                recordedProgram.setStartTime(startRecordingTime);
-                long endTime = System.currentTimeMillis();
-                recordedProgram.setEndTime(new Date(endTime));
-                recordedProgram.setFilePath(mp3File.getPath());
                 try {
+                    RecordedProgram recordedProgram = new RecordedProgram();
+                    recordedProgram.setChannelName(channel.getName() == null ? "" : channel.getName());
+                    recordedProgram.setChannelKey(gson.toJson(channel));
+                    if (channel.getCurrentProgram() != null) {
+                        recordedProgram.setName(channel.getCurrentProgram().getTitle());
+                    }
+                    if (recordedProgram.getName() == null) {
+                        recordedProgram.setName("");
+                    }
+                    recordedProgram.setStartTime(startRecordingTime);
+                    long endTime = System.currentTimeMillis();
+                    recordedProgram.setEndTime(new Date(endTime));
+                    recordedProgram.setFilePath(mp3File.getPath());
+
                     adapter.open();
                     adapter.insert(recordedProgram);
                     SimpleAppLog.debug("Save recording complete");
@@ -2850,14 +2851,12 @@ public class MediaPlaybackService extends Service {
 
         private static final int EXTRA_RECONNECT_TIMEOUT = 2000;
 
-        private final WeakReference<FFmpegMediaPlayer> mCurrentMediaPlayer = new WeakReference<FFmpegMediaPlayer>(new FFmpegMediaPlayer());
-        //private FFmpegMediaPlayer mNextMediaPlayer;
+        private final FFmpegMediaPlayer mCurrentMediaPlayer = new FFmpegMediaPlayer();
+
         private Handler mHandler;
         private boolean mIsInitialized = false;
 
-        private long lastTryOpen;
-
-
+        Handler mainHandler = new Handler();
 
         private Runnable openStreamRunnable = new Runnable() {
             @Override
@@ -2867,53 +2866,43 @@ public class MediaPlaybackService extends Service {
         };
 
         public MultiPlayer() {
-
-            mCurrentMediaPlayer.get().setWakeMode(MediaPlaybackService.this, PowerManager.PARTIAL_WAKE_LOCK);
-            mCurrentMediaPlayer.get().setOnRecordingListener(recordingListener);
-
+            mCurrentMediaPlayer.setWakeMode(MediaPlaybackService.this, PowerManager.PARTIAL_WAKE_LOCK);
+            mCurrentMediaPlayer.setOnRecordingListener(recordingListener);
         }
 
         public void startRecording(Channel selectedChannel, String path) {
-
-            mCurrentMediaPlayer.get().startRecording(selectedChannel, path);
-
+            mCurrentMediaPlayer.startRecording(selectedChannel, path);
         }
 
         public void stopRecording() {
-
-            mCurrentMediaPlayer.get().stopRecording();
-
+            mCurrentMediaPlayer.stopRecording();
         }
 
         public boolean isRecording() {
-
-            return mCurrentMediaPlayer.get().isRecording();
-
+            return mCurrentMediaPlayer.isRecording();
         }
 
         public void setDataSource(String path) {
-
-            mIsInitialized = setDataSourceImpl(mCurrentMediaPlayer.get(), path);
-
+            mIsInitialized = setDataSourceImpl(mCurrentMediaPlayer, path);
         }
 
         private boolean setDataSourceImpl(FFmpegMediaPlayer player, String path) {
             try {
-                mCurrentMediaPlayer.get().reset();
-                mCurrentMediaPlayer.get().setOnPreparedListener(null);
-                mCurrentMediaPlayer.get().setOnCompletionListener(null);
-                mCurrentMediaPlayer.get().setOnErrorListener(null);
+                mCurrentMediaPlayer.reset();
+                mCurrentMediaPlayer.setOnPreparedListener(null);
+                mCurrentMediaPlayer.setOnCompletionListener(null);
+                mCurrentMediaPlayer.setOnErrorListener(null);
                 if (path.startsWith("content://")) {
                     player.setDataSource(MediaPlaybackService.this, Uri.parse(path));
                 } else {
                     player.setDataSource(path);
                 }
-                mCurrentMediaPlayer.get().setAudioStreamType(AudioManager.STREAM_MUSIC);
-                mCurrentMediaPlayer.get().setOnPreparedListener(preparedListener);
-                mCurrentMediaPlayer.get().setOnCompletionListener(listener);
-                mCurrentMediaPlayer.get().setOnErrorListener(errorListener);
-                lastTryOpen = System.currentTimeMillis();
-                mCurrentMediaPlayer.get().prepareAsync();
+                mCurrentMediaPlayer.setAudioStreamType(AudioManager.STREAM_MUSIC);
+                mCurrentMediaPlayer.setOnPreparedListener(preparedListener);
+                mCurrentMediaPlayer.setOnCompletionListener(listener);
+                mCurrentMediaPlayer.setOnErrorListener(errorListener);
+
+                mCurrentMediaPlayer.prepareAsync();
 //                prepareThread = new Thread(prepareRunnable);
 //                prepareThread.start();
             } catch (IOException ex) {
@@ -2924,7 +2913,6 @@ public class MediaPlaybackService extends Service {
                 return false;
             }
             return true;
-
         }
 
         public boolean isInitialized() {
@@ -2934,15 +2922,16 @@ public class MediaPlaybackService extends Service {
         public void start() {
 
             MusicUtils.debugLog(new Exception("MultiPlayer.start called"));
-            mCurrentMediaPlayer.get().start();
+            mCurrentMediaPlayer.start();
 
         }
 
         public void stop() {
-            mCurrentMediaPlayer.get().setOnPreparedListener(null);
-            mCurrentMediaPlayer.get().setOnCompletionListener(null);
-            mCurrentMediaPlayer.get().setOnErrorListener(null);
-            mCurrentMediaPlayer.get().reset();
+            mainHandler.removeCallbacks(openStreamRunnable);
+            mCurrentMediaPlayer.setOnPreparedListener(null);
+            mCurrentMediaPlayer.setOnCompletionListener(null);
+            mCurrentMediaPlayer.setOnErrorListener(null);
+            mCurrentMediaPlayer.reset();
             mIsInitialized = false;
 
         }
@@ -2952,11 +2941,11 @@ public class MediaPlaybackService extends Service {
          */
         public void release() {
             stop();
-            mCurrentMediaPlayer.get().release();
+            mCurrentMediaPlayer.release();
         }
 
         public void pause() {
-            mCurrentMediaPlayer.get().pause();
+            mCurrentMediaPlayer.pause();
         }
 
         public void setHandler(Handler handler) {
@@ -2977,7 +2966,6 @@ public class MediaPlaybackService extends Service {
         };
 
         private void reconnect() {
-            Handler mainHandler = new Handler(getApplicationContext().getMainLooper());
             mainHandler.removeCallbacks(openStreamRunnable);
             mainHandler.postDelayed(openStreamRunnable, EXTRA_RECONNECT_TIMEOUT);
         }
@@ -3003,29 +2991,29 @@ public class MediaPlaybackService extends Service {
 
         public long duration() {
 
-            return mCurrentMediaPlayer.get().getDuration();
+            return mCurrentMediaPlayer.getDuration();
 
         }
 
         public long position() {
-            return mCurrentMediaPlayer.get().getCurrentPosition();
+            return mCurrentMediaPlayer.getCurrentPosition();
         }
 
         public long seek(long whereto) {
-            mCurrentMediaPlayer.get().seekTo((int) whereto);
+            mCurrentMediaPlayer.seekTo((int) whereto);
             return whereto;
         }
 
         public void setVolume(float vol) {
-            mCurrentMediaPlayer.get().setVolume(vol, vol);
+            mCurrentMediaPlayer.setVolume(vol, vol);
         }
 
         public void setAudioSessionId(int sessionId) {
-            mCurrentMediaPlayer.get().setAudioSessionId(sessionId);
+            mCurrentMediaPlayer.setAudioSessionId(sessionId);
         }
 
         public int getAudioSessionId() {
-            return mCurrentMediaPlayer.get().getAudioSessionId();
+            return mCurrentMediaPlayer.getAudioSessionId();
         }
     }
 
@@ -3276,7 +3264,7 @@ public class MediaPlaybackService extends Service {
         writer.println(getPath());
         writer.println("playing: " + mIsSupposedToBePlaying);
         if (isStreaming && mStreamingPlayer != null)
-            writer.println("actual: " + mStreamingPlayer.mCurrentMediaPlayer.get().isPlaying());
+            writer.println("actual: " + mStreamingPlayer.mCurrentMediaPlayer.isPlaying());
         else
             writer.println("actual: " + mPlayer.mCurrentMediaPlayer.isPlaying());
         writer.println("shuffle mode: " + mShuffleMode);

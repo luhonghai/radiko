@@ -520,6 +520,7 @@ void
 fill_buffer(lame_global_flags const *gfp,
             sample_t * mfbuf[2], sample_t const *in_buffer[2], int nsamples, int *n_in, int *n_out)
 {
+    if (!gfp) return;
     lame_internal_flags const *const gfc = gfp->internal_flags;
     int     ch, i;
 
@@ -551,7 +552,7 @@ fill_buffer_resample(lame_global_flags const *gfp,
                      int desired_len, sample_t const *inbuf, int len, int *num_used, int ch)
 {
 
-
+    if (!gfp) return 0;
     lame_internal_flags *const gfc = gfp->internal_flags;
     int     BLACKSIZE;
     FLOAT   offset, xvalue;

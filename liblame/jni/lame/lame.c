@@ -72,6 +72,7 @@ filter_coef(FLOAT x)
 static void
 lame_init_params_ppflt(lame_global_flags const *gfp)
 {
+    if (!gfp) return;
     lame_internal_flags *const gfc = gfp->internal_flags;
     /***************************************************************/
     /* compute info needed for polyphase filter (filter type==0, default) */

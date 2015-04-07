@@ -1,6 +1,8 @@
 package com.gmail.radioserver2.activity;
 
+import android.app.AlertDialog;
 import android.app.DatePickerDialog;
+import android.content.DialogInterface;
 import android.content.Intent;
 import android.os.Bundle;
 import android.view.View;
@@ -25,6 +27,7 @@ import com.gmail.radioserver2.view.dialog.CustomDatePicker;
 import com.google.gson.Gson;
 
 import java.util.Calendar;
+import java.util.Collection;
 import java.util.Date;
 
 /**
@@ -179,14 +182,25 @@ public class TimerSettingsActivity extends BaseActivity implements View.OnClickL
                 datePicker.show(getFragmentManager(), CUSTOM_DATE_PICKER_TAG);
                 break;
             case R.id.btnSave:
-                new Thread(new Runnable() {
-                    @Override
-                    public void run() {
-                        saveTimer();
-                    }
-                }).start();
-                onBackPressed();
+                saveTimer();
                 break;
+        }
+    }
+
+    private void enableForm(boolean enable) {
+        try {
+            btnTimerList.setEnabled(enable);
+            btnSave.setEnabled(enable);
+            spinnerStartHour.setEnabled(enable);
+            spinnerFinishHour.setEnabled(enable);
+            spinnerFinishMinute.setEnabled(enable);
+            spinnerStartMinute.setEnabled(enable);
+            txtTimePicker.setEnabled(enable);
+            spinnerTimerType.setEnabled(enable);
+            spinnerModeType.setEnabled(enable);
+            spinnerTimePicker.setEnabled(enable);
+        } catch (Exception e) {
+
         }
     }
 
@@ -200,52 +214,112 @@ public class TimerSettingsActivity extends BaseActivity implements View.OnClickL
             });
             return;
         }
-        TimerDBAdapter dbAdapter = new TimerDBAdapter(this);
-        try {
-            dbAdapter.open();
-            Timer timer = new Timer();
-            Gson gson = new Gson();
-            timer.setChannelKey(gson.toJson(selectedChannel));
-            timer.setChannelName(selectedChannel.getName());
+        new Thread(new Runnable() {
+            @Override
+            public void run() {
+                enableForm(false);
+                TimerDBAdapter dbAdapter = new TimerDBAdapter(TimerSettingsActivity.this);
+                try {
+                    dbAdapter.open();
+                    Timer timer = new Timer();
+                    Gson gson = new Gson();
+                    timer.setChannelKey(gson.toJson(selectedChannel));
+                    timer.setChannelName(selectedChannel.getName());
 
-            int mode = spinnerTimerType.getSelectedItemPosition();
-            int type = spinnerModeType.getSelectedItemPosition();
-            if (mode == Timer.MODE_WEEKLY) {
-                Calendar c = Calendar.getInstance();
-                int dayOfWeek;
-                switch (spinnerTimePicker.getSelectedItemPosition()) {
-                    case 0: dayOfWeek = Calendar.MONDAY; break;
-                    case 1:dayOfWeek = Calendar.TUESDAY; break;
-                    case 2: dayOfWeek = Calendar.WEDNESDAY; break;
-                    case 3: dayOfWeek = Calendar.THURSDAY; break;
-                    case 4: dayOfWeek = Calendar.FRIDAY; break;
-                    case 5:dayOfWeek = Calendar.SATURDAY; break;
-                    case 6:
-                    default:dayOfWeek = Calendar.SUNDAY; break;
+                    int mode = spinnerTimerType.getSelectedItemPosition();
+                    int type = spinnerModeType.getSelectedItemPosition();
+                    if (mode == Timer.MODE_WEEKLY) {
+                        Calendar c = Calendar.getInstance();
+                        int dayOfWeek;
+                        switch (spinnerTimePicker.getSelectedItemPosition()) {
+                            case 0: dayOfWeek = Calendar.MONDAY; break;
+                            case 1:dayOfWeek = Calendar.TUESDAY; break;
+                            case 2: dayOfWeek = Calendar.WEDNESDAY; break;
+                            case 3: dayOfWeek = Calendar.THURSDAY; break;
+                            case 4: dayOfWeek = Calendar.FRIDAY; break;
+                            case 5:dayOfWeek = Calendar.SATURDAY; break;
+                            case 6:
+                            default:dayOfWeek = Calendar.SUNDAY; break;
+                        }
+                        c.set(Calendar.DAY_OF_WEEK, dayOfWeek);
+                        timer.setEventDate(c.getTime());
+                    } else {
+                        timer.setEventDate(selectedDate);
+                    }
+                    timer.setMode(mode);
+                    timer.setType(type);
+
+                    timer.setStartHour(Integer.parseInt(spinnerStartHour.getSelectedItem().toString()));
+                    timer.setStartMinute(Integer.parseInt(spinnerStartMinute.getSelectedItem().toString()));
+                    timer.setFinishHour(Integer.parseInt(spinnerFinishHour.getSelectedItem().toString()));
+                    timer.setFinishMinute(Integer.parseInt(spinnerFinishMinute.getSelectedItem().toString()));
+
+                    if (timer.getStartHour() == timer.getFinishHour() && timer.getStartMinute() == timer.getFinishMinute()
+                        && timer.getStartHour() == 0 && timer.getStartMinute() == 0) {
+//                        runOnUiThread(new Runnable() {
+//                            @Override
+//                            public void run() {
+//                                new AlertDialog.Builder(TimerSettingsActivity.this)
+//                                        .setTitle("")
+//                                        .setMessage(getString(R.string.invalid_date_range))
+//                                        .setPositiveButton(android.R.string.ok, new DialogInterface.OnClickListener() {
+//                                            public void onClick(DialogInterface dialog, int which) {
+//                                                enableForm(true);
+//                                                dialog.cancel();
+//                                            }
+//                                        })
+//                                        .setIcon(android.R.drawable.ic_dialog_alert)
+//                                        .show();
+//                            }
+//                        });
+                        runOnUiThread(new Runnable() {
+                            @Override
+                            public void run() {
+                                onBackPressed();
+                            }
+                        });
+                        return;
+                    }
+
+                    Collection<Timer> timerList = dbAdapter.findByChannelName(selectedChannel.getName());
+                    if (timerList == null || timerList.size() == 0 || !timerList.contains(timer)) {
+                        dbAdapter.insert(timer);
+                        Intent intent = new Intent(TimerManagerReceiver.ACTION_START_TIMER);
+                        sendBroadcast(intent);
+                        runOnUiThread(new Runnable() {
+                            @Override
+                            public void run() {
+                                btnSave.setEnabled(true);
+                                onBackPressed();
+                            }
+                        });
+                    } else {
+                        runOnUiThread(new Runnable() {
+                            @Override
+                            public void run() {
+                                new AlertDialog.Builder(TimerSettingsActivity.this)
+                                        .setTitle("")
+                                        .setMessage(getString(R.string.invalid_date_range))
+                                        .setPositiveButton(android.R.string.ok, new DialogInterface.OnClickListener() {
+                                            public void onClick(DialogInterface dialog, int which) {
+                                                enableForm(true);
+                                                dialog.cancel();
+                                            }
+                                        })
+                                        .setIcon(android.R.drawable.ic_dialog_alert)
+                                        .show();
+                            }
+                        });
+                    }
+
+                } catch (Exception ex) {
+                    SimpleAppLog.error("Could not save timer",ex);
+                } finally {
+                    dbAdapter.close();
                 }
-                c.set(Calendar.DAY_OF_WEEK, dayOfWeek);
-                timer.setEventDate(c.getTime());
-            } else {
-                timer.setEventDate(selectedDate);
             }
-            timer.setMode(mode);
-            timer.setType(type);
+        }).start();
 
-            timer.setStartHour(Integer.parseInt(spinnerStartHour.getSelectedItem().toString()));
-            timer.setStartMinute(Integer.parseInt(spinnerStartMinute.getSelectedItem().toString()));
-            timer.setFinishHour(Integer.parseInt(spinnerFinishHour.getSelectedItem().toString()));
-            timer.setFinishMinute(Integer.parseInt(spinnerFinishMinute.getSelectedItem().toString()));
-
-            dbAdapter.insert(timer);
-
-            Intent intent = new Intent(TimerManagerReceiver.ACTION_START_TIMER);
-            sendBroadcast(intent);
-
-        } catch (Exception ex) {
-            SimpleAppLog.error("Could not save timer",ex);
-        } finally {
-            dbAdapter.close();
-        }
     }
 
     @Override

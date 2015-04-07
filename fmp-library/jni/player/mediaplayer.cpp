@@ -25,8 +25,6 @@
 #include <Errors.h>
 #include <pthread.h>
 #include <mediaplayer.h>
-#include "coffeecatch.h"
-#include "coffeejni.h"
 
 extern "C" {
     #include "libavcodec/avcodec.h"
@@ -69,7 +67,7 @@ MediaPlayer::~MediaPlayer()
 
 void MediaPlayer::disconnect()
 {
-    COFFEE_TRY() {
+
 	__android_log_write(ANDROID_LOG_VERBOSE, LOG_TAG, "disconnect");
     State *p = NULL;
     {
@@ -81,11 +79,6 @@ void MediaPlayer::disconnect()
     if (state != 0) {
         ::disconnect(&state);
     }
-    } COFFEE_CATCH() {
-            /** Caught a signal. **/
-            const char*const message = coffeecatch_get_message();
-            __android_log_print(ANDROID_LOG_ERROR, LOG_TAG, "**FATAL ERROR: when disconnect %s\n", message);
-    } COFFEE_END();
 }
 
 // always call with lock held

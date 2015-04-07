@@ -26,10 +26,10 @@
 #include <stdio.h>
 #include <android/log.h>
 
-static lame_global_flags *lame_context;
-static hip_t hip_context;
-static mp3data_struct *mp3data;
-static int enc_delay, enc_padding;
+lame_global_flags *lame_context;
+hip_t hip_context;
+mp3data_struct *mp3data;
+int enc_delay, enc_padding;
 
 JNIEXPORT jint JNICALL Java_net_sourceforge_lame_Lame_initializeEncoder
   (JNIEnv *env, jclass class, jint sampleRate, jint numChannels)
@@ -76,6 +76,8 @@ JNIEXPORT jint JNICALL Java_net_sourceforge_lame_Lame_encode
   (JNIEnv *env, jclass class, jshortArray leftChannel, jshortArray rightChannel,
 		  jint channelSamples, jbyteArray mp3Buffer, jint bufferSize)
 {
+  if (!lame_context)
+    return -1;
   int encoded_samples;
   short *left_buf, *right_buf;
   unsigned char *mp3_buf;

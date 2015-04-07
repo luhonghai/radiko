@@ -6,6 +6,7 @@ import android.database.Cursor;
 import com.gmail.radioserver2.data.Channel;
 import com.gmail.radioserver2.data.sqlite.DBAdapter;
 import com.gmail.radioserver2.utils.DateHelper;
+import com.gmail.radioserver2.utils.StringUtil;
 
 import java.util.Collection;
 
@@ -59,6 +60,7 @@ public class ChannelDBAdapter extends DBAdapter<Channel> {
     @Override
     public Collection<Channel> search(String s) throws Exception {
         if (s == null || s.length() == 0) return findAll();
+        s = StringUtil.escapeJapanSpecialChar(s);
         return toCollection(getDB().query(getTableName(), getAllColumns(),
                 KEY_NAME + " like ? or " + KEY_DESCRIPTION + " like ?",
                 new String[] {
