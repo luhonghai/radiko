@@ -627,6 +627,7 @@ public class FFmpegMediaPlayer {
             "swresample",
             "avcodec",
             "avformat",
+            "mp3lame",
             "ffmpeg_mediaplayer_jni"
     };
 

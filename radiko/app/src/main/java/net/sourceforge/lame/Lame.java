@@ -30,7 +30,7 @@ public class Lame {
     public static final int LAME_PRESET_STANDARD = 2;
     public static final int LAME_PRESET_EXTREME = 3;
 
-    private static final String LAME_LIB = "lame";
+    private static final String LAME_LIB = "mp3lame";
 
     static {
         System.loadLibrary(LAME_LIB);

@@ -16,8 +16,14 @@
  * limitations under the License.
  */
 
+#ifdef __cplusplus
+extern "C" {
+#endif
 #include <libavcodec/avcodec.h>
 #include <libavformat/avformat.h>
+#ifdef __cplusplus
+}
+#endif
 #include <libavutil/opt.h>
 #include <libswresample/swresample.h>
 #include <libswscale/swscale.h>
@@ -323,12 +329,65 @@ int getMetadata(State **ps, AVDictionary **metadata) {
     return 0;
 }*/
 
+static int check_sample_fmt(AVCodec *codec, enum AVSampleFormat sample_fmt)
+ {
+     const enum AVSampleFormat *p = codec->sample_fmts;
+
+     while (*p != AV_SAMPLE_FMT_NONE) {
+         if (*p == sample_fmt)
+             return 1;
+         p++;
+     }
+     return 0;
+}
+
+/* just pick the highest supported samplerate */
+static int select_sample_rate(AVCodec *codec)
+ {
+     const int *p;
+     int best_samplerate = 0;
+
+     if (!codec->supported_samplerates)
+         return 44100;
+
+     p = codec->supported_samplerates;
+     while (*p) {
+         best_samplerate = FFMAX(*p, best_samplerate);
+         p++;
+     }
+     return best_samplerate;
+ }
+
+ /* select layout with the highest channel count */
+ static int select_channel_layout(AVCodec *codec)
+ {
+     const uint64_t *p;
+     uint64_t best_ch_layout = 0;
+     int best_nb_channells   = 0;
+
+     if (!codec->channel_layouts)
+         return AV_CH_LAYOUT_STEREO;
+
+     p = codec->channel_layouts;
+     while (*p) {
+         int nb_channels = av_get_channel_layout_nb_channels(*p);
+
+         if (nb_channels > best_nb_channells) {
+             best_ch_layout    = *p;
+             best_nb_channells = nb_channels;
+         }
+         p++;
+     }
+     return best_ch_layout;
+}
+
 int decode_frame_from_packet(State *state, AVPacket *aPacket, int *frame_size_ptr, int from_thread)
 {
 	int n;
 	int16_t *samples;
 	AVPacket *pkt = aPacket;
     AVFrame *decoded_frame = NULL;
+    AVFrame *encoded_frame = NULL;
     int got_frame = 0;
     
 	int64_t src_ch_layout, dst_ch_layout;
@@ -345,6 +404,10 @@ int decode_frame_from_packet(State *state, AVPacket *aPacket, int *frame_size_pt
     int ret;
     int data_size = 0;
 
+    // MP3 Encodeer
+    AVCodec *codec;
+    AVCodecContext *c= NULL;
+
     if (state && !state->abort_request && aPacket->stream_index == state->audio_stream) {
 
     	if (!decoded_frame) {
@@ -353,6 +416,13 @@ int decode_frame_from_packet(State *state, AVPacket *aPacket, int *frame_size_pt
     	        return -2;
     		}
     	}
+
+    	if (!encoded_frame) {
+            if (!(encoded_frame = av_frame_alloc())) {
+                __android_log_print(ANDROID_LOG_INFO, "TAG", "Could not allocate encoder audio frame\n");
+            	return -2;
+            }
+         }
     	
     	if (avcodec_decode_audio4(state->audio_st->codec, decoded_frame, &got_frame, aPacket) < 0) {
     		__android_log_print(ANDROID_LOG_ERROR, "TAG", "avcodec_decode_audio4() decoded no frame");
@@ -368,8 +438,7 @@ int decode_frame_from_packet(State *state, AVPacket *aPacket, int *frame_size_pt
     		*frame_size_ptr = 0;
     	    return 0;
     	}
-    	
-        if (decoded_frame->format != AV_SAMPLE_FMT_S16) {
+    	if (decoded_frame->format != AV_SAMPLE_FMT_S16) {
             src_nb_samples = decoded_frame->nb_samples;
             src_linesize = (int) decoded_frame->linesize;
             src_data = decoded_frame->data;
@@ -377,7 +446,7 @@ int decode_frame_from_packet(State *state, AVPacket *aPacket, int *frame_size_pt
             if (decoded_frame->channel_layout == 0) {
             	decoded_frame->channel_layout = av_get_default_channel_layout(decoded_frame->channels);
             }
-            
+
             /* create resampler context */
             swr_ctx = swr_alloc();
             if (!swr_ctx) {
@@ -385,6 +454,7 @@ int decode_frame_from_packet(State *state, AVPacket *aPacket, int *frame_size_pt
                 //ret = AVERROR(ENOMEM);
                 //goto end;
             }
+
             
             src_rate = decoded_frame->sample_rate;
             dst_rate = decoded_frame->sample_rate;
@@ -434,15 +504,13 @@ int decode_frame_from_packet(State *state, AVPacket *aPacket, int *frame_size_pt
             /* compute destination number of samples */
             dst_nb_samples = av_rescale_rnd(swr_get_delay(swr_ctx, src_rate) +
                                             src_nb_samples, dst_rate, src_rate, AV_ROUND_UP);
-            
+            encoded_frame->nb_samples = dst_nb_samples;
             /* convert to destination format */
             ret = swr_convert(swr_ctx, dst_data, dst_nb_samples, (const uint8_t **)decoded_frame->data, src_nb_samples);
             if (ret < 0) {
             	__android_log_print(ANDROID_LOG_INFO, "TAG", "Error while converting\n");
                 //goto end;
             }
-
-
 
             dst_bufsize = av_samples_get_buffer_size(&dst_linesize, dst_nb_channels,
                                                      ret, dst_sample_fmt, 1);
@@ -466,7 +534,9 @@ int decode_frame_from_packet(State *state, AVPacket *aPacket, int *frame_size_pt
     		av_freep(&dst_data);
 
     		swr_free(&swr_ctx);
+
     	} else {
+    	    encoded_frame->nb_samples = decoded_frame->nb_samples;
     		/* if a frame has been decoded, output it */
     	    data_size = av_samples_get_buffer_size(NULL, state->audio_st->codec->channels,
     	    		decoded_frame->nb_samples, state->audio_st->codec->sample_fmt, 1);
@@ -487,13 +557,78 @@ int decode_frame_from_packet(State *state, AVPacket *aPacket, int *frame_size_pt
         	state->audio_clock = av_q2d(state->audio_st->time_base) * pkt->pts;
         }
 
+        // Init MP3 encoder codec
+        //codec = avcodec_find_encoder(AV_CODEC_ID_MP3);
+        codec = avcodec_find_encoder(AV_CODEC_ID_MP2);
+
+        if (codec == NULL) {
+            __android_log_print(ANDROID_LOG_ERROR, "TAG", "Could not init avcodec encoder\n");
+        }
+        c = avcodec_alloc_context3(codec);
+
+        if (c == NULL) {
+            __android_log_print(ANDROID_LOG_ERROR, "TAG", "Could not init avcodec context\n");
+        }
+
+        c->sample_fmt     = AV_SAMPLE_FMT_S16;
+        if (!check_sample_fmt(codec, c->sample_fmt)) {
+            __android_log_print(ANDROID_LOG_ERROR, "TAG", "Encoder does not support sample format %s",
+                    av_get_sample_fmt_name(c->sample_fmt));
+        }
+        c->bit_rate       = 64000;
+        c->sample_rate    = decoded_frame->sample_rate;
+        c->channel_layout = decoded_frame->channel_layout;
+        c->channels       = decoded_frame->channels;
+
+
+        /* open it */
+        ret = avcodec_open2(c, codec, NULL);
+        if (ret < 0) {
+            __android_log_print(ANDROID_LOG_ERROR, "TAG", "Could not open avcodec.  Error code: %s\n", av_err2str(ret));
+        } else {
+            encoded_frame->format = AV_SAMPLE_FMT_S16;
+            encoded_frame->channel_layout = decoded_frame->channel_layout;
+            encoded_frame->channels = decoded_frame->channels;
+            encoded_frame->sample_rate = decoded_frame->sample_rate;
+            encoded_frame->pts = decoded_frame->pts;
+
+            ret = avcodec_fill_audio_frame(encoded_frame,
+                    encoded_frame->channels,
+                    encoded_frame->format,
+                    (const uint8_t *) samples,
+                    data_size,0);
+
+            if (ret < 0) {
+                __android_log_print(ANDROID_LOG_ERROR, "TAG", "Unable to fill the audio frame captured audio data. Error code: %s\n", av_err2str(ret));
+            }
+
+            int got_packet;
+            AVPacket output_packet;
+            av_init_packet(&output_packet);
+            output_packet.data = NULL;
+            output_packet.size = 0;
+            ret = avcodec_encode_audio2(c, &output_packet, encoded_frame, &got_packet);
+            if (ret < 0) {
+                __android_log_print(ANDROID_LOG_ERROR, "TAG", "Error while encoding audio. Error code: %s\n", av_err2str(ret));
+            }
+            if (output_packet.size > 0)
+                av_free_packet(&output_packet);
+        }
         //*frame_size_ptr = data_size;
         if (state) {
             state->write_audio_callback(state->clazz, samples, data_size, from_thread);
         }
         avcodec_free_frame(&decoded_frame);
 
+        avcodec_free_frame(&encoded_frame);
+
         free(samples);
+
+        if (c) {
+            avcodec_close(c);
+            av_free(c);
+        }
+
 
     	return AUDIO_DATA_ID;
     }
