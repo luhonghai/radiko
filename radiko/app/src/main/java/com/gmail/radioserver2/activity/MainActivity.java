@@ -1,17 +1,22 @@
 package com.gmail.radioserver2.activity;
 
+import android.app.AlertDialog;
 import android.content.BroadcastReceiver;
 import android.content.ComponentName;
+import android.content.ContentResolver;
 import android.content.Context;
+import android.content.DialogInterface;
 import android.content.Intent;
 import android.content.IntentFilter;
 import android.content.ServiceConnection;
+import android.net.wifi.WifiManager;
 import android.os.AsyncTask;
 import android.os.Bundle;
 import android.os.Handler;
 import android.os.IBinder;
 import android.os.PersistableBundle;
 import android.os.RemoteException;
+import android.provider.Settings;
 import android.support.v4.app.Fragment;
 import android.support.v4.app.FragmentManager;
 import android.support.v4.app.FragmentTransaction;
@@ -98,6 +103,47 @@ public class MainActivity extends BaseFragmentActivity implements ServiceConnect
         initializeTabs();
         mServiceToken = MusicUtils.bindToService(this, this);
         registerReceiver(mHandleAction, new IntentFilter(Constants.INTENT_FILTER_FRAGMENT_ACTION));
+        checkWifiPolicy();
+    }
+
+    private boolean checkWifiPolicy() {
+        WifiManager wm = (WifiManager) this.getSystemService(Context.WIFI_SERVICE);
+        if(!wm.isWifiEnabled())
+        {
+            return true;
+        }
+        ContentResolver cr = this.getContentResolver();
+        int policyNever = android.provider.Settings.System.WIFI_SLEEP_POLICY_NEVER;
+        try
+        {
+            android.provider.Settings.System.putInt(cr, Settings.System.WIFI_SLEEP_POLICY, policyNever);
+        }
+        catch(Exception e)
+        {
+            e.printStackTrace();
+        }
+        try
+        {
+            if(android.provider.Settings.System.getInt(cr, Settings.System.WIFI_SLEEP_POLICY) != policyNever)
+            {
+                new AlertDialog.Builder(this).setTitle(getString(R.string.wifi_policy_warning_title))
+                        .setMessage(getString(R.string.wifi_policy_warning_message))
+                        .setPositiveButton(getString(R.string.wifi_policy_warning_positive_button), new DialogInterface.OnClickListener() {
+                            @Override
+                            public void onClick(DialogInterface dialog, int which) {
+                                startActivity(new Intent(Settings.ACTION_WIFI_IP_SETTINGS));
+                            }
+                        })
+                        .setNegativeButton(getString(R.string.wifi_policy_warning_negative_button), null)
+                        .show();
+                return false;
+            }
+        }
+        catch (Exception e)
+        {
+            e.printStackTrace();
+        }
+        return false;
     }
 
     private void showTimer() {
@@ -178,7 +224,9 @@ public class MainActivity extends BaseFragmentActivity implements ServiceConnect
         public void onTabChanged(String tabId) {
         /*Set current tab..*/
             mCurrentTab                     =   tabId;
-
+            if (!tabId.equals(Constants.TAB_RECORDED_PROGRAM)) {
+                selectedLibrary = null;
+            }
             if (mStacks.get(tabId).size() == 0){
           /*
            *    First time this tab is selected. So add first fragment of that tab.
@@ -186,21 +234,24 @@ public class MainActivity extends BaseFragmentActivity implements ServiceConnect
            *    We are adding a new fragment which is not present in stack. So add to stack is true.
            */
                 if(tabId.equals(Constants.TAB_HOME)){
-                    // clear selected library
-                    selectedLibrary = null;
+                    // clear selected library\
                     pushFragments(tabId, new HomeFragmentTab(), false,true);
                 }else if(tabId.equals(Constants.TAB_RECORDED_PROGRAM)){
                     RecordedProgramFragmentTab programFragmentTab = new RecordedProgramFragmentTab();
                     programFragmentTab.setSelectedLibrary(selectedLibrary);
                     pushFragments(tabId, programFragmentTab, false, true);
                 }else if(tabId.equals(Constants.TAB_LIBRARY)){
+
                     pushFragments(tabId, new LibraryFragmentTab(), false,true);
                 }else if(tabId.equals(Constants.TAB_SETTING)){
+
                     pushFragments(tabId, new SettingFragmentTab(), false,true);
                 }else if(tabId.equals(Constants.TAB_PLAY_SCREEN)){
+
                     pushFragments(tabId, new PlayerFragmentTab(), false,true);
                 }
             }else {
+
               /*
                *    We are switching tabs, and target tab is already has atleast one fragment.
                *    No need of animation, no need of stack pushing. Just show the target fragment
@@ -328,8 +379,12 @@ public class MainActivity extends BaseFragmentActivity implements ServiceConnect
                         }
                     }
                 }
-                if (isNew)
+                if (isNew) {
+                    if (mService.isStreaming() && mService.isRecording()) {
+                        mService.stopRecord();
+                    }
                     mService.stop();
+                }
             } catch (RemoteException e) {
                 SimpleAppLog.error("Could not stop old stream",e);
             }
@@ -377,6 +432,9 @@ public class MainActivity extends BaseFragmentActivity implements ServiceConnect
                     Gson gson = new Gson();
                     selectedLibrary = gson.fromJson(bundle.getString(Constants.ARG_OBJECT), Library.class);
                     setCurrentTab(Constants.TAB_RECORDED_PROGRAM_ID);
+                    break;
+                case Constants.ACTION_RESET_FILTER_RECORDED_PROGRAM:
+                    selectedLibrary = null;
                     break;
             }
         }

@@ -103,6 +103,12 @@
 
     <string name="current_program">Current program</string>
     <string name="program_description">Description</string>
+
+    <string name="wifi_policy_warning_title">Warning Wifi policy</string>
+    <string name="wifi_policy_warning_message">You should set Wifi sleep policy to Always to make application works correctly!</string>
+    <string name="wifi_policy_warning_positive_button">Open Wifi setting</string>
+    <string name="wifi_policy_warning_negative_button">Cancel</string>
+
     <!-- For debug -->
     <string name="ads_place">Ads place</string>
     <string name="default_channel_name">TBS Radio</string>

@@ -1305,6 +1305,10 @@ public class FFmpegMediaPlayer {
      * data source and calling prepare().
      */
     public void reset() {
+        reset(true);
+    }
+
+    public void reset(boolean stopRecording) {
         stayAwake(false);
         _reset();
 
@@ -1315,7 +1319,10 @@ public class FFmpegMediaPlayer {
 
         // make sure none of the listeners get called anymore
         mEventHandler.removeCallbacksAndMessages(null);
-        stopRecording(true);
+        if (stopRecording) {
+            // Should handle stop recording by GUI
+          //  stopRecording(true);
+        }
     }
 
     /**

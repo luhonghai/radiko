@@ -33,6 +33,7 @@ import android.widget.ListView;
 
 import com.gmail.radioserver2.R;
 
+import java.util.Collections;
 import java.util.List;
 
 /**
@@ -330,6 +331,7 @@ public class SwipeListView extends ListView {
      */
     public void dismissSelected() {
         List<Integer> list = touchListener.getPositionsSelected();
+        Collections.sort(list, Collections.reverseOrder());
         int[] dismissPositions = new int[list.size()];
         int height = 0;
         for (int i = 0; i < list.size(); i++) {
@@ -365,6 +367,10 @@ public class SwipeListView extends ListView {
      */
     public void closeAnimate(int position) {
         touchListener.closeAnimate(position);
+    }
+
+    public void closeItem(int position) {
+        touchListener.closeItem(position);
     }
 
     /**

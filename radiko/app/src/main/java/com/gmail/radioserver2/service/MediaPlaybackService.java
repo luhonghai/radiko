@@ -232,6 +232,10 @@ public class MediaPlaybackService extends Service {
                     adapter.open();
                     adapter.insert(recordedProgram);
                     SimpleAppLog.debug("Save recording complete");
+
+                    Intent intent = new Intent(Constants.INTENT_FILTER_FRAGMENT_ACTION);
+                    intent.putExtra(Constants.FRAGMENT_ACTION_TYPE, Constants.ACTION_RESET_FILTER_RECORDED_PROGRAM);
+                    getApplicationContext().sendBroadcast(intent);
                 } catch (Exception e) {
                     SimpleAppLog.error("Could not insert recorded program", e);
                 } finally {

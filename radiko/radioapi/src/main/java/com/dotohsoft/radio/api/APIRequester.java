@@ -32,6 +32,17 @@ public class APIRequester {
     private final Date now = new Date(System.currentTimeMillis());
     private final SimpleDateFormat sdf = new SimpleDateFormat(Constant.DEFAULT_DATE_FORMAT, Locale.JAPAN);
 
+    public static interface RequesterListener {
+        public void onMessage(String message);
+        public void onError(String error, Throwable throwable);
+    }
+
+    private RequesterListener requesterListener;
+
+    public void setRequesterListener(RequesterListener requesterListener) {
+        this.requesterListener = requesterListener;
+    }
+
     public APIRequester(File cachedFolder) {
         this.cachedFolder = cachedFolder;
     }
@@ -44,47 +55,61 @@ public class APIRequester {
         } else {
             radioChannel = new RadioChannel();
         }
+
         List<RadioChannel.Channel> channels = radioChannel.getChannels();
         if (channels == null) {
             channels = new ArrayList<RadioChannel.Channel>();
         }
-        getRadikoChannels(channels, RadioArea.getArea(rawAreaId, RadioProvider.RADIKO));
-        if (!isRegion)
-            getRadikoChannels(channels, RadioArea.getArea(RadioArea.AREA_ID_TOKYO, RadioProvider.RADIKO));
+
+        getRadikoChannels(channels, RadioArea.getArea(rawAreaId, RadioProvider.RADIKO, requesterListener));
+        if (!isRegion) {
+            if (requesterListener != null) requesterListener.onMessage("Region is disabled. Try to fetch channel from JP13");
+            getRadikoChannels(channels, RadioArea.getArea(RadioArea.AREA_ID_TOKYO, RadioProvider.RADIKO, requesterListener));
+        }
 
         radioChannel.setChannels(channels);
         return radioChannel;
     }
 
     public void getRadikoChannels(final List<RadioChannel.Channel> channels,final RadioArea area) throws IOException {
-        File cachedXml = new File(cachedFolder, "channel_" + area.getProvider() + "_" + area.getId() + "_" + sdf.format(now) + ".xml");
-        if (!cachedXml.exists()) {
-            FileUtils.copyURLToFile(new URL("http://radiko.jp/v2/station/list/" + area.getId() + ".xml"), cachedXml);
-            if (cachedXml.exists() && !FileUtils.readFileToString(cachedXml, "UTF-8").toLowerCase().contains("stations")) {
-                FileUtils.forceDelete(cachedXml);
-            }
-        }
-        if (cachedXml.exists()) {
-            Document doc = Jsoup.parse(cachedXml, "UTF-8");
-            Elements stations = doc.getElementsByTag("station");
-            if (stations != null && stations.size() > 0) {
-                for (int i = 0; i < stations.size(); i++) {
-                    Element station = stations.get(i);
-                    RadioChannel.Channel channel = new RadioChannel.Channel();
-                    channel.setService(area.getProvider());
-                    channel.setServiceChannelId(station.getElementsByTag("id").text());
-                    channel.setName(station.getElementsByTag("name").text());
-                    channel.setStreamURL("rtmpe://f-radiko.smartstream.ne.jp/" + channel.getServiceChannelId() + "/_definst_/simul-stream.stream");
-                    if (!channels.contains(channel)) {
-                        channels.add(channel);
+        if (area != null && area.getId() != null && area.getId().length() > 0) {
+            try {
+                File cachedXml = new File(cachedFolder, "channel_" + area.getProvider() + "_" + area.getId() + "_" + sdf.format(now) + ".xml");
+                if (requesterListener != null) requesterListener.onMessage("Cached file: " + cachedXml.getAbsolutePath());
+                //if (!cachedXml.exists()) {
+                    FileUtils.copyURLToFile(new URL("http://radiko.jp/v2/station/list/" + area.getId() + ".xml"), cachedXml);
+                    if (cachedXml.exists() && !FileUtils.readFileToString(cachedXml, "UTF-8").toLowerCase().contains("stations")) {
+                        FileUtils.forceDelete(cachedXml);
+                    }
+                //}
+                if (cachedXml.exists()) {
+                    Document doc = Jsoup.parse(cachedXml, "UTF-8");
+                    Elements stations = doc.getElementsByTag("station");
+                    if (stations != null && stations.size() > 0) {
+                        for (int i = 0; i < stations.size(); i++) {
+                            Element station = stations.get(i);
+                            RadioChannel.Channel channel = new RadioChannel.Channel();
+                            channel.setService(area.getProvider());
+                            channel.setServiceChannelId(station.getElementsByTag("id").text());
+                            channel.setName(station.getElementsByTag("name").text());
+                            channel.setStreamURL("rtmpe://f-radiko.smartstream.ne.jp/" + channel.getServiceChannelId() + "/_definst_/simul-stream.stream");
+                            if (!channels.contains(channel)) {
+                                channels.add(channel);
+                            }
+                        }
                     }
                 }
+            } catch (Exception e) {
+                if (requesterListener != null)
+                    requesterListener.onError("Could not fetch channels",e);
             }
+        } else {
+            if (requesterListener != null) requesterListener.onMessage("No area ID found!");
         }
     }
 
     public RadioProgram getPrograms(RadioChannel.Channel channel, RadioArea area) throws IOException {
-        if (area == null || channel == null) return null;
+        if (area == null || area.getId() == null || area.getId().length() == 0 || channel == null) return null;
         String strCachedFile = "program_" + area.getProvider() + "_" + channel.getServiceChannelId() + "_" + area.getId() + "_" + sdf.format(now) + ".json";
         File cachedFile = new File(cachedFolder, strCachedFile);
         if (!cachedFile.exists()) {

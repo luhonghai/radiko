@@ -4,6 +4,7 @@ import android.content.ComponentName;
 import android.content.Intent;
 import android.content.ServiceConnection;
 import android.os.Bundle;
+import android.os.Handler;
 import android.os.IBinder;
 import android.os.RemoteException;
 import android.view.LayoutInflater;
@@ -11,6 +12,7 @@ import android.view.View;
 import android.view.ViewGroup;
 import android.widget.Button;
 import android.widget.EditText;
+import android.widget.TextView;
 
 import com.gmail.radioserver2.activity.LibraryPickerActivity;
 import com.gmail.radioserver2.adapter.OnListItemActionListener;
@@ -23,9 +25,12 @@ import com.gmail.radioserver2.service.MediaPlaybackService;
 import com.gmail.radioserver2.service.MusicUtils;
 import com.gmail.radioserver2.utils.Constants;
 import com.gmail.radioserver2.utils.SimpleAppLog;
+import com.gmail.radioserver2.view.swipelistview.BaseSwipeListViewListener;
 import com.gmail.radioserver2.view.swipelistview.SwipeListView;
 import com.gmail.radioserver2.R;
 import com.gmail.radioserver2.adapter.RecordedProgramAdapter;
+import com.google.android.gms.ads.AdRequest;
+import com.google.android.gms.ads.AdView;
 import com.google.gson.Gson;
 
 import org.apache.commons.io.FileUtils;
@@ -51,15 +56,63 @@ public class RecordedProgramFragmentTab extends FragmentTab implements OnListIte
 
     private RecordedProgram[] objects;
 
+    private TextView txtPageTitle;
+
+    private int openItem = -1;
+    private int lastOpenedItem = -1;
+    private int lastClosedItem = -1;
+
+    private AdView mAdView;
+
     @Override
     public View onCreateView(LayoutInflater inflater, ViewGroup container, Bundle savedInstanceState) {
         View v = inflater.inflate(R.layout.fragment_recorded_program_tab, container, false);
+
+        mAdView = (AdView) v.findViewById(R.id.adView);
+        if (mAdView != null) {
+            AdRequest adRequest = new AdRequest.Builder().build();
+            mAdView.loadAd(adRequest);
+        }
+
         listView = (SwipeListView) v.findViewById(R.id.list_recorded_programs);
+
+        listView.setSwipeListViewListener(new BaseSwipeListViewListener() {
+            @Override
+            public void onOpened(int position, boolean toRight) {
+                lastOpenedItem = position;
+                if (openItem > -1 && lastOpenedItem != lastClosedItem) {
+                    listView.closeAnimate(openItem);
+                }
+                openItem = position;
+            }
+
+            @Override
+            public void onStartClose(int position, boolean right) {
+                lastClosedItem = position;
+            }
+
+            @Override
+            public void onClosed(int position, boolean fromRight) {
+            }
+        });
+        txtPageTitle = (TextView) v.findViewById(R.id.txtPageTitle);
         txtSearch = (EditText) v.findViewById(R.id.txtSearch);
         btnSearch = (Button) v.findViewById(R.id.btnSearch);
         btnSearch.setOnClickListener(this);
         loadData();
         return v;
+    }
+
+    @Override
+    public void onPause() {
+        super.onPause();
+        if (mAdView != null) mAdView.pause();
+    }
+
+    @Override
+    public void onResume() {
+        super.onResume();
+        if (mAdView != null) mAdView.resume();
     }
 
     public void loadData() {
@@ -69,8 +122,10 @@ public class RecordedProgramFragmentTab extends FragmentTab implements OnListIte
             Collection<RecordedProgram> programs;
             String s = txtSearch.getText().toString();
             if (selectedLibrary != null) {
+                txtPageTitle.setText(getString(R.string.label_recorded_programs_library));
                 programs = dbAdapter.findByLibrary(selectedLibrary, s);
             } else {
+                txtPageTitle.setText(getString(R.string.label_recorded_programs));
                 programs = dbAdapter.search(s);
             }
 
@@ -83,7 +138,6 @@ public class RecordedProgramFragmentTab extends FragmentTab implements OnListIte
             }
             RecordedProgramAdapter adapter = new RecordedProgramAdapter(getActivity(), objects, this);
             listView.setAdapter(adapter);
-            listView.dismissSelected();
             adapter.notifyDataSetChanged();
         } catch (Exception e) {
             SimpleAppLog.error("Could not load recorded program", e);
@@ -100,6 +154,10 @@ public class RecordedProgramFragmentTab extends FragmentTab implements OnListIte
         btnSearch = null;
         selectedLibrary = null;
         objects = null;
+        if (mAdView != null) {
+            mAdView.destroy();
+            mAdView = null;
+        }
     }
 
     @Override
@@ -117,6 +175,9 @@ public class RecordedProgramFragmentTab extends FragmentTab implements OnListIte
 
     @Override
     public void onDeleteItem(RecordedProgram obj) {
+        if (openItem > -1 && lastOpenedItem != lastClosedItem) {
+            listView.closeItem(openItem);
+        }
         RecordedProgramDBAdapter adapter = new RecordedProgramDBAdapter(getActivity());
         try {
             try {
@@ -126,12 +187,17 @@ public class RecordedProgramFragmentTab extends FragmentTab implements OnListIte
             }
             adapter.open();
             adapter.delete(obj);
-            loadData();
         } catch (Exception ex) {
             SimpleAppLog.error("Could not delete recorded program",ex);
         } finally {
             adapter.close();
         }
+        new Handler().postDelayed(new Runnable() {
+            @Override
+            public void run() {
+                loadData();
+            }
+        }, 100);
     }
 
     @Override

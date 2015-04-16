@@ -67,15 +67,16 @@
     </RelativeLayout>
     <RelativeLayout
         android:layout_width="match_parent"
-        android:layout_height="@dimen/button_big_size"
-        android:background="@color/red_delete">
-        <TextView
-            android:layout_width="match_parent"
-            android:layout_height="match_parent"
-            android:textSize="@dimen/button_big_font_size"
-            android:text="@string/ads_place"
-            android:gravity="center_vertical|center_horizontal"
-            android:textColor="@android:color/white"
-            android:textStyle="bold"/>
+        android:layout_height="wrap_content"
+        android:gravity="center_horizontal|center_vertical"
+        >
+        <com.google.android.gms.ads.AdView
+            xmlns:ads="http://schemas.android.com/apk/res-auto"
+            android:id="@+id/adView"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            ads:adSize="BANNER"
+            ads:adUnitId="@string/banner_playlist_ad_unit_id">
+        </com.google.android.gms.ads.AdView>
     </RelativeLayout>
 </LinearLayout>

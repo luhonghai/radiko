@@ -343,9 +343,54 @@ public class SwipeListViewTouchListener implements View.OnTouchListener {
             final View childContainer = swipeListView.getChildAt(position - firstVisibleChildPosition);
             if (childContainer != null) {
                 final View child = childContainer.findViewById(swipeFrontView);
-
                 if (child != null) {
                     closeAnimate(child, position);
+                }
+            }
+        }
+    }
+
+    protected void closeItem(final int position) {
+        if (swipeListView != null) {
+            int firstVisibleChildPosition = swipeListView.getFirstVisiblePosition();
+            final View childContainer = swipeListView.getChildAt(position - firstVisibleChildPosition);
+            if (childContainer != null) {
+                final View child = childContainer.findViewById(swipeFrontView);
+                if (child != null) {
+                    if (opened.get(position)) {
+                        int moveTo = 0;
+                        final boolean swap = true;
+                        final boolean swapRight = false;
+                        if (opened.get(position)) {
+                            if (!swap) {
+                                moveTo = openedRight.get(position) ? (int) (viewWidth - rightOffset) : (int) (-viewWidth + leftOffset);
+                            }
+                        } else {
+                            if (swap) {
+                                moveTo = swapRight ? (int) (viewWidth - rightOffset) : (int) (-viewWidth + leftOffset);
+                            }
+                        }
+                        animate(child)
+                                .translationX(moveTo)
+                                .setDuration(0)
+                                .setListener(new AnimatorListenerAdapter() {
+                                    @Override
+                                    public void onAnimationEnd(Animator animation) {
+                                        swipeListView.resetScrolling();
+                                        if (swap) {
+                                            boolean aux = !opened.get(position);
+                                            opened.set(position, aux);
+                                            if (aux) {
+                                                swipeListView.onOpened(position, swapRight);
+                                                openedRight.set(position, swapRight);
+                                            } else {
+                                                swipeListView.onClosed(position, openedRight.get(position));
+                                            }
+                                        }
+                                        resetCell();
+                                    }
+                                });
+                    }
                 }
             }
         }

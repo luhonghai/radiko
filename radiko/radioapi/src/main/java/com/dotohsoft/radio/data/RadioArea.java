@@ -1,5 +1,7 @@
 package com.dotohsoft.radio.data;
 
+import com.dotohsoft.radio.api.APIRequester;
+
 /**
  * Created by luhonghai on 3/10/15.
  */
@@ -22,24 +24,33 @@ public class RadioArea {
     private RadioArea() {}
 
     public static RadioArea getArea(String rawResponse, String provider) {
+        return getArea(rawResponse, provider, null);
+    }
+
+    public static RadioArea getArea(String rawResponse, String provider, final APIRequester.RequesterListener requesterListener) {
         RadioArea area = new RadioArea();
-        if (provider == null || rawResponse == null) return null;
+        if (provider == null || rawResponse == null || rawResponse.trim().length() == 0) return null;
+        if (requesterListener != null) requesterListener.onMessage("Validate raw response " + rawResponse + ". Provider: " + provider);
         area.provider = provider.toLowerCase();
-        area.id = RadioArea.AREA_ID_TOKYO;
+        area.id = AREA_ID_TOKYO;
         if (rawResponse.length() > 0) {
-            rawResponse = rawResponse.replace("\n", " ");
-            while (rawResponse.contains("  ")) {
-                rawResponse = rawResponse.replace("  ", " ");
+            String rAID = "";
+            for (int i = 47; i >= 1; i--) {
+                String test = "JP" + Integer.toString(i);
+                if (requesterListener != null) requesterListener.onMessage("Test id: " + test);
+                if (rawResponse.toLowerCase().contains(test.toLowerCase()) || rawResponse.equalsIgnoreCase(test)) {
+                    rAID = "JP" + i;
+                    break;
+                }
             }
-            rawResponse = rawResponse.trim();
-            if (rawResponse.equalsIgnoreCase("out")) rawResponse = RadioArea.AREA_ID_TOKYO;
-            String rAID;
-            if (rawResponse.contains(",")) {
-                rAID = rawResponse.split(",")[0].trim();
+            if (rAID.length() > 0) {
+                area.id = rAID;
             } else {
-                rAID = rawResponse;
+                if (area.provider.equalsIgnoreCase(RadioProvider.RADIKO))
+                    return null;
             }
-            area.id = rAID;
+        } else if (area.provider.equalsIgnoreCase(RadioProvider.RADIKO)) {
+            return null;
         }
         if (provider.equalsIgnoreCase(RadioProvider.NHK)) {
             String lId = area.id.substring(2, area.id.length());

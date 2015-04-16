@@ -6,7 +6,7 @@
         <item name="android:indeterminateDrawable">@drawable/progress_horizontal</item>
         <item name="android:minHeight">4dip</item>
         <item name="android:maxHeight">4dip</item>
-        <item name="android:thumb">@drawable/icon_seek</item>
+        <item name="android:thumb">@drawable/btn_record</item>
         <item name="android:thumbOffset">6dip</item>
         <item name="android:focusable">true</item>
     </style>

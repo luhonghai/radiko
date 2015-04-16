@@ -61,6 +61,8 @@ public class Constants {
 
     public static final int ACTION_RELOAD_LIST = 6;
 
+    public static final int ACTION_RESET_FILTER_RECORDED_PROGRAM = 7;
+
     public static final String PARAMETER_SELECTED_TAB_ID = "PARAMETER_SELECTED_TAB_ID";
 
     public static final String PARAMETER_SELECTED_TAB = "PARAMETER_SELECTED_TAB";

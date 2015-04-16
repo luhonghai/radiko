@@ -1,0 +1,7 @@
+<?xml version="1.0" encoding="utf-8"?>
+<resources>
+    <string name="banner_channel_ad_unit_id">ca-app-pub-3940256099942544/6300978111</string>
+    <string name="banner_recorded_program_ad_unit_id">ca-app-pub-3940256099942544/6300978111</string>
+    <string name="banner_player_ad_unit_id">ca-app-pub-3940256099942544/6300978111</string>
+    <string name="banner_playlist_ad_unit_id">ca-app-pub-3940256099942544/6300978111</string>
+</resources>

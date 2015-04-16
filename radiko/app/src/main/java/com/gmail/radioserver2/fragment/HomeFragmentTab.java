@@ -5,6 +5,7 @@ import android.content.Context;
 import android.content.Intent;
 import android.content.IntentFilter;
 import android.os.Bundle;
+import android.os.Handler;
 import android.os.RemoteException;
 import android.view.LayoutInflater;
 import android.view.View;
@@ -20,9 +21,12 @@ import com.gmail.radioserver2.data.sqlite.ext.ChannelDBAdapter;
 import com.gmail.radioserver2.service.TimerBroadcastReceiver;
 import com.gmail.radioserver2.utils.Constants;
 import com.gmail.radioserver2.utils.SimpleAppLog;
+import com.gmail.radioserver2.view.swipelistview.BaseSwipeListViewListener;
 import com.gmail.radioserver2.view.swipelistview.SwipeListView;
 import com.gmail.radioserver2.R;
 import com.gmail.radioserver2.adapter.ChannelAdapter;
+import com.google.android.gms.ads.AdRequest;
+import com.google.android.gms.ads.AdView;
 import com.google.gson.Gson;
 
 import java.util.Collection;
@@ -54,10 +58,44 @@ public class HomeFragmentTab extends FragmentTab implements OnListItemActionList
 
     }
 
+    private int openItem = -1;
+    private int lastOpenedItem = -1;
+    private int lastClosedItem = -1;
+
+    private AdView mAdView;
+
     @Override
     public View onCreateView(LayoutInflater inflater, ViewGroup container, Bundle savedInstanceState) {
         View v = inflater.inflate(R.layout.fragment_home_tab, container, false);
+
+        mAdView = (AdView) v.findViewById(R.id.adView);
+        if (mAdView != null) {
+            AdRequest adRequest = new AdRequest.Builder().build();
+            mAdView.loadAd(adRequest);
+        }
+
         listView = (SwipeListView) v.findViewById(R.id.list_channel);
+
+        openItem = -1;
+        lastOpenedItem = -1;
+        lastClosedItem = -1;
+
+        listView.setSwipeListViewListener(new BaseSwipeListViewListener() {
+            @Override
+            public void onOpened(int position, boolean toRight) {
+                lastOpenedItem = position;
+                if (openItem > -1 && lastOpenedItem != lastClosedItem) {
+                    listView.closeAnimate(openItem);
+                }
+                openItem = position;
+            }
+
+            @Override
+            public void onStartClose(int position, boolean right) {
+                lastClosedItem = position;
+            }
+        });
+
         txtSearch = (EditText) v.findViewById(R.id.txtSearch);
         btnSearch = (Button) v.findViewById(R.id.btnSearch);
         btnSearch.setOnClickListener(this);
@@ -70,6 +108,7 @@ public class HomeFragmentTab extends FragmentTab implements OnListItemActionList
         try {
             dbAdapter.open();
             Collection<Channel> channels = dbAdapter.search(txtSearch.getText().toString());
+            SimpleAppLog.info("Load " + (channels == null ? 0 : channels.size()) + " channels to listview");
             Channel[] items;
             if (channels != null && channels.size() > 0) {
                 items = new Channel[channels.size()];
@@ -89,25 +128,51 @@ public class HomeFragmentTab extends FragmentTab implements OnListItemActionList
     }
 
     @Override
+    public void onPause() {
+        super.onPause();
+        if (mAdView != null) mAdView.pause();
+    }
+
+    @Override
+    public void onResume() {
+        super.onResume();
+        if (mAdView != null) mAdView.resume();
+    }
+
+    @Override
     public void onDestroyView() {
         super.onDestroyView();
         listView = null;
         btnSearch = null;
         txtSearch = null;
+        if (mAdView != null) {
+            mAdView.destroy();
+            mAdView = null;
+        }
     }
 
     @Override
     public void onDeleteItem(Channel obj) {
+        if (openItem > -1 && lastOpenedItem != lastClosedItem) {
+            listView.closeItem(openItem);
+        }
+
         ChannelDBAdapter adapter = new ChannelDBAdapter(getActivity());
         try {
             adapter.open();
             adapter.delete(obj);
-            loadData();
         } catch (Exception ex) {
             SimpleAppLog.error("Could not delete channel", ex);
         } finally {
             adapter.close();
         }
+
+        new Handler().postDelayed(new Runnable() {
+            @Override
+            public void run() {
+                loadData();
+            }
+        },100);
     }
 
     @Override

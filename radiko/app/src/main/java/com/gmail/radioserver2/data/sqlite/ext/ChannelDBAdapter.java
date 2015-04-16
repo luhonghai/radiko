@@ -6,6 +6,7 @@ import android.database.Cursor;
 import com.gmail.radioserver2.data.Channel;
 import com.gmail.radioserver2.data.sqlite.DBAdapter;
 import com.gmail.radioserver2.utils.DateHelper;
+import com.gmail.radioserver2.utils.SimpleAppLog;
 import com.gmail.radioserver2.utils.StringUtil;
 
 import java.util.Collection;
@@ -70,6 +71,27 @@ public class ChannelDBAdapter extends DBAdapter<Channel> {
                 null,
                 null,
                 KEY_LAST_PLAYED_TIME + " DESC, " + KEY_NAME + " ASC"));
+    }
+
+    public Collection<Channel> findByProvider(String provider) throws Exception {
+        return toCollection(getDB().query(getTableName(), getAllColumns(),
+                KEY_TYPE + " = ?",
+                new String[] {
+                        provider
+                },
+                null,
+                null,
+                KEY_LAST_PLAYED_TIME + " DESC, " + KEY_NAME + " ASC"));
+    }
+
+    public void deleteByProvider(String provider) {
+        try {
+            getDB().delete(getTableName(), KEY_TYPE + "=?", new String[]{
+                    provider
+            });
+        } catch (Exception e) {
+            SimpleAppLog.error("Could not delete channel by provider: " + provider,e);
+        }
     }
 
     @Override

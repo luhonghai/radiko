@@ -39,6 +39,14 @@ public class Channel extends AbstractData<Channel> {
     }
 
     @Override
+    public boolean equals(Object o) {
+        if (o != null && o instanceof Channel) {
+            return this.getUrl().equalsIgnoreCase(((Channel) o).getUrl());
+        }
+        return super.equals(o);
+    }
+
+    @Override
     public String toPrettyString(Context context) {
         return name;
     }
@@ -88,6 +96,7 @@ public class Channel extends AbstractData<Channel> {
     }
 
     public String getUrl() {
+        if (url == null) return "";
         return url;
     }
 

@@ -39,6 +39,8 @@ import com.gmail.radioserver2.service.MusicUtils;
 import com.gmail.radioserver2.utils.Constants;
 import com.gmail.radioserver2.utils.FileHelper;
 import com.gmail.radioserver2.utils.SimpleAppLog;
+import com.google.android.gms.ads.AdRequest;
+import com.google.android.gms.ads.AdView;
 import com.google.gson.Gson;
 
 import org.apache.commons.io.FileUtils;
@@ -108,19 +110,23 @@ public class PlayerFragmentTab extends FragmentTab implements ServiceConnection,
         seekBarPlayer = null;
         destroyWebView(gifView);
         gifView = null;
+        if (mAdView != null) {
+            mAdView.destroy();
+            mAdView = null;
+        }
     }
 
     void destroyWebView( WebView wv ){
-        wv.stopLoading();
-
-        wv.clearFormData();
-        wv.clearAnimation();
-        wv.clearDisappearingChildren();
-        wv.clearView();
-        wv.clearHistory();
-        wv.destroyDrawingCache();
-        wv.freeMemory();
-        wv.destroy();
+//        wv.stopLoading();
+//
+//        wv.clearFormData();
+//        wv.clearAnimation();
+//        wv.clearDisappearingChildren();
+//        wv.clearView();
+//        wv.clearHistory();
+//        wv.destroyDrawingCache();
+//        wv.freeMemory();
+//        wv.destroy();
     }
 
     @Override
@@ -146,10 +152,16 @@ public class PlayerFragmentTab extends FragmentTab implements ServiceConnection,
         }
     }
 
+    private AdView mAdView;
+
     @Override
     public View onCreateView(LayoutInflater inflater, ViewGroup container, Bundle savedInstanceState) {
         View v = inflater.inflate(R.layout.fragment_player_tab, container, false);
-
+        mAdView = (AdView) v.findViewById(R.id.adView);
+        if (mAdView != null) {
+            AdRequest adRequest = new AdRequest.Builder().build();
+            mAdView.loadAd(adRequest);
+        }
         setting = new Setting(getActivity());
         setting.load();
 
@@ -188,6 +200,18 @@ public class PlayerFragmentTab extends FragmentTab implements ServiceConnection,
         long next = refreshNow();
         queueNextRefresh(next);
         return v;
+    }
+
+    @Override
+    public void onResume() {
+        super.onResume();
+        if (mAdView != null) mAdView.resume();
+    }
+
+    @Override
+    public void onPause() {
+        super.onPause();
+        if (mAdView != null) mAdView.pause();
     }
 
     private void loadGifLoader() {
@@ -263,7 +287,7 @@ public class PlayerFragmentTab extends FragmentTab implements ServiceConnection,
 
     private void showPlayerInit() {
         try {
-            btnPlay.setCompoundDrawablesWithIntrinsicBounds(0, R.drawable.icon_pause, 0, 0);
+            btnPlay.setCompoundDrawablesWithIntrinsicBounds(0, R.drawable.btn_pause_gray, 0, 0);
             btnPlay.setText(R.string.button_pause);
             btnPlay.setEnabled(false);
         } catch (Exception e) {}
@@ -279,30 +303,39 @@ public class PlayerFragmentTab extends FragmentTab implements ServiceConnection,
         btnRecord.setEnabled(false);
         btnPlay.setEnabled(false);
         btnNext.setEnabled(false);
-
         btnPrev.setEnabled(false);
-            btnNext.setVisibility(View.INVISIBLE);
-            btnPrev.setVisibility(View.INVISIBLE);
-            seekBarPlayer.setVisibility(View.GONE);
-            gifView.setVisibility(View.GONE);
+        btnNext.setVisibility(View.INVISIBLE);
+        btnPrev.setVisibility(View.INVISIBLE);
+        seekBarPlayer.setVisibility(View.GONE);
+        gifView.setVisibility(View.GONE);
         seekBarPlayer.setEnabled(false);
             if (mService != null) {
                 btnPlay.setEnabled(true);
-                btnRecord.setCompoundDrawablesWithIntrinsicBounds(0,R.drawable.icon_record,0,0);
                 btnRecord.setText(R.string.button_record);
                 if (mService.isPlaying()) {
                     isLoading = true;
+
+                    if (mService.isStreaming()) {
+                        btnRepeat.setCompoundDrawablesWithIntrinsicBounds(0, R.drawable.btn_repeat_gray, 0, 0);
+                        btnRecord.setCompoundDrawablesWithIntrinsicBounds(0,R.drawable.btn_record,0,0);
+                        btnBack.setCompoundDrawablesWithIntrinsicBounds(0, R.drawable.btn_back_gray, 0, 0);
+                    } else {
+                        btnRepeat.setCompoundDrawablesWithIntrinsicBounds(0, R.drawable.btn_repeat, 0, 0);
+                        btnBack.setCompoundDrawablesWithIntrinsicBounds(0, R.drawable.btn_back, 0, 0);
+                        btnRecord.setCompoundDrawablesWithIntrinsicBounds(0,R.drawable.btn_record_gray,0,0);
+                    }
+
                     btnRepeat.setEnabled(!mService.isStreaming());
                     btnBack.setEnabled(!mService.isStreaming());
                     btnFast.setEnabled(!mService.isStreaming());
                     btnSlow.setEnabled(!mService.isStreaming());
-                    btnPlay.setCompoundDrawablesWithIntrinsicBounds(0,R.drawable.icon_pause,0,0);
+                    btnPlay.setCompoundDrawablesWithIntrinsicBounds(0,R.drawable.btn_pause,0,0);
                     btnPlay.setText(R.string.button_pause);
                     if (mService.isStreaming()) {
                         gifView.setVisibility(View.VISIBLE);
                         btnRecord.setEnabled(true);
                         if (mService.isRecording()) {
-                            btnRecord.setCompoundDrawablesWithIntrinsicBounds(0,R.drawable.icon_stop,0,0);
+                            btnRecord.setCompoundDrawablesWithIntrinsicBounds(0,R.drawable.btn_stop,0,0);
                             btnRecord.setText(R.string.button_stop);
                         }
                     } else {
@@ -313,7 +346,7 @@ public class PlayerFragmentTab extends FragmentTab implements ServiceConnection,
                     }
                 } else {
                     if (!isLoading) {
-                        btnPlay.setCompoundDrawablesWithIntrinsicBounds(0, R.drawable.icon_pause, 0, 0);
+                        btnPlay.setCompoundDrawablesWithIntrinsicBounds(0, R.drawable.btn_pause_gray, 0, 0);
                         btnPlay.setText(R.string.button_pause);
                         btnPlay.setEnabled(false);
                         if (!mService.isStreaming()) {
@@ -322,7 +355,7 @@ public class PlayerFragmentTab extends FragmentTab implements ServiceConnection,
                             btnNext.setVisibility(View.VISIBLE);
                         }
                     } else {
-                        btnPlay.setCompoundDrawablesWithIntrinsicBounds(0, R.drawable.icon_play, 0, 0);
+                        btnPlay.setCompoundDrawablesWithIntrinsicBounds(0, R.drawable.btn_play, 0, 0);
                         btnPlay.setText(R.string.button_play);
                         if (!mService.isStreaming()) {
                             seekBarPlayer.setVisibility(View.VISIBLE);
@@ -331,18 +364,47 @@ public class PlayerFragmentTab extends FragmentTab implements ServiceConnection,
                         }
                     }
                 }
+                if (mService.isStreaming()) {
+                    btnNext.setImageResource(R.drawable.btn_next_gray);
+                    btnPrev.setImageResource(R.drawable.btn_prev_gray);
+                } else {
+                    btnNext.setImageResource(R.drawable.btn_next);
+                    btnPrev.setImageResource(R.drawable.btn_prev);
+                }
                 btnNext.setEnabled(!mService.isStreaming());
                 btnPrev.setEnabled(!mService.isStreaming());
+
                 btnRepeat.setText(R.string.button_repeat);
-                switch (mService.getStateAB()) {
-                    case MediaPlaybackService.ABState.PLAY:
-                        btnRepeat.setCompoundDrawablesWithIntrinsicBounds(0,R.drawable.icon_stop,0,0);
-                        break;
-                    case MediaPlaybackService.ABState.STOP:
-                    case MediaPlaybackService.ABState.ERROR:
-                    case MediaPlaybackService.ABState.FLAG:
-                        btnRepeat.setCompoundDrawablesWithIntrinsicBounds(0,R.drawable.icon_repeat,0,0);
-                        break;
+                if (mService.isPlaying() && !mService.isStreaming()) {
+                    switch (mService.getStateAB()) {
+                        case MediaPlaybackService.ABState.PLAY:
+                            btnRepeat.setCompoundDrawablesWithIntrinsicBounds(0, R.drawable.btn_stop, 0, 0);
+                            break;
+                        case MediaPlaybackService.ABState.STOP:
+                        case MediaPlaybackService.ABState.ERROR:
+                        case MediaPlaybackService.ABState.FLAG:
+                            btnRepeat.setCompoundDrawablesWithIntrinsicBounds(0, R.drawable.btn_repeat, 0, 0);
+                            break;
+                    }
+                } else {
+                    switch (mService.getStateAB()) {
+                        case MediaPlaybackService.ABState.PLAY:
+                            btnRepeat.setCompoundDrawablesWithIntrinsicBounds(0, R.drawable.btn_stop_gray, 0, 0);
+                            break;
+                        case MediaPlaybackService.ABState.STOP:
+                        case MediaPlaybackService.ABState.ERROR:
+                        case MediaPlaybackService.ABState.FLAG:
+                            btnRepeat.setCompoundDrawablesWithIntrinsicBounds(0, R.drawable.btn_repeat_gray, 0, 0);
+                            break;
+                    }
+                }
+
+                if (mService.getChannelObject() != null && mService.getChannelObject().length() > 0) {
+                    btnTimer.setEnabled(true);
+                    btnTimer.setCompoundDrawablesWithIntrinsicBounds(0, R.drawable.btn_timer, 0, 0);
+                } else {
+                    btnTimer.setEnabled(false);
+                    btnTimer.setCompoundDrawablesWithIntrinsicBounds(0, R.drawable.btn_timer_gray, 0, 0);
                 }
             }
         } catch (Exception e) {
@@ -370,17 +432,26 @@ public class PlayerFragmentTab extends FragmentTab implements ServiceConnection,
                         btnBack.setEnabled(false);
                         btnNext.setEnabled(false);
                         btnPrev.setEnabled(false);
+
+                        btnRecord.setCompoundDrawablesWithIntrinsicBounds(0, R.drawable.btn_record_gray, 0, 0);
+                        btnPlay.setCompoundDrawablesWithIntrinsicBounds(0, R.drawable.btn_play_gray, 0, 0);
+                        btnRepeat.setCompoundDrawablesWithIntrinsicBounds(0, R.drawable.btn_repeat_gray, 0, 0);
+                        btnBack.setCompoundDrawablesWithIntrinsicBounds(0, R.drawable.btn_back_gray, 0, 0);
+
+                        btnNext.setImageResource(R.drawable.btn_next_gray);
+                        btnPrev.setImageResource(R.drawable.btn_prev_gray);
                         break;
                     case DEFAULT:
                     default:
-                        btnPlay.setCompoundDrawablesWithIntrinsicBounds(0,R.drawable.icon_play,0,0);
+                        btnPlay.setCompoundDrawablesWithIntrinsicBounds(0, R.drawable.btn_play, 0, 0);
                         btnPlay.setText(R.string.button_play);
-                        btnRecord.setCompoundDrawablesWithIntrinsicBounds(0,R.drawable.icon_record,0,0);
-                        btnRecord.setText(R.string.button_record);
-                        btnRepeat.setCompoundDrawablesWithIntrinsicBounds(0,R.drawable.icon_repeat,0,0);
-                        btnRepeat.setText(R.string.button_repeat);
-                        btnRecord.setEnabled(false);
                         btnPlay.setEnabled(true);
+                        btnRecord.setCompoundDrawablesWithIntrinsicBounds(0, R.drawable.btn_record_gray, 0, 0);
+                        btnRecord.setText(R.string.button_record);
+                        btnRecord.setEnabled(false);
+
+                        btnRepeat.setCompoundDrawablesWithIntrinsicBounds(0, R.drawable.btn_repeat,0,0);
+                        btnRepeat.setText(R.string.button_repeat);
                         if (mService != null) {
                             try {
                                 boolean isStreaming = mService.isStreaming();
@@ -423,6 +494,9 @@ public class PlayerFragmentTab extends FragmentTab implements ServiceConnection,
                                 public void run() {
                                     try {
                                         lastChannelObject = mService.getChannelObject();
+                                        if (mService.isRecording()) {
+                                            mService.stopRecord();
+                                        }
                                         mService.stop();
                                     } catch (RemoteException e) {
                                         e.printStackTrace();
@@ -540,10 +614,12 @@ public class PlayerFragmentTab extends FragmentTab implements ServiceConnection,
             case R.id.btnTimer:
                 if (mService != null) {
                     try {
-                        Intent intent = new Intent();
-                        intent.setClass(getActivity(), TimerSettingsActivity.class);
-                        intent.putExtra(Constants.ARG_OBJECT, mService.getChannelObject());
-                        startActivity(intent);
+                        if (mService.getChannelObject() != null && mService.getChannelObject().length() > 0) {
+                            Intent intent = new Intent();
+                            intent.setClass(getActivity(), TimerSettingsActivity.class);
+                            intent.putExtra(Constants.ARG_OBJECT, mService.getChannelObject());
+                            startActivity(intent);
+                        }
                     } catch (RemoteException e) {
                         SimpleAppLog.error("Could not get current channel", e);
                     }

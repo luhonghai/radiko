@@ -1,5 +1,6 @@
 <?xml version="1.0" encoding="utf-8"?>
 <LinearLayout xmlns:android="http://schemas.android.com/apk/res/android"
+
     android:orientation="vertical" android:layout_width="match_parent"
     android:layout_height="match_parent"
     android:background="@color/default_background_color">
@@ -51,31 +52,32 @@
         android:layout_width="match_parent"
         android:layout_height="0dp"
         android:layout_weight="1">
-    <com.gmail.radioserver2.view.swipelistview.SwipeListView
-        xmlns:swipe="http://schemas.android.com/apk/res-auto"
-        android:background="@android:color/white"
-        android:id="@+id/list_channel"
-        android:listSelector="@color/default_background_color"
-        android:layout_width="match_parent"
-        android:layout_height="match_parent"
-        swipe:swipeFrontView="@+id/front"
-        swipe:swipeBackView="@+id/back"
-        swipe:swipeActionLeft="reveal"
-        swipe:swipeMode="left"
-        swipe:swipeOffsetLeft="290dp"
-        />
+        <com.gmail.radioserver2.view.swipelistview.SwipeListView
+            xmlns:swipe="http://schemas.android.com/apk/res-auto"
+            android:background="@android:color/white"
+            android:id="@+id/list_channel"
+            android:listSelector="@color/default_background_color"
+            android:layout_width="match_parent"
+            android:layout_height="match_parent"
+            swipe:swipeFrontView="@+id/front"
+            swipe:swipeBackView="@+id/back"
+            swipe:swipeActionLeft="reveal"
+            swipe:swipeMode="left"
+            swipe:swipeOffsetLeft="290dp"
+            />
     </RelativeLayout>
     <RelativeLayout
         android:layout_width="match_parent"
-        android:layout_height="@dimen/button_big_size"
-        android:background="@color/red_delete">
-        <TextView
-            android:layout_width="match_parent"
-            android:layout_height="match_parent"
-            android:textSize="@dimen/button_big_font_size"
-            android:text="@string/ads_place"
-            android:gravity="center_vertical|center_horizontal"
-            android:textColor="@android:color/white"
-            android:textStyle="bold"/>
-        </RelativeLayout>
+        android:layout_height="wrap_content"
+        android:gravity="center_horizontal|center_vertical"
+        >
+        <com.google.android.gms.ads.AdView
+            xmlns:ads="http://schemas.android.com/apk/res-auto"
+            android:id="@+id/adView"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            ads:adSize="BANNER"
+            ads:adUnitId="@string/banner_channel_ad_unit_id">
+        </com.google.android.gms.ads.AdView>
+    </RelativeLayout>
 </LinearLayout>

@@ -16,8 +16,8 @@ public class SimpleAppLog {
 
     public static void info(String log) {
         Log.i(TAG, log);
-     //   if (Fabric.isInitialized())
-     //       Crashlytics.log(log);
+        if (Fabric.isInitialized())
+            Crashlytics.log(Log.INFO, TAG, log);
     }
 
     public static void debug(String log) {
@@ -29,8 +29,8 @@ public class SimpleAppLog {
     }
 
     public static void error(String log, Throwable throwable) {
-    //    if (Fabric.isInitialized())
-     //       Crashlytics.log(Log.ERROR, TAG, log);
+        if (Fabric.isInitialized())
+            Crashlytics.log(Log.ERROR, TAG, log);
         if (throwable == null) {
             Log.e(TAG, log);
         } else {

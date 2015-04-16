@@ -42,6 +42,7 @@
 
     <!-- Recorded programs -->
     <string name="label_recorded_programs">録音した番組</string>
+    <string name="label_recorded_programs_library">フォルダの録音した番組</string>
 
     <!-- Library list screen -->
     <string name="label_library_list">フォルダ</string>
@@ -54,7 +55,7 @@
     <string name="button_back">少し戻る</string>
     <string name="button_timer">タイマー</string>
     <string name="button_record">録音</string>
-    <string name="button_repeat">A-B間\nリピート</string>
+    <string name="button_repeat">リピート</string>
     <string name="button_pause">一時停止</string>
     <string name="button_stop">停止</string>
 
@@ -103,6 +104,13 @@
 
     <string name="current_program">現在のプログラム</string>
     <string name="program_description">Description</string>
+
+    <!-- Wifi policy -->
+    <string name="wifi_policy_warning_title">お知らせ</string>
+    <string name="wifi_policy_warning_message">Wifiスリープポリシーを「切れない」と設定する必要があります</string>
+    <string name="wifi_policy_warning_positive_button">Wifiスリープ設定を開く</string>
+    <string name="wifi_policy_warning_negative_button">キャンセル</string>
+
     <!-- For debug -->
     <string name="ads_place">広　告　枠</string>
     <string name="default_channel_name">TBS ラジオ</string>

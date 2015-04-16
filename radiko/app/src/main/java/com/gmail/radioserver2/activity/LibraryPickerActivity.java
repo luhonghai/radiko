@@ -1,6 +1,7 @@
 package com.gmail.radioserver2.activity;
 
 import android.os.Bundle;
+import android.os.Handler;
 import android.view.View;
 import android.widget.Button;
 import android.widget.EditText;
@@ -12,6 +13,7 @@ import com.gmail.radioserver2.data.sqlite.ext.LibraryDBAdapter;
 import com.gmail.radioserver2.data.sqlite.ext.RecordedProgramDBAdapter;
 import com.gmail.radioserver2.utils.Constants;
 import com.gmail.radioserver2.utils.SimpleAppLog;
+import com.gmail.radioserver2.view.swipelistview.BaseSwipeListViewListener;
 import com.gmail.radioserver2.view.swipelistview.SwipeListView;
 import com.gmail.radioserver2.R;
 import com.gmail.radioserver2.adapter.LibraryPickerAdapter;
@@ -38,6 +40,10 @@ public class LibraryPickerActivity extends BaseActivity implements View.OnClickL
 
     private LibraryPickerAdapter adapter;
 
+    private int openItem = -1;
+    private int lastOpenedItem = -1;
+    private int lastClosedItem = -1;
+
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
@@ -47,6 +53,26 @@ public class LibraryPickerActivity extends BaseActivity implements View.OnClickL
         btnSave.setOnClickListener(this);
 
         listView = (SwipeListView) findViewById(R.id.list_library);
+
+        openItem = -1;
+        lastOpenedItem = -1;
+        lastClosedItem = -1;
+
+        listView.setSwipeListViewListener(new BaseSwipeListViewListener() {
+            @Override
+            public void onOpened(int position, boolean toRight) {
+                lastOpenedItem = position;
+                if (openItem > -1 && lastOpenedItem != lastClosedItem) {
+                    listView.closeAnimate(openItem);
+                }
+                openItem = position;
+            }
+
+            @Override
+            public void onStartClose(int position, boolean right) {
+                lastClosedItem = position;
+            }
+        });
 
         txtLibraryName = (EditText) findViewById(R.id.txtLibraryName);
 
@@ -155,16 +181,26 @@ public class LibraryPickerActivity extends BaseActivity implements View.OnClickL
 
     @Override
     public void onDeleteItem(Library obj) {
+        if (openItem > -1 && lastOpenedItem != lastClosedItem) {
+            listView.closeItem(openItem);
+        }
+
         LibraryDBAdapter adapter = new LibraryDBAdapter(this);
         try {
             adapter.open();
             adapter.delete(obj);
-            loadData();
         } catch (Exception ex) {
             SimpleAppLog.error("Could not delete library",ex);
         } finally {
             adapter.close();
         }
+
+        new Handler().postDelayed(new Runnable() {
+            @Override
+            public void run() {
+                loadData();
+            }
+        },100);
     }
 
     @Override
