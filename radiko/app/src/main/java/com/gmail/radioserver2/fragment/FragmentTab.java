@@ -4,10 +4,11 @@ import android.os.Bundle;
 import android.view.LayoutInflater;
 import android.view.View;
 import android.view.ViewGroup;
-import android.widget.TextView;
 
 import com.actionbarsherlock.app.SherlockFragment;
-import com.gmail.radioserver2.R;
+import com.gmail.radioserver2.analytic.AnalyticHelper;
+import com.google.android.gms.analytics.HitBuilders;
+import com.google.android.gms.analytics.Tracker;
 
 /**
  * Created by luhonghai on 2/17/15.
@@ -23,10 +24,10 @@ public class FragmentTab extends SherlockFragment {
     @Override
     public View onCreateView(LayoutInflater inflater, ViewGroup container,
                              Bundle savedInstanceState) {
-        View v = inflater.inflate(R.layout.fragment_layout, container, false);
-        TextView tv = (TextView) v.findViewById(R.id.text);
-        tv.setText(this.getTag() + " content.");
-        return v;
+        Tracker t = AnalyticHelper.getTracker(getActivity());
+        t.setScreenName(this.getClass().getName());
+        t.send(new HitBuilders.ScreenViewBuilder().build());
+        return null;
     }
 
     @Override

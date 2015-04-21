@@ -1,0 +1,40 @@
+<?xml version="1.0" encoding="utf-8"?>
+<resources
+    xmlns:tools="http://schemas.android.com/tools"
+    tools:ignore="TypographyDashes">
+    <integer name="ga_sessionTimeout">300</integer>
+
+    <!-- Enable automatic Activity measurement -->
+    <bool name="ga_autoActivityTracking">true</bool>
+
+    <!-- The screen names that will appear in reports -->
+    <screenName name="com.gmail.radioserver2.fragment.SettingFragmentTab">
+        RadioServer Setting
+    </screenName>
+    <screenName name="com.gmail.radioserver2.fragment.HomeFragmentTab">
+        RadioServer Channels
+    </screenName>
+    <screenName name="com.gmail.radioserver2.fragment.LibraryFragmentTab">
+        RadioServer Playlist
+    </screenName>
+    <screenName name="com.gmail.radioserver2.fragment.PlayerFragmentTab">
+        RadioServer Player
+    </screenName>
+    <screenName name="com.gmail.radioserver2.fragment.RecordedProgramFragmentTab">
+        RadioServer RecordedProgram
+    </screenName>
+    <screenName name="com.gmail.radioserver2.activity.MainActivity">
+        RadioServer MainActivity
+    </screenName>
+    <screenName name="com.gmail.radioserver2.activity.TimerListActivity">
+        RadioServer TimerList
+    </screenName>
+    <screenName name="com.gmail.radioserver2.activity.TimerSettingsActivity">
+        RadioServer TimerSetting
+    </screenName>
+    <screenName name="com.gmail.radioserver2.activity.LibraryPickerActivity">
+        RadioServer LibraryPicker
+    </screenName>
+    <!--  The following value should be replaced with correct property id. -->
+    <string name="ga_trackingId">UA-61988426-1</string>
+</resources>

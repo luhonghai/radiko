@@ -56,6 +56,7 @@ public class MediaPlayerFragment extends Fragment implements CoverViewListener {
 	@Override
 	public View onCreateView(LayoutInflater inflater, ViewGroup container,
 			Bundle savedInstanceState) {
+        //super.onCreateView(inflater,container,savedInstanceState);
 		View view = inflater.inflate(R.layout.fragment_media_player, container, false);
 		
 		mAlbumArtWorker = new Worker("album art worker");

@@ -63,19 +63,31 @@ public class PlayerFragmentTab extends FragmentTab implements ServiceConnection,
 
     private TextView txtDescription;
 
-    private Button btnTimer;
+    private ImageButton btnTimer;
 
-    private Button btnBack;
+    private TextView txtTimer;
 
-    private Button btnPlay;
+    private ImageButton btnBack;
 
-    private Button btnRecord;
+    private TextView txtBack;
+
+    private ImageButton btnPlay;
+
+    private TextView txtPlay;
+
+    private ImageButton btnRecord;
+
+    private TextView txtRecord;
+
+    private ImageButton btnRepeat;
+
+    private TextView txtRepeat;
 
     private Button btnSlow;
 
     private Button btnFast;
 
-    private Button btnRepeat;
+
 
     private ImageButton btnPrev;
 
@@ -156,6 +168,7 @@ public class PlayerFragmentTab extends FragmentTab implements ServiceConnection,
 
     @Override
     public View onCreateView(LayoutInflater inflater, ViewGroup container, Bundle savedInstanceState) {
+        super.onCreateView(inflater,container,savedInstanceState);
         View v = inflater.inflate(R.layout.fragment_player_tab, container, false);
         mAdView = (AdView) v.findViewById(R.id.adView);
         if (mAdView != null) {
@@ -170,20 +183,40 @@ public class PlayerFragmentTab extends FragmentTab implements ServiceConnection,
         gifView.setVisibility(View.INVISIBLE);
         loadGifLoader();
 
-        btnBack = (Button) v.findViewById(R.id.btnBack);
+        btnBack = (ImageButton) v.findViewById(R.id.btnBack);
         btnBack.setOnClickListener(this);
-        btnTimer = (Button) v.findViewById(R.id.btnTimer);
+
+        txtBack = (TextView) v.findViewById(R.id.txtBack);
+        txtBack.setOnClickListener(this);
+
+        btnTimer = (ImageButton) v.findViewById(R.id.btnTimer);
         btnTimer.setOnClickListener(this);
+
+        txtTimer = (TextView) v.findViewById(R.id.txtTimer);
+        txtTimer.setOnClickListener(this);
+
         btnSlow = (Button) v.findViewById(R.id.btnSlow);
         btnSlow.setOnClickListener(this);
         btnFast = (Button) v.findViewById(R.id.btnFast);
         btnFast.setOnClickListener(this);
-        btnRecord = (Button) v.findViewById(R.id.btnRecord);
+
+        btnRecord = (ImageButton) v.findViewById(R.id.btnRecord);
         btnRecord.setOnClickListener(this);
-        btnRepeat = (Button) v.findViewById(R.id.btnRepeat);
+
+        txtRecord = (TextView) v.findViewById(R.id.txtRecord);
+        txtRecord.setOnClickListener(this);
+
+        btnRepeat = (ImageButton) v.findViewById(R.id.btnRepeat);
         btnRepeat.setOnClickListener(this);
-        btnPlay = (Button) v.findViewById(R.id.btnPlay);
+
+        txtRepeat = (TextView) v.findViewById(R.id.txtRepeat);
+        txtRepeat.setOnClickListener(this);
+
+        btnPlay = (ImageButton) v.findViewById(R.id.btnPlay);
         btnPlay.setOnClickListener(this);
+
+        txtPlay = (TextView) v.findViewById(R.id.txtPlay);
+        txtPlay.setOnClickListener(this);
 
         btnPrev = (ImageButton) v.findViewById(R.id.btnPrev);
         btnPrev.setOnClickListener(this);
@@ -287,56 +320,70 @@ public class PlayerFragmentTab extends FragmentTab implements ServiceConnection,
 
     private void showPlayerInit() {
         try {
-            btnPlay.setCompoundDrawablesWithIntrinsicBounds(0, R.drawable.btn_pause_gray, 0, 0);
-            btnPlay.setText(R.string.button_pause);
+            btnPlay.setImageResource(R.drawable.btn_pause_gray);
+            txtPlay.setText(R.string.button_pause);
             btnPlay.setEnabled(false);
+            txtPlay.setEnabled(false);
         } catch (Exception e) {}
     }
 
     private void showPlayer() {
         if (btnRepeat == null || !this.isAdded()) return;
         try {
-        btnRepeat.setEnabled(false);
-        btnFast.setEnabled(false);
-        btnSlow.setEnabled(false);
-        btnBack.setEnabled(false);
-        btnRecord.setEnabled(false);
-        btnPlay.setEnabled(false);
-        btnNext.setEnabled(false);
-        btnPrev.setEnabled(false);
-        btnNext.setVisibility(View.INVISIBLE);
-        btnPrev.setVisibility(View.INVISIBLE);
-        seekBarPlayer.setVisibility(View.GONE);
-        gifView.setVisibility(View.GONE);
-        seekBarPlayer.setEnabled(false);
+            btnRepeat.setEnabled(false);
+            btnFast.setEnabled(false);
+            btnSlow.setEnabled(false);
+            btnBack.setEnabled(false);
+            btnRecord.setEnabled(false);
+            btnPlay.setEnabled(false);
+            btnNext.setEnabled(false);
+            btnPrev.setEnabled(false);
+
+            txtPlay.setEnabled(false);
+            txtRepeat.setEnabled(false);
+            txtRecord.setEnabled(false);
+            txtBack.setEnabled(false);
+            txtTimer.setEnabled(false);
+
+            btnNext.setVisibility(View.INVISIBLE);
+            btnPrev.setVisibility(View.INVISIBLE);
+            seekBarPlayer.setVisibility(View.GONE);
+            gifView.setVisibility(View.GONE);
+            seekBarPlayer.setEnabled(false);
             if (mService != null) {
                 btnPlay.setEnabled(true);
-                btnRecord.setText(R.string.button_record);
+                txtPlay.setEnabled(true);
+
+                txtRecord.setText(R.string.button_record);
                 if (mService.isPlaying()) {
                     isLoading = true;
 
                     if (mService.isStreaming()) {
-                        btnRepeat.setCompoundDrawablesWithIntrinsicBounds(0, R.drawable.btn_repeat_gray, 0, 0);
-                        btnRecord.setCompoundDrawablesWithIntrinsicBounds(0,R.drawable.btn_record,0,0);
-                        btnBack.setCompoundDrawablesWithIntrinsicBounds(0, R.drawable.btn_back_gray, 0, 0);
+                        btnRepeat.setImageResource(R.drawable.btn_repeat_gray);
+                        btnRecord.setImageResource(R.drawable.btn_record);
+                        btnBack.setImageResource(R.drawable.btn_back_gray);
                     } else {
-                        btnRepeat.setCompoundDrawablesWithIntrinsicBounds(0, R.drawable.btn_repeat, 0, 0);
-                        btnBack.setCompoundDrawablesWithIntrinsicBounds(0, R.drawable.btn_back, 0, 0);
-                        btnRecord.setCompoundDrawablesWithIntrinsicBounds(0,R.drawable.btn_record_gray,0,0);
+                        btnRepeat.setImageResource(R.drawable.btn_repeat);
+                        btnBack.setImageResource(R.drawable.btn_back);
+                        btnRecord.setImageResource(R.drawable.btn_record_gray);
                     }
 
                     btnRepeat.setEnabled(!mService.isStreaming());
+                    txtRepeat.setEnabled(!mService.isStreaming());
                     btnBack.setEnabled(!mService.isStreaming());
+                    txtBack.setEnabled(!mService.isStreaming());
                     btnFast.setEnabled(!mService.isStreaming());
                     btnSlow.setEnabled(!mService.isStreaming());
-                    btnPlay.setCompoundDrawablesWithIntrinsicBounds(0,R.drawable.btn_pause,0,0);
-                    btnPlay.setText(R.string.button_pause);
+
+                    btnPlay.setImageResource(R.drawable.btn_pause);
+                    txtPlay.setText(R.string.button_pause);
                     if (mService.isStreaming()) {
                         gifView.setVisibility(View.VISIBLE);
                         btnRecord.setEnabled(true);
+                        txtRecord.setEnabled(true);
                         if (mService.isRecording()) {
-                            btnRecord.setCompoundDrawablesWithIntrinsicBounds(0,R.drawable.btn_stop,0,0);
-                            btnRecord.setText(R.string.button_stop);
+                            btnRecord.setImageResource(R.drawable.btn_stop);
+                            txtRecord.setText(R.string.button_stop);
                         }
                     } else {
                         seekBarPlayer.setVisibility(View.VISIBLE);
@@ -346,17 +393,18 @@ public class PlayerFragmentTab extends FragmentTab implements ServiceConnection,
                     }
                 } else {
                     if (!isLoading) {
-                        btnPlay.setCompoundDrawablesWithIntrinsicBounds(0, R.drawable.btn_pause_gray, 0, 0);
-                        btnPlay.setText(R.string.button_pause);
+                        btnPlay.setImageResource(R.drawable.btn_pause_gray);
+                        txtPlay.setText(R.string.button_pause);
                         btnPlay.setEnabled(false);
+                        txtPlay.setEnabled(false);
                         if (!mService.isStreaming()) {
                             seekBarPlayer.setVisibility(View.VISIBLE);
                             btnPrev.setVisibility(View.VISIBLE);
                             btnNext.setVisibility(View.VISIBLE);
                         }
                     } else {
-                        btnPlay.setCompoundDrawablesWithIntrinsicBounds(0, R.drawable.btn_play, 0, 0);
-                        btnPlay.setText(R.string.button_play);
+                        btnPlay.setImageResource(R.drawable.btn_play);
+                        txtPlay.setText(R.string.button_play);
                         if (!mService.isStreaming()) {
                             seekBarPlayer.setVisibility(View.VISIBLE);
                             btnPrev.setVisibility(View.VISIBLE);
@@ -374,37 +422,43 @@ public class PlayerFragmentTab extends FragmentTab implements ServiceConnection,
                 btnNext.setEnabled(!mService.isStreaming());
                 btnPrev.setEnabled(!mService.isStreaming());
 
-                btnRepeat.setText(R.string.button_repeat);
+                txtRepeat.setText(R.string.button_repeat);
                 if (mService.isPlaying() && !mService.isStreaming()) {
+                    btnRepeat.setEnabled(true);
+                    txtRepeat.setEnabled(true);
                     switch (mService.getStateAB()) {
                         case MediaPlaybackService.ABState.PLAY:
-                            btnRepeat.setCompoundDrawablesWithIntrinsicBounds(0, R.drawable.btn_stop, 0, 0);
+                            btnRepeat.setImageResource(R.drawable.btn_stop);
                             break;
                         case MediaPlaybackService.ABState.STOP:
                         case MediaPlaybackService.ABState.ERROR:
                         case MediaPlaybackService.ABState.FLAG:
-                            btnRepeat.setCompoundDrawablesWithIntrinsicBounds(0, R.drawable.btn_repeat, 0, 0);
+                            btnRepeat.setImageResource(R.drawable.btn_repeat);
                             break;
                     }
                 } else {
+                    btnRepeat.setEnabled(false);
+                    txtRepeat.setEnabled(false);
                     switch (mService.getStateAB()) {
                         case MediaPlaybackService.ABState.PLAY:
-                            btnRepeat.setCompoundDrawablesWithIntrinsicBounds(0, R.drawable.btn_stop_gray, 0, 0);
+                            btnRepeat.setImageResource(R.drawable.btn_stop_gray);
                             break;
                         case MediaPlaybackService.ABState.STOP:
                         case MediaPlaybackService.ABState.ERROR:
                         case MediaPlaybackService.ABState.FLAG:
-                            btnRepeat.setCompoundDrawablesWithIntrinsicBounds(0, R.drawable.btn_repeat_gray, 0, 0);
+                            btnRepeat.setImageResource(R.drawable.btn_repeat_gray);
                             break;
                     }
                 }
 
                 if (mService.getChannelObject() != null && mService.getChannelObject().length() > 0) {
                     btnTimer.setEnabled(true);
-                    btnTimer.setCompoundDrawablesWithIntrinsicBounds(0, R.drawable.btn_timer, 0, 0);
+                    txtTimer.setEnabled(true);
+                    btnTimer.setImageResource(R.drawable.btn_timer);
                 } else {
                     btnTimer.setEnabled(false);
-                    btnTimer.setCompoundDrawablesWithIntrinsicBounds(0, R.drawable.btn_timer_gray, 0, 0);
+                    txtTimer.setEnabled(false);
+                    btnTimer.setImageResource(R.drawable.btn_timer_gray);
                 }
             }
         } catch (Exception e) {
@@ -433,25 +487,33 @@ public class PlayerFragmentTab extends FragmentTab implements ServiceConnection,
                         btnNext.setEnabled(false);
                         btnPrev.setEnabled(false);
 
-                        btnRecord.setCompoundDrawablesWithIntrinsicBounds(0, R.drawable.btn_record_gray, 0, 0);
-                        btnPlay.setCompoundDrawablesWithIntrinsicBounds(0, R.drawable.btn_play_gray, 0, 0);
-                        btnRepeat.setCompoundDrawablesWithIntrinsicBounds(0, R.drawable.btn_repeat_gray, 0, 0);
-                        btnBack.setCompoundDrawablesWithIntrinsicBounds(0, R.drawable.btn_back_gray, 0, 0);
+                        txtPlay.setEnabled(false);
+                        txtRepeat.setEnabled(false);
+                        txtRecord.setEnabled(false);
+                        txtBack.setEnabled(false);
+                        txtTimer.setEnabled(false);
+                        txtTimer.setEnabled(false);
+
+                        btnRecord.setImageResource(R.drawable.btn_record_gray);
+                        btnPlay.setImageResource(R.drawable.btn_play_gray);
+                        btnRepeat.setImageResource(R.drawable.btn_repeat_gray);
+                        btnBack.setImageResource(R.drawable.btn_back_gray);
 
                         btnNext.setImageResource(R.drawable.btn_next_gray);
                         btnPrev.setImageResource(R.drawable.btn_prev_gray);
                         break;
                     case DEFAULT:
                     default:
-                        btnPlay.setCompoundDrawablesWithIntrinsicBounds(0, R.drawable.btn_play, 0, 0);
-                        btnPlay.setText(R.string.button_play);
+                        btnPlay.setImageResource(R.drawable.btn_play);
+                        txtPlay.setText(R.string.button_play);
                         btnPlay.setEnabled(true);
-                        btnRecord.setCompoundDrawablesWithIntrinsicBounds(0, R.drawable.btn_record_gray, 0, 0);
-                        btnRecord.setText(R.string.button_record);
+                        txtPlay.setEnabled(true);
+                        btnRecord.setImageResource(R.drawable.btn_record_gray);
+                        txtRecord.setText(R.string.button_record);
                         btnRecord.setEnabled(false);
 
-                        btnRepeat.setCompoundDrawablesWithIntrinsicBounds(0, R.drawable.btn_repeat,0,0);
-                        btnRepeat.setText(R.string.button_repeat);
+                        btnRepeat.setImageResource(R.drawable.btn_repeat);
+                        txtRepeat.setText(R.string.button_repeat);
                         if (mService != null) {
                             try {
                                 boolean isStreaming = mService.isStreaming();
@@ -473,6 +535,7 @@ public class PlayerFragmentTab extends FragmentTab implements ServiceConnection,
     @Override
     public void onClick(View v) {
         switch (v.getId()) {
+            case R.id.txtBack:
             case R.id.btnBack:
                 try {
                     if (!mService.isStreaming() && mService.isPlaying()) {
@@ -484,6 +547,7 @@ public class PlayerFragmentTab extends FragmentTab implements ServiceConnection,
                     SimpleAppLog.error("Could not back",e);
                 }
                 break;
+            case R.id.txtPlay:
             case R.id.btnPlay:
                 switchButtonStage(ButtonStage.DISABLED);
                 try {
@@ -541,6 +605,7 @@ public class PlayerFragmentTab extends FragmentTab implements ServiceConnection,
                 }
 
                 break;
+            case R.id.txtRecord:
             case R.id.btnRecord:
                 switchButtonStage(ButtonStage.DISABLED);
                 try {
@@ -574,6 +639,7 @@ public class PlayerFragmentTab extends FragmentTab implements ServiceConnection,
                     SimpleAppLog.error("Could not go next item", e);
                 }
                 break;
+            case R.id.txtRepeat:
             case R.id.btnRepeat:
                 try {
                     switch(mService.getStateAB()) {
@@ -602,7 +668,6 @@ public class PlayerFragmentTab extends FragmentTab implements ServiceConnection,
                 }
                 break;
             case R.id.btnFast:
-
                 try {
                     if (mService.isPlaying()) {
                         mService.doFast(setting.getFastLevel());
@@ -611,6 +676,7 @@ public class PlayerFragmentTab extends FragmentTab implements ServiceConnection,
                     SimpleAppLog.error("Could call fast", ex);
                 }
                 break;
+            case R.id.txtTimer:
             case R.id.btnTimer:
                 if (mService != null) {
                     try {

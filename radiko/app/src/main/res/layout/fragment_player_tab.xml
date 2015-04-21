@@ -34,7 +34,7 @@
             android:textStyle="bold"/>
         <ScrollView
             android:layout_width="match_parent"
-            android:layout_height="match_parent"
+            android:layout_height="wrap_content"
             android:padding="@dimen/tabs_padding">
             <TextView
                 android:id="@+id/txtDescription"
@@ -111,19 +111,39 @@
                         android:layout_height="match_parent"
                         android:layout_weight="1"
                         android:text="@string/button_slow"
+                        android:textColor="@color/text_color"
                         android:background="@drawable/rounded_corner_button"
                         android:textAppearance="?android:attr/textAppearanceButton"
                         android:layout_margin="@dimen/button_media_margin"/>
-                    <Button
-                        android:id="@+id/btnPlay"
-                        android:layout_width="0dp"
-                        android:layout_height="match_parent"
+                    <RelativeLayout
                         android:layout_weight="2"
-                        android:text="@string/button_play"
-                        android:drawableTop="@drawable/btn_play"
+                        android:layout_width="0dp"
                         android:background="@drawable/rounded_corner_button"
-                        android:textAppearance="?android:attr/textAppearanceButton"
-                        android:layout_margin="@dimen/button_media_margin"/>
+                        android:layout_height="match_parent"
+                        android:layout_margin="@dimen/button_media_margin">
+                        <LinearLayout
+                            android:layout_width="match_parent"
+                            android:layout_height="match_parent"
+                            android:orientation="vertical">
+                            <ImageButton
+                                android:id="@+id/btnPlay"
+                                android:layout_weight="1"
+                                android:background="@null"
+                                android:layout_width="match_parent"
+                                android:layout_height="0dp"
+                                android:src="@drawable/btn_play"
+                                android:adjustViewBounds="true"
+                                android:scaleType="fitCenter"/>
+                            <TextView
+                                android:id="@+id/txtPlay"
+                                android:layout_width="match_parent"
+                                android:layout_height="wrap_content"
+                                android:textColor="@color/text_color"
+                                android:textAppearance="?android:attr/textAppearanceButton"
+                                android:gravity="center_horizontal|center_vertical"
+                                android:text="@string/button_play"/>
+                        </LinearLayout>
+                    </RelativeLayout>
                     <Button
                         android:id="@+id/btnFast"
                         android:layout_width="0dp"
@@ -131,6 +151,7 @@
                         android:layout_weight="1"
                         android:text="@string/button_fast"
                         android:background="@drawable/rounded_corner_button"
+                        android:textColor="@color/text_color"
                         android:textAppearance="?android:attr/textAppearanceButton"
                         android:layout_margin="@dimen/button_media_margin"/>
                 </LinearLayout>
@@ -143,46 +164,126 @@
                     android:layout_width="match_parent"
                     android:layout_height="match_parent"
                     android:orientation="horizontal">
-                    <Button
-                        android:id="@+id/btnBack"
-                        android:layout_width="0dp"
-                        android:layout_height="match_parent"
+
+                    <RelativeLayout
                         android:layout_weight="1"
-                        android:text="@string/button_back"
-                        android:drawableTop="@drawable/btn_back"
-                        android:background="@drawable/rounded_corner_button"
-                        android:textAppearance="?android:attr/textAppearanceButton"
-                        android:layout_margin="@dimen/button_media_margin"/>
-                    <Button
-                        android:id="@+id/btnTimer"
                         android:layout_width="0dp"
-                        android:layout_height="match_parent"
-                        android:layout_weight="1"
-                        android:text="@string/button_timer"
-                        android:drawableTop="@drawable/btn_timer"
                         android:background="@drawable/rounded_corner_button"
-                        android:textAppearance="?android:attr/textAppearanceButton"
-                        android:layout_margin="@dimen/button_media_margin"/>
-                    <Button
-                        android:id="@+id/btnRecord"
+                        android:layout_height="match_parent"
+                        android:layout_margin="@dimen/button_media_margin">
+                        <LinearLayout
+                            android:layout_width="match_parent"
+                            android:layout_height="match_parent"
+                            android:orientation="vertical">
+                            <ImageButton
+                                android:id="@+id/btnBack"
+                                android:layout_weight="1"
+                                android:background="@null"
+                                android:layout_width="match_parent"
+                                android:layout_height="0dp"
+                                android:src="@drawable/btn_back"
+                                android:adjustViewBounds="true"
+                                android:scaleType="fitCenter"/>
+                            <TextView
+                                android:id="@+id/txtBack"
+                                android:layout_width="match_parent"
+                                android:layout_height="wrap_content"
+                                android:textAppearance="?android:attr/textAppearanceButton"
+                                android:gravity="center_horizontal|center_vertical"
+                                android:textColor="@color/text_color"
+                                android:text="@string/button_back"/>
+                        </LinearLayout>
+                    </RelativeLayout>
+
+                    <RelativeLayout
+                        android:layout_weight="1"
                         android:layout_width="0dp"
-                        android:layout_height="match_parent"
-                        android:layout_weight="1"
-                        android:text="@string/button_record"
-                        android:drawableTop="@drawable/btn_record"
                         android:background="@drawable/rounded_corner_button"
-                        android:textAppearance="?android:attr/textAppearanceButton"
-                        android:layout_margin="@dimen/button_media_margin"/>
-                    <Button
-                        android:id="@+id/btnRepeat"
+                        android:layout_height="match_parent"
+                        android:layout_margin="@dimen/button_media_margin">
+                        <LinearLayout
+                            android:layout_width="match_parent"
+                            android:layout_height="match_parent"
+                            android:orientation="vertical">
+                            <ImageButton
+                                android:id="@+id/btnTimer"
+                                android:layout_weight="1"
+                                android:background="@null"
+                                android:layout_width="match_parent"
+                                android:layout_height="0dp"
+                                android:src="@drawable/btn_timer"
+                                android:adjustViewBounds="true"
+                                android:scaleType="fitCenter"/>
+                            <TextView
+                                android:id="@+id/txtTimer"
+                                android:layout_width="match_parent"
+                                android:layout_height="wrap_content"
+                                android:textAppearance="?android:attr/textAppearanceButton"
+                                android:gravity="center_horizontal|center_vertical"
+                                android:textColor="@color/text_color"
+                                android:text="@string/button_timer"/>
+                        </LinearLayout>
+                    </RelativeLayout>
+
+                    <RelativeLayout
+                        android:layout_weight="1"
                         android:layout_width="0dp"
-                        android:layout_height="match_parent"
-                        android:layout_weight="1"
-                        android:text="@string/button_repeat"
-                        android:drawableTop="@drawable/btn_repeat"
                         android:background="@drawable/rounded_corner_button"
-                        android:layout_margin="@dimen/button_media_margin"
-                        android:gravity="center_vertical|center_horizontal" />
+                        android:layout_height="match_parent"
+                        android:layout_margin="@dimen/button_media_margin">
+                        <LinearLayout
+                            android:layout_width="match_parent"
+                            android:layout_height="match_parent"
+                            android:orientation="vertical">
+                            <ImageButton
+                                android:id="@+id/btnRecord"
+                                android:layout_weight="1"
+                                android:background="@null"
+                                android:layout_width="match_parent"
+                                android:layout_height="0dp"
+                                android:src="@drawable/btn_record"
+                                android:adjustViewBounds="true"
+                                android:scaleType="fitCenter"/>
+                            <TextView
+                                android:id="@+id/txtRecord"
+                                android:layout_width="match_parent"
+                                android:layout_height="wrap_content"
+                                android:textAppearance="?android:attr/textAppearanceButton"
+                                android:gravity="center_horizontal|center_vertical"
+                                android:textColor="@color/text_color"
+                                android:text="@string/button_record"/>
+                        </LinearLayout>
+                    </RelativeLayout>
+
+                    <RelativeLayout
+                        android:layout_weight="1"
+                        android:layout_width="0dp"
+                        android:background="@drawable/rounded_corner_button"
+                        android:layout_height="match_parent"
+                        android:layout_margin="@dimen/button_media_margin">
+                        <LinearLayout
+                            android:layout_width="match_parent"
+                            android:layout_height="match_parent"
+                            android:orientation="vertical">
+                            <ImageButton
+                                android:id="@+id/btnRepeat"
+                                android:layout_weight="1"
+                                android:background="@null"
+                                android:layout_width="match_parent"
+                                android:layout_height="0dp"
+                                android:src="@drawable/btn_repeat"
+                                android:adjustViewBounds="true"
+                                android:scaleType="fitCenter"/>
+                            <TextView
+                                android:id="@+id/txtRepeat"
+                                android:layout_width="match_parent"
+                                android:layout_height="wrap_content"
+                                android:textAppearance="?android:attr/textAppearanceSmall"
+                                android:gravity="center_horizontal|center_vertical"
+                                android:textColor="@color/text_color"
+                                android:text="@string/button_repeat"/>
+                        </LinearLayout>
+                    </RelativeLayout>
                 </LinearLayout>
             </RelativeLayout>
         </LinearLayout>

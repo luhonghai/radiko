@@ -41,6 +41,7 @@ public class LibraryFragmentTab extends FragmentTab implements OnListItemActionL
 
     @Override
     public View onCreateView(LayoutInflater inflater, ViewGroup container, Bundle savedInstanceState) {
+        super.onCreateView(inflater,container,savedInstanceState);
         View v = inflater.inflate(R.layout.fragment_library_tab, container, false);
 
         mAdView = (AdView) v.findViewById(R.id.adView);

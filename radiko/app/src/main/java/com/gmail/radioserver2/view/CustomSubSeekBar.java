@@ -6,6 +6,7 @@ import android.graphics.Paint;
 import android.graphics.Typeface;
 import android.graphics.drawable.Drawable;
 import android.util.AttributeSet;
+import android.view.View;
 import android.widget.SeekBar;
 
 import com.gmail.radioserver2.R;
@@ -13,7 +14,7 @@ import com.gmail.radioserver2.R;
 /**
  * Created by luhonghai on 3/25/15.
  */
-public class CustomSeekBar extends SeekBar {
+public class CustomSubSeekBar extends View {
 
     private Paint paint;
 
@@ -23,17 +24,17 @@ public class CustomSeekBar extends SeekBar {
 
     private int thumbHeight = 0;
 
-    public CustomSeekBar(Context context) {
+    public CustomSubSeekBar(Context context) {
         super(context);
         init();
     }
 
-    public CustomSeekBar(Context context, AttributeSet attrs) {
+    public CustomSubSeekBar(Context context, AttributeSet attrs) {
         super(context, attrs);
         init();
     }
 
-    public CustomSeekBar(Context context, AttributeSet attrs, int defStyleAttr) {
+    public CustomSubSeekBar(Context context, AttributeSet attrs, int defStyleAttr) {
         super(context, attrs, defStyleAttr);
         init();
     }
@@ -61,24 +62,18 @@ public class CustomSeekBar extends SeekBar {
         int pointWidth = 6;
         int padding = thumbWidth / 2;
         int seekLength = width - padding * 2;
+        int textSize = 2 * height / 3;
+        paint.setTextSize(textSize);
 
-        canvas.drawRect(padding, height / 2 - pointWidth / 2, width - padding, height / 2 + pointWidth / 2, paint);
-        canvas.drawRect(padding - pointWidth / 2,
-                (height - pointHeight) / 2,
-                padding + pointWidth / 2,
-                height - (height - pointHeight) / 2, paint);
-        canvas.drawRect( width - padding - pointWidth / 2,
-                (height - pointHeight) / 2,
-                 width - padding + pointWidth / 2,
-                height - (height - pointHeight) / 2, paint);
-        canvas.drawRect(padding + seekLength / 3 - pointWidth / 2,
-                (height - pointHeight) / 2,
-                 padding + seekLength / 3 + pointWidth / 2,
-                height - (height - pointHeight) / 2, paint);
-        canvas.drawRect( padding + 2 * seekLength / 3 - pointWidth / 2,
-                (height - pointHeight) / 2,
-                  padding + 2 * seekLength / 3 + pointWidth / 2,
-                height - (height - pointHeight) / 2, paint);
+        if (items != null) {
+            for (int i = 0; i < items.length; i++) {
+                String text = items[i];
+                canvas.drawText(text,
+                        padding + (i * seekLength / 3),
+                        height,
+                        paint);
+            }
+        }
         super.onDraw(canvas);
     }
 

@@ -66,6 +66,7 @@ public class HomeFragmentTab extends FragmentTab implements OnListItemActionList
 
     @Override
     public View onCreateView(LayoutInflater inflater, ViewGroup container, Bundle savedInstanceState) {
+        super.onCreateView(inflater,container,savedInstanceState);
         View v = inflater.inflate(R.layout.fragment_home_tab, container, false);
 
         mAdView = (AdView) v.findViewById(R.id.adView);

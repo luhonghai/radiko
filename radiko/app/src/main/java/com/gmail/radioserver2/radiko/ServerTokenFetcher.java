@@ -26,21 +26,24 @@ public class ServerTokenFetcher extends TokenFetcher {
     @Override
     public void fetchRemote() {
         final File tmpFile = fileHelper.getTmpTokenFile();
+        String token = "";
+        String outpt = "";
         try {
             if (tmpFile.exists())
                 FileUtils.forceDelete(tmpFile);
             FileUtils.copyURLToFile(new URL("http://stest.dotohsoft.com/~duc/rad/gettoken/getkey.php"), tmpFile);
             if (tmpFile.exists()) {
-                String token = FileUtils.readFileToString(tmpFile, "UTF-8");
+                token = FileUtils.readFileToString(tmpFile, "UTF-8");
                 saveToken(token, RadioArea.AREA_ID_TOKYO);
-                onTokenFound(token, RadioArea.AREA_ID_TOKYO);
+                outpt =  RadioArea.AREA_ID_TOKYO;
             } else {
-                onTokenFound("", "");
+
             }
 
         } catch (Exception e) {
             onError("Could not connect to server", e);
         }
+        onTokenFound(token, outpt);
     }
 
     @Override

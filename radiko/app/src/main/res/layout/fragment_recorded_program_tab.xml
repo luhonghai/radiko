@@ -51,6 +51,7 @@
     <RelativeLayout
         android:layout_width="match_parent"
         android:layout_height="0dp"
+        android:background="@android:color/white"
         android:layout_weight="1">
     <com.gmail.radioserver2.view.swipelistview.SwipeListView
         xmlns:swipe="http://schemas.android.com/apk/res-auto"
@@ -63,13 +64,14 @@
         swipe:swipeBackView="@+id/back"
         swipe:swipeActionLeft="reveal"
         swipe:swipeMode="left"
-        swipe:swipeOffsetLeft="200dp"
+        swipe:swipeOffsetLeft="220dp"
         />
     </RelativeLayout>
     <RelativeLayout
         android:layout_width="match_parent"
         android:layout_height="wrap_content"
         android:gravity="center_horizontal|center_vertical"
+        android:background="@android:color/white"
         >
         <com.google.android.gms.ads.AdView
             xmlns:ads="http://schemas.android.com/apk/res-auto"

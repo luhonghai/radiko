@@ -1,0 +1,46 @@
+{
+  "locations" : [
+    {
+      "name" : "Chiba Prefecture",
+      "lat" : 35.597709,
+      "lon" : 140.253455,
+      "radius" : 84330
+    },
+    {
+      "name" : "Tokyo",
+      "lat" : 35.700113,
+      "lon" : 139.514694,
+      "radius" : 53790
+    },
+    {
+      "name" : "Kanagawa Prefecture",
+      "lat" : 35.439860,
+      "lon" : 139.342154,
+      "radius" : 44520
+    },
+    {
+      "name" : "Tochigi Prefecture",
+      "lat" : 36.672111,
+      "lon" : 139.841103,
+      "radius" : 52920
+    },
+    {
+      "name" : "Shizuoka Prefecture",
+      "lat" : 34.969613,
+      "lon" : 138.351318,
+      "radius" : 83400
+    },
+    {
+      "name" : "Ibaraki Prefecture",
+      "lat" : 36.339872,
+      "lon" : 140.492337,
+      "radius" : 72900
+    },
+    {
+      "name" : "Gunma Prefecture,",
+      "lat" : 36.473144,
+      "lon" : 138.970151,
+      "radius" : 61900
+    }
+  ]
+}

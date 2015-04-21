@@ -20,6 +20,7 @@ import com.gmail.radioserver2.data.sqlite.ext.ChannelDBAdapter;
 import com.gmail.radioserver2.utils.Constants;
 import com.gmail.radioserver2.utils.SimpleAppLog;
 import com.gmail.radioserver2.view.CustomSeekBar;
+import com.gmail.radioserver2.view.CustomSubSeekBar;
 import com.infteh.comboseekbar.ComboSeekBar;
 
 import java.util.Arrays;
@@ -34,8 +35,13 @@ public class SettingFragmentTab extends FragmentTab implements View.OnClickListe
     private static final int MAX_PROCESS = 100;
 
     private CustomSeekBar seekBarFastLevel;
+    private CustomSubSeekBar subSeekBarFastLevel;
+
     private CustomSeekBar seekBarSlowLevel;
+    private CustomSubSeekBar subSeekBarSlowLevel;
+
     private CustomSeekBar seekBarBackLength;
+    private CustomSubSeekBar subSeekBarLength;
 
     private EditText txtChannelName;
     private EditText txtChannelURL;
@@ -46,11 +52,17 @@ public class SettingFragmentTab extends FragmentTab implements View.OnClickListe
 
     @Override
     public View onCreateView(LayoutInflater inflater, ViewGroup container, Bundle savedInstanceState) {
+        super.onCreateView(inflater,container,savedInstanceState);
         View v = inflater.inflate(R.layout.fragment_setting, container, false);
         v.findViewById(R.id.btnSave).setOnClickListener(this);
         seekBarFastLevel = (CustomSeekBar) v.findViewById(R.id.seekBarFastLevel);
         seekBarSlowLevel = (CustomSeekBar) v.findViewById(R.id.seekBarSlowLevel);
         seekBarBackLength = (CustomSeekBar) v.findViewById(R.id.seekBarBackLength);
+
+        subSeekBarSlowLevel = (CustomSubSeekBar) v.findViewById(R.id.subSeekBarSlowLevel);
+        subSeekBarFastLevel = (CustomSubSeekBar) v.findViewById(R.id.subSeekBarFastLevel);
+        subSeekBarLength = (CustomSubSeekBar) v.findViewById(R.id.subSeekBarBackLength);
+
         txtChannelName = (EditText) v.findViewById(R.id.txtChannelName);
         txtChannelURL = (EditText) v.findViewById(R.id.txtChannelURL);
         switchRegion = (Switch) v.findViewById(R.id.switchRegion);
@@ -70,16 +82,22 @@ public class SettingFragmentTab extends FragmentTab implements View.OnClickListe
         seekBarSlowLevel.setItems(slowStep);
         seekBarSlowLevel.setOnSeekBarChangeListener(mSeekListener);
         seekBarSlowLevel.invalidate();
+        subSeekBarSlowLevel.setItems(slowStep);
+        subSeekBarSlowLevel.invalidate();
 
         seekBarFastLevel.setMax(MAX_PROCESS);
         seekBarFastLevel.setItems(fastStep);
         seekBarFastLevel.setOnSeekBarChangeListener(mSeekListener);
         seekBarFastLevel.invalidate();
+        subSeekBarFastLevel.setItems(fastStep);
+        subSeekBarFastLevel.invalidate();
 
         seekBarBackLength.setMax(MAX_PROCESS);
         seekBarBackLength.setItems(backStep);
         seekBarBackLength.setOnSeekBarChangeListener(mSeekListener);
         seekBarBackLength.invalidate();
+        subSeekBarLength.setItems(backStep);
+        subSeekBarLength.invalidate();
     }
 
     private void loadData() {

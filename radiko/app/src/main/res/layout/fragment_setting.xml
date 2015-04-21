@@ -18,15 +18,34 @@
             android:background="@color/default_button_color"
             android:text="@string/label_slow_play"
             android:minWidth="100dp"/>
-        <com.gmail.radioserver2.view.CustomSeekBar
-            android:id="@+id/seekBarSlowLevel"
-            android:layout_width="0dp"
-            android:layout_height="wrap_content"
+        <RelativeLayout
             android:layout_weight="1"
-            android:layout_gravity="center_horizontal|center_vertical"
-            android:layout_marginLeft="@dimen/default_top_margin"
-            android:layout_marginRight="@dimen/default_top_margin"
-            android:indeterminate="false" />
+            android:layout_width="0dp"
+            android:layout_height="wrap_content">
+            <LinearLayout
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:orientation="vertical">
+                <com.gmail.radioserver2.view.CustomSeekBar
+                    android:id="@+id/seekBarSlowLevel"
+                    android:layout_width="match_parent"
+                    android:layout_height="wrap_content"
+                    android:layout_gravity="center_horizontal|center_vertical"
+                    android:layout_marginLeft="@dimen/default_top_margin"
+                    android:layout_marginRight="@dimen/default_top_margin"
+                    android:indeterminate="false" />
+                <com.gmail.radioserver2.view.CustomSubSeekBar
+                    android:id="@+id/subSeekBarSlowLevel"
+                    android:layout_width="match_parent"
+                    android:layout_height="15dp"
+                    android:layout_gravity="center_horizontal|center_vertical"
+                    android:layout_marginLeft="@dimen/default_top_margin"
+                    android:layout_marginRight="@dimen/default_top_margin"
+                    />
+            </LinearLayout>
+
+        </RelativeLayout>
+
     </LinearLayout>
     <LinearLayout
         android:layout_width="match_parent"
@@ -42,15 +61,35 @@
             android:background="@color/default_button_color"
             android:text="@string/label_fast_play"
             android:minWidth="100dp"/>
-        <com.gmail.radioserver2.view.CustomSeekBar
-            android:id="@+id/seekBarFastLevel"
-            android:layout_width="0dp"
-            android:layout_height="wrap_content"
+
+        <RelativeLayout
             android:layout_weight="1"
-            android:layout_marginLeft="@dimen/default_top_margin"
-            android:layout_marginRight="@dimen/default_top_margin"
-            android:layout_gravity="center_horizontal|center_vertical"
-            android:indeterminate="false" />
+            android:layout_width="0dp"
+            android:layout_height="wrap_content">
+            <LinearLayout
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:orientation="vertical">
+                <com.gmail.radioserver2.view.CustomSeekBar
+                    android:id="@+id/seekBarFastLevel"
+                    android:layout_width="match_parent"
+                    android:layout_height="wrap_content"
+                    android:layout_gravity="center_horizontal|center_vertical"
+                    android:layout_marginLeft="@dimen/default_top_margin"
+                    android:layout_marginRight="@dimen/default_top_margin"
+                    android:indeterminate="false" />
+                <com.gmail.radioserver2.view.CustomSubSeekBar
+                    android:id="@+id/subSeekBarFastLevel"
+                    android:layout_width="match_parent"
+                    android:layout_height="15dp"
+                    android:layout_gravity="center_horizontal|center_vertical"
+                    android:layout_marginLeft="@dimen/default_top_margin"
+                    android:layout_marginRight="@dimen/default_top_margin"
+                    />
+            </LinearLayout>
+
+        </RelativeLayout>
+
     </LinearLayout>
     <LinearLayout
         android:layout_width="match_parent"
@@ -66,15 +105,34 @@
             android:background="@color/default_button_color"
             android:text="@string/label_back"
             android:minWidth="100dp"/>
-        <com.gmail.radioserver2.view.CustomSeekBar
-            android:id="@+id/seekBarBackLength"
-            android:layout_width="0dp"
-            android:layout_height="wrap_content"
+
+        <RelativeLayout
             android:layout_weight="1"
-            android:layout_marginLeft="@dimen/default_top_margin"
-            android:layout_marginRight="@dimen/default_top_margin"
-            android:layout_gravity="center_horizontal|center_vertical"
-            android:indeterminate="false" />
+            android:layout_width="0dp"
+            android:layout_height="wrap_content">
+            <LinearLayout
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:orientation="vertical">
+                <com.gmail.radioserver2.view.CustomSeekBar
+                    android:id="@+id/seekBarBackLength"
+                    android:layout_width="match_parent"
+                    android:layout_height="wrap_content"
+                    android:layout_gravity="center_horizontal|center_vertical"
+                    android:layout_marginLeft="@dimen/default_top_margin"
+                    android:layout_marginRight="@dimen/default_top_margin"
+                    android:indeterminate="false" />
+                <com.gmail.radioserver2.view.CustomSubSeekBar
+                    android:id="@+id/subSeekBarBackLength"
+                    android:layout_width="match_parent"
+                    android:layout_height="15dp"
+                    android:layout_gravity="center_horizontal|center_vertical"
+                    android:layout_marginLeft="@dimen/default_top_margin"
+                    android:layout_marginRight="@dimen/default_top_margin"
+                    />
+            </LinearLayout>
+
+        </RelativeLayout>
     </LinearLayout>
     <LinearLayout
         android:layout_width="match_parent"

@@ -2,14 +2,16 @@ package com.gmail.radioserver2.service;
 
 import android.content.Context;
 import android.content.Intent;
+import android.location.Location;
+import android.location.LocationManager;
 
-import com.dotohsoft.api.TokenRequester;
-import com.dotohsoft.radio.Constant;
 import com.dotohsoft.radio.api.APIRequester;
 import com.dotohsoft.radio.data.RadioArea;
 import com.dotohsoft.radio.data.RadioChannel;
+import com.dotohsoft.radio.data.RadioLocation;
 import com.dotohsoft.radio.data.RadioProvider;
 import com.gmail.radioserver2.R;
+import com.gmail.radioserver2.analytic.AnalyticHelper;
 import com.gmail.radioserver2.data.Channel;
 import com.gmail.radioserver2.data.Setting;
 import com.gmail.radioserver2.data.sqlite.ext.ChannelDBAdapter;
@@ -18,15 +20,15 @@ import com.gmail.radioserver2.utils.Constants;
 import com.gmail.radioserver2.utils.FileHelper;
 import com.gmail.radioserver2.utils.SimpleAppLog;
 import com.gmail.radioserver2.utils.StringUtil;
+import com.google.android.gms.analytics.HitBuilders;
+import com.google.android.gms.analytics.Tracker;
+import com.google.android.gms.games.Game;
 import com.google.gson.Gson;
 
-import org.apache.commons.io.FileUtils;
 import org.apache.commons.io.IOUtils;
 
-import java.io.File;
 import java.io.IOException;
 import java.io.InputStream;
-import java.sql.SQLException;
 import java.util.Collection;
 import java.util.List;
 
@@ -34,6 +36,18 @@ import java.util.List;
  * Created by luhonghai on 3/11/15.
  */
 public class DataPrepareService {
+
+    public static class RadioLocationContainer {
+        public List<RadioLocation> getLocations() {
+            return locations;
+        }
+
+        public void setLocations(List<RadioLocation> locations) {
+            this.locations = locations;
+        }
+
+        private List<RadioLocation> locations;
+    }
 
     private final Context context;
     private FileHelper fileHelper;
@@ -46,19 +60,127 @@ public class DataPrepareService {
     }
 
     public void execute() {
+        // Get tracker.
+        final Tracker t = AnalyticHelper.getTracker(context);
+
         setting.load();
         TokenFetcher tokenFetcher = TokenFetcher.getTokenFetcher(context, new TokenFetcher.OnTokenListener() {
             @Override
             public void onTokenFound(String token, String rawAreaId) {
-                requestChannels(StringUtil.escapeJapanSpecialChar(rawAreaId));
+                String areaId = StringUtil.escapeJapanSpecialChar(rawAreaId);
+                if (areaId != null && areaId.length() > 0) {
+                    areaId = areaId.replace("\n", " ");
+                    areaId = areaId.replace("\t", " ");
+                    while (areaId.contains("  ")) {
+                        areaId = areaId.replace("  ", " ");
+                    }
+                    areaId = areaId.trim();
+                    requestChannels(areaId);
+                    t.send(new HitBuilders.EventBuilder()
+                            .setCategory(AnalyticHelper.CATEGORY_AREA_ID)
+                            .setAction(areaId)
+                            .build());
+                } else {
+                    requestChannels("");
+                    t.send(new HitBuilders.EventBuilder()
+                            .setCategory(AnalyticHelper.CATEGORY_AREA_ID)
+                            .setAction(AnalyticHelper.ACTION_NULL)
+                            .build());
+                }
             }
 
             @Override
             public void onError(String message, Throwable throwable) {
                 SimpleAppLog.error(message, throwable);
+                //requestChannels("");
+                t.send(new HitBuilders.EventBuilder()
+                        .setCategory(AnalyticHelper.CATEGORY_AREA_ID)
+                        .setAction(AnalyticHelper.ACTION_ERROR)
+                        .build());
             }
         });
         tokenFetcher.fetch();
+    }
+
+    /**
+     * @return the last know best location
+     */
+    private Location getLastBestLocation() {
+        LocationManager mLocationManager = (LocationManager)
+                context.getSystemService(Context.LOCATION_SERVICE);
+        Location locationGPS = mLocationManager.getLastKnownLocation(LocationManager.GPS_PROVIDER);
+        Location locationNet = mLocationManager.getLastKnownLocation(LocationManager.NETWORK_PROVIDER);
+
+        long GPSLocationTime = 0;
+        if (null != locationGPS) { GPSLocationTime = locationGPS.getTime(); }
+
+        long NetLocationTime = 0;
+
+        if (null != locationNet) {
+            NetLocationTime = locationNet.getTime();
+        }
+
+        if ( 0 < GPSLocationTime - NetLocationTime ) {
+            return locationGPS;
+        }
+        else {
+            return locationNet;
+        }
+    }
+
+    private String checkLocation(String ariaId) {
+        String defaulLocations = "";
+        InputStream is = null;
+        try {
+            is =context.getResources().openRawResource(R.raw.radio_jp13_location);
+            defaulLocations = IOUtils.toString(is);
+        } catch (IOException e) {
+            SimpleAppLog.error("Could not fetch radio jp13 location from resource",e);
+        } finally {
+            if (is != null) {
+                try {
+                    is.close();
+                } catch (IOException e) {
+
+                }
+            }
+        }
+        Gson gson = new Gson();
+        Location location = getLastBestLocation();
+        if (location != null && defaulLocations.length() > 0) {
+            SimpleAppLog.info("Current location. Lat: " + location.getLatitude() + ". Lon: " + location.getLongitude());
+            RadioLocationContainer container = gson.fromJson(defaulLocations, RadioLocationContainer.class);
+            if (container != null) {
+                List<RadioLocation> locations = container.getLocations();
+                if (locations != null && locations.size() > 0) {
+                    SimpleAppLog.info("Found " + locations.size() + " Radio location JP13");
+                    boolean valid = false;
+                    for(RadioLocation radioLocation : locations) {
+                        float[] result = new float[1];
+                        Location.distanceBetween(radioLocation.getLat(), radioLocation.getLon(),
+                                location.getLatitude(), location.getLongitude(),
+                                //36.863084, 139.283261,
+                                result);
+                        float distance = result[0];
+                        SimpleAppLog.info("Distance between current location and " + radioLocation.getName() + " is " + distance + "m");
+                        if (distance <= radioLocation.getRadius()) {
+                            valid = true;
+                            SimpleAppLog.info("Valid radius " + radioLocation.getRadius() + ". Area: " + radioLocation.getName());
+                            break;
+                        }
+                    }
+                    if (valid) {
+                        return RadioArea.AREA_ID_TOKYO;
+                    } else {
+                        if (ariaId.toLowerCase().contains(RadioArea.AREA_ID_TOKYO.toLowerCase())) {
+                            // Not in JP13
+                            return "";
+                        }
+                    }
+                }
+            }
+        }
+        return ariaId;
     }
 
     private void requestChannels(String rawAreaId) {
@@ -90,6 +212,8 @@ public class DataPrepareService {
                 }
             }
         }
+
+
         try {
             RadioChannel radioChannel;
             SimpleAppLog.info("Load default channel: " + defaultChannel);
@@ -98,6 +222,7 @@ public class DataPrepareService {
                 radioChannel = apiRequester.getChannels(RadioArea.AREA_ID_TOKYO, setting.isRegion(), defaultChannel);
                 //radioChannel = apiRequester.getChannels("JP6,%#$ASCDAS", setting.isRegion(), defaultChannel);
             } else {
+                rawAreaId = checkLocation(rawAreaId);
                 radioChannel = apiRequester.getChannels(rawAreaId, setting.isRegion(), defaultChannel);
             }
             ChannelDBAdapter dbAdapter = new ChannelDBAdapter(context);

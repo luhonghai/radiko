@@ -13,5 +13,8 @@
     <color name="red_delete">#ffff201a</color>
 
     <color name="gray_edit">#ff919191</color>
+
+    <color name="default_text_color">#000000</color>
+    <color name="default_text_color_gray">#D0D0D0</color>
 </resources>
 
