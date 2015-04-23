@@ -37,7 +37,7 @@ public class RadioArea {
             String rAID = "";
             for (int i = 47; i >= 1; i--) {
                 String test = "JP" + Integer.toString(i);
-                if (requesterListener != null) requesterListener.onMessage("Test id: " + test);
+                //if (requesterListener != null) requesterListener.onMessage("Test id: " + test);
                 if (rawResponse.toLowerCase().contains(test.toLowerCase()) || rawResponse.equalsIgnoreCase(test)) {
                     rAID = "JP" + i;
                     break;

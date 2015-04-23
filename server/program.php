@@ -31,16 +31,13 @@ if ($date == 'now') {
 }
 $sTimeMs = round(microtime(true) * 1000);
 // Do we need to split channel program by Area?
-$cachedFile = $cachedDir . "/" . strtolower($provider . "_" . $channel . "_" . $area . "_" . $mDate . ".json");
+$cachedFile = $cachedDir . "/" . strtolower($provider . "_" . $channel . "_" . $area . "_" . $mDate . "_" . date('H') . ".json");
 //$cachedFile = $cachedDir . "/" . strtolower($provider . "_" . $channel . "_" . $mDate . ".json");
 if (file_exists($cachedFile)) {
     $fContent = file_get_contents($cachedFile);
     $result = json_decode($fContent, true);
 } else {
-    if (strtotime($mDate) < strtotime(date("Y-m-d"))) {
-        echo "Error: No cache found";
-        die();
-    }
+
     $result = array();
     $result["cachedTime"] = $sTimeMs;
     $result["channelId"] = strtolower($provider . "_" . $channel);

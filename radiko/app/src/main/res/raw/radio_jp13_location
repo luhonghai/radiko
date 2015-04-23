@@ -1,46 +1,333 @@
 {
   "locations" : [
-    {
-      "name" : "Chiba Prefecture",
-      "lat" : 35.597709,
-      "lon" : 140.253455,
-      "radius" : 84330
-    },
-    {
-      "name" : "Tokyo",
-      "lat" : 35.700113,
-      "lon" : 139.514694,
-      "radius" : 53790
-    },
-    {
-      "name" : "Kanagawa Prefecture",
-      "lat" : 35.439860,
-      "lon" : 139.342154,
-      "radius" : 44520
-    },
-    {
-      "name" : "Tochigi Prefecture",
-      "lat" : 36.672111,
-      "lon" : 139.841103,
-      "radius" : 52920
-    },
-    {
-      "name" : "Shizuoka Prefecture",
-      "lat" : 34.969613,
-      "lon" : 138.351318,
-      "radius" : 83400
-    },
-    {
-      "name" : "Ibaraki Prefecture",
-      "lat" : 36.339872,
-      "lon" : 140.492337,
-      "radius" : 72900
-    },
-    {
-      "name" : "Gunma Prefecture,",
-      "lat" : 36.473144,
-      "lon" : 138.970151,
-      "radius" : 61900
-    }
-  ]
+                  {
+                    "name": "HOKKAIDO",
+                    "areaId": "JP1",
+                    "lon": 0.0,
+                    "lat": 0.0,
+                    "radius": 0.0
+                  },
+                  {
+                    "name": "AOMORI",
+                    "areaId": "JP2",
+                    "lon": 0.0,
+                    "lat": 0.0,
+                    "radius": 0.0
+                  },
+                  {
+                    "name": "IWATE",
+                    "areaId": "JP3",
+                    "lon": 0.0,
+                    "lat": 0.0,
+                    "radius": 0.0
+                  },
+                  {
+                    "name": "MIYAGI",
+                    "areaId": "JP4",
+                    "lon": 0.0,
+                    "lat": 0.0,
+                    "radius": 0.0
+                  },
+                  {
+                    "name": "AKITA",
+                    "areaId": "JP5",
+                    "lon": 0.0,
+                    "lat": 0.0,
+                    "radius": 0.0
+                  },
+                  {
+                    "name": "YAMAGATA",
+                    "areaId": "JP6",
+                    "lon": 0.0,
+                    "lat": 0.0,
+                    "radius": 0.0
+                  },
+                  {
+                    "name": "FUKUSHIMA",
+                    "areaId": "JP7",
+                    "lon": 0.0,
+                    "lat": 0.0,
+                    "radius": 0.0
+                  },
+                  {
+                    "name": "IBARAKI",
+                    "areaId": "JP8",
+                    "lat" : 36.339872,
+                    "lon" : 140.492337,
+                    "radius" : 72900
+                  },
+                  {
+                    "name": "TOCHIGI",
+                    "areaId": "JP9",
+                    "lat" : 36.672111,
+                    "lon" : 139.841103,
+                    "radius" : 52920
+                  },
+                  {
+                    "name": "GUNMA",
+                    "areaId": "JP10",
+                    "lat" : 36.473144,
+                    "lon" : 138.970151,
+                    "radius" : 61900
+                  },
+                  {
+                    "name": "SAITAMA",
+                    "areaId": "JP11",
+                    "lon": 0.0,
+                    "lat": 0.0,
+                    "radius": 0.0
+                  },
+                  {
+                    "name": "CHIBA",
+                    "areaId": "JP12",
+                    "lat" : 35.597709,
+                    "lon" : 140.253455,
+                    "radius" : 84330
+                  },
+                  {
+                    "name": "TOKYO",
+                    "areaId": "JP13",
+                    "lat" : 35.700113,
+                    "lon" : 139.514694,
+                    "radius" : 53790
+                  },
+                  {
+                    "name": "KANAGAWA",
+                    "areaId": "JP14",
+                    "lat" : 35.439860,
+                    "lon" : 139.342154,
+                    "radius" : 44520
+                  },
+                  {
+                    "name": "NIIGATA",
+                    "areaId": "JP15",
+                    "lon": 0.0,
+                    "lat": 0.0,
+                    "radius": 0.0
+                  },
+                  {
+                    "name": "TOYAMA",
+                    "areaId": "JP16",
+                    "lon": 0.0,
+                    "lat": 0.0,
+                    "radius": 0.0
+                  },
+                  {
+                    "name": "ISHIKAWA",
+                    "areaId": "JP17",
+                    "lon": 0.0,
+                    "lat": 0.0,
+                    "radius": 0.0
+                  },
+                  {
+                    "name": "FUKUI",
+                    "areaId": "JP18",
+                    "lon": 0.0,
+                    "lat": 0.0,
+                    "radius": 0.0
+                  },
+                  {
+                    "name": "YAMANASHI",
+                    "areaId": "JP19",
+                    "lon": 0.0,
+                    "lat": 0.0,
+                    "radius": 0.0
+                  },
+                  {
+                    "name": "NAGANO",
+                    "areaId": "JP20",
+                    "lon": 0.0,
+                    "lat": 0.0,
+                    "radius": 0.0
+                  },
+                  {
+                    "name": "GIFU",
+                    "areaId": "JP21",
+                    "lon": 0.0,
+                    "lat": 0.0,
+                    "radius": 0.0
+                  },
+                  {
+                    "name": "SHIZUOKA",
+                    "areaId": "JP22",
+                    "lat" : 34.969613,
+                    "lon" : 138.351318,
+                    "radius" : 83400
+                  },
+                  {
+                    "name": "AICHI",
+                    "areaId": "JP23",
+                    "lon": 0.0,
+                    "lat": 0.0,
+                    "radius": 0.0
+                  },
+                  {
+                    "name": "MIE",
+                    "areaId": "JP24",
+                    "lon": 0.0,
+                    "lat": 0.0,
+                    "radius": 0.0
+                  },
+                  {
+                    "name": "SHIGA",
+                    "areaId": "JP25",
+                    "lon": 0.0,
+                    "lat": 0.0,
+                    "radius": 0.0
+                  },
+                  {
+                    "name": "KYOTO",
+                    "areaId": "JP26",
+                    "lon": 0.0,
+                    "lat": 0.0,
+                    "radius": 0.0
+                  },
+                  {
+                    "name": "OSAKA",
+                    "areaId": "JP27",
+                    "lon": 0.0,
+                    "lat": 0.0,
+                    "radius": 0.0
+                  },
+                  {
+                    "name": "HYOGO",
+                    "areaId": "JP28",
+                    "lon": 0.0,
+                    "lat": 0.0,
+                    "radius": 0.0
+                  },
+                  {
+                    "name": "NARA",
+                    "areaId": "JP29",
+                    "lon": 0.0,
+                    "lat": 0.0,
+                    "radius": 0.0
+                  },
+                  {
+                    "name": "WAKAYAMA",
+                    "areaId": "JP30",
+                    "lon": 0.0,
+                    "lat": 0.0,
+                    "radius": 0.0
+                  },
+                  {
+                    "name": "TOTTORI",
+                    "areaId": "JP31",
+                    "lon": 0.0,
+                    "lat": 0.0,
+                    "radius": 0.0
+                  },
+                  {
+                    "name": "SHIMANE",
+                    "areaId": "JP32",
+                    "lon": 0.0,
+                    "lat": 0.0,
+                    "radius": 0.0
+                  },
+                  {
+                    "name": "OKAYAMA",
+                    "areaId": "JP33",
+                    "lon": 0.0,
+                    "lat": 0.0,
+                    "radius": 0.0
+                  },
+                  {
+                    "name": "HIROSHIMA",
+                    "areaId": "JP34",
+                    "lon": 0.0,
+                    "lat": 0.0,
+                    "radius": 0.0
+                  },
+                  {
+                    "name": "YAMAGUCHI",
+                    "areaId": "JP35",
+                    "lon": 0.0,
+                    "lat": 0.0,
+                    "radius": 0.0
+                  },
+                  {
+                    "name": "TOKUSHIMA",
+                    "areaId": "JP36",
+                    "lon": 0.0,
+                    "lat": 0.0,
+                    "radius": 0.0
+                  },
+                  {
+                    "name": "KAGAWA",
+                    "areaId": "JP37",
+                    "lon": 0.0,
+                    "lat": 0.0,
+                    "radius": 0.0
+                  },
+                  {
+                    "name": "EHIME",
+                    "areaId": "JP38",
+                    "lon": 0.0,
+                    "lat": 0.0,
+                    "radius": 0.0
+                  },
+                  {
+                    "name": "KOUCHI",
+                    "areaId": "JP39",
+                    "lon": 0.0,
+                    "lat": 0.0,
+                    "radius": 0.0
+                  },
+                  {
+                    "name": "FUKUOKA",
+                    "areaId": "JP40",
+                    "lon": 0.0,
+                    "lat": 0.0,
+                    "radius": 0.0
+                  },
+                  {
+                    "name": "SAGA",
+                    "areaId": "JP41",
+                    "lon": 0.0,
+                    "lat": 0.0,
+                    "radius": 0.0
+                  },
+                  {
+                    "name": "NAGASAKI",
+                    "areaId": "JP42",
+                    "lon": 0.0,
+                    "lat": 0.0,
+                    "radius": 0.0
+                  },
+                  {
+                    "name": "KUMAMOTO",
+                    "areaId": "JP43",
+                    "lon": 0.0,
+                    "lat": 0.0,
+                    "radius": 0.0
+                  },
+                  {
+                    "name": "OITA",
+                    "areaId": "JP44",
+                    "lon": 0.0,
+                    "lat": 0.0,
+                    "radius": 0.0
+                  },
+                  {
+                    "name": "MIYAZAKI",
+                    "areaId": "JP45",
+                    "lon": 0.0,
+                    "lat": 0.0,
+                    "radius": 0.0
+                  },
+                  {
+                    "name": "KAGOSHIMA",
+                    "areaId": "JP46",
+                    "lon": 0.0,
+                    "lat": 0.0,
+                    "radius": 0.0
+                  },
+                  {
+                    "name": "OKINAWA",
+                    "areaId": "JP47",
+                    "lon": 0.0,
+                    "lat": 0.0,
+                    "radius": 0.0
+                  }
+                ]
 }

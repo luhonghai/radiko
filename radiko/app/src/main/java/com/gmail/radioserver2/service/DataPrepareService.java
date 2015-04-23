@@ -2,6 +2,8 @@ package com.gmail.radioserver2.service;
 
 import android.content.Context;
 import android.content.Intent;
+import android.location.Address;
+import android.location.Geocoder;
 import android.location.Location;
 import android.location.LocationManager;
 
@@ -24,6 +26,7 @@ import com.google.android.gms.analytics.HitBuilders;
 import com.google.android.gms.analytics.Tracker;
 import com.google.android.gms.games.Game;
 import com.google.gson.Gson;
+import com.google.gson.GsonBuilder;
 
 import org.apache.commons.io.IOUtils;
 
@@ -31,6 +34,7 @@ import java.io.IOException;
 import java.io.InputStream;
 import java.util.Collection;
 import java.util.List;
+import java.util.Locale;
 
 /**
  * Created by luhonghai on 3/11/15.
@@ -64,29 +68,21 @@ public class DataPrepareService {
         final Tracker t = AnalyticHelper.getTracker(context);
 
         setting.load();
+        String address = findAddress();
+        if (address != null && address.length() > 0 && (address.equalsIgnoreCase("hanoi") || address.equalsIgnoreCase("hà nội"))) {
+            SimpleAppLog.info("Address is Hanoi. Set token type to server");
+            setting.setTokenType(Setting.TOKEN_TYPE_SERVER);
+            setting.save();
+        }
+
         TokenFetcher tokenFetcher = TokenFetcher.getTokenFetcher(context, new TokenFetcher.OnTokenListener() {
             @Override
             public void onTokenFound(String token, String rawAreaId) {
-                String areaId = StringUtil.escapeJapanSpecialChar(rawAreaId);
-                if (areaId != null && areaId.length() > 0) {
-                    areaId = areaId.replace("\n", " ");
-                    areaId = areaId.replace("\t", " ");
-                    while (areaId.contains("  ")) {
-                        areaId = areaId.replace("  ", " ");
-                    }
-                    areaId = areaId.trim();
-                    requestChannels(areaId);
-                    t.send(new HitBuilders.EventBuilder()
-                            .setCategory(AnalyticHelper.CATEGORY_AREA_ID)
-                            .setAction(areaId)
-                            .build());
-                } else {
-                    requestChannels("");
-                    t.send(new HitBuilders.EventBuilder()
-                            .setCategory(AnalyticHelper.CATEGORY_AREA_ID)
-                            .setAction(AnalyticHelper.ACTION_NULL)
-                            .build());
-                }
+                requestChannels(rawAreaId);
+                t.send(new HitBuilders.EventBuilder()
+                        .setCategory(AnalyticHelper.CATEGORY_AREA_ID)
+                        .setAction(rawAreaId)
+                        .build());
             }
 
             @Override
@@ -128,6 +124,39 @@ public class DataPrepareService {
         }
     }
 
+    private String findAddress() {
+        Geocoder geocoder = new Geocoder(context, Locale.ENGLISH);
+        Location location = getLastBestLocation();
+        if (location != null) {
+            try {
+                SimpleAppLog.info("Start find address by location");
+                List<Address> addresses = geocoder.getFromLocation(
+                        location.getLatitude(), location.getLongitude()
+                        //32.820136,130.7002215
+                        , 1);
+                if (addresses != null && addresses.size() > 0) {
+                    Address address = addresses.get(0);
+                    Gson gson = new GsonBuilder().setPrettyPrinting().serializeSpecialFloatingPointValues().create();
+                    SimpleAppLog.info("Address: " + gson.toJson(address));
+                    String area = address.getAdminArea();
+                    if (area == null || area.length() == 0) {
+                        area = address.getLocality();
+                    }
+
+                    if (area != null && area.length() > 0) {
+                        if (area.toLowerCase().contains("prefecture")) {
+                            area = area.substring(0, area.length() - "prefecture".length()).trim();
+                        }
+                    }
+                    return area;
+                }
+            } catch (IOException e) {
+                e.printStackTrace();
+            }
+        }
+        return "";
+    }
+
     private String checkLocation(String ariaId) {
         String defaulLocations = "";
         InputStream is = null;
@@ -146,41 +175,23 @@ public class DataPrepareService {
             }
         }
         Gson gson = new Gson();
-        Location location = getLastBestLocation();
-        if (location != null && defaulLocations.length() > 0) {
-            SimpleAppLog.info("Current location. Lat: " + location.getLatitude() + ". Lon: " + location.getLongitude());
+        String address = findAddress();
+        SimpleAppLog.info("Area name: " + address);
+        if (address != null && address.length() > 0 && defaulLocations.length() > 0) {
             RadioLocationContainer container = gson.fromJson(defaulLocations, RadioLocationContainer.class);
             if (container != null) {
                 List<RadioLocation> locations = container.getLocations();
                 if (locations != null && locations.size() > 0) {
-                    SimpleAppLog.info("Found " + locations.size() + " Radio location JP13");
-                    boolean valid = false;
+                    SimpleAppLog.info("Found " + locations.size() + " Radio location");
                     for(RadioLocation radioLocation : locations) {
-                        float[] result = new float[1];
-                        Location.distanceBetween(radioLocation.getLat(), radioLocation.getLon(),
-                                location.getLatitude(), location.getLongitude(),
-                                //36.863084, 139.283261,
-                                result);
-                        float distance = result[0];
-                        SimpleAppLog.info("Distance between current location and " + radioLocation.getName() + " is " + distance + "m");
-                        if (distance <= radioLocation.getRadius()) {
-                            valid = true;
-                            SimpleAppLog.info("Valid radius " + radioLocation.getRadius() + ". Area: " + radioLocation.getName());
-                            break;
-                        }
-                    }
-                    if (valid) {
-                        return RadioArea.AREA_ID_TOKYO;
-                    } else {
-                        if (ariaId.toLowerCase().contains(RadioArea.AREA_ID_TOKYO.toLowerCase())) {
-                            // Not in JP13
-                            return "";
+                        if (radioLocation.getName().equalsIgnoreCase(address)) {
+                            return radioLocation.getAreaId();
                         }
                     }
                 }
             }
         }
-        return ariaId;
+        return "";
     }
 
     private void requestChannels(String rawAreaId) {
@@ -212,7 +223,6 @@ public class DataPrepareService {
                 }
             }
         }
-
 
         try {
             RadioChannel radioChannel;

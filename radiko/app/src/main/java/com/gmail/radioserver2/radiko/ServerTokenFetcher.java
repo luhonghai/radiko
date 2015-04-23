@@ -34,7 +34,7 @@ public class ServerTokenFetcher extends TokenFetcher {
             FileUtils.copyURLToFile(new URL("http://stest.dotohsoft.com/~duc/rad/gettoken/getkey.php"), tmpFile);
             if (tmpFile.exists()) {
                 token = FileUtils.readFileToString(tmpFile, "UTF-8");
-                saveToken(token, RadioArea.AREA_ID_TOKYO);
+
                 outpt =  RadioArea.AREA_ID_TOKYO;
             } else {
 
@@ -43,7 +43,11 @@ public class ServerTokenFetcher extends TokenFetcher {
         } catch (Exception e) {
             onError("Could not connect to server", e);
         }
-        onTokenFound(token, outpt);
+        try {
+            saveToken(token, outpt);
+        } catch (IOException e) {
+            onError("Could not save token", e);
+        }
     }
 
     @Override

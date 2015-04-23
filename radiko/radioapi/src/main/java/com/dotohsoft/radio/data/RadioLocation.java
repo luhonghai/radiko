@@ -4,8 +4,8 @@ package com.dotohsoft.radio.data;
  * Created by luhonghai on 4/20/15.
  */
 public class RadioLocation {
-
     private String name;
+    private String areaId;
     private double lon;
     private double lat;
     private double radius;
@@ -40,5 +40,13 @@ public class RadioLocation {
 
     public void setRadius(double radius) {
         this.radius = radius;
+    }
+
+    public String getAreaId() {
+        return areaId;
+    }
+
+    public void setAreaId(String areaId) {
+        this.areaId = areaId;
     }
 }

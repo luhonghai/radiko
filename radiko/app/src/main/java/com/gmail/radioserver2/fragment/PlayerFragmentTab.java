@@ -269,22 +269,26 @@ public class PlayerFragmentTab extends FragmentTab implements ServiceConnection,
     }
 
     private void showProgramInfo(RadioProgram.Program program) {
-        if (program == null) return;
-        SimpleDateFormat sdf = new SimpleDateFormat("HH:mm");
-        final StringBuffer sb = new StringBuffer();
-        if (getActivity() == null || !PlayerFragmentTab.this.isAdded()) return;
-        sb.append(getString(R.string.current_program)).append(":\n");
-        sb.append(program.getTitle()).append("\n");
+        if (program != null) {
+            SimpleDateFormat sdf = new SimpleDateFormat("HH:mm");
+            final StringBuffer sb = new StringBuffer();
 
-        sb.append(sdf.format(new Date(program.getFromTime())));
-        sb.append( " - ").append(sdf.format(new Date(program.getToTime())));
-        getActivity().runOnUiThread(new Runnable() {
-            @Override
-            public void run() {
-                if (txtDescription != null)
-                    txtDescription.setText(sb.toString());
-            }
-        });
+            sb.append(getString(R.string.current_program)).append(":\n");
+            sb.append(program.getTitle()).append("\n");
+
+            sb.append(sdf.format(new Date(program.getFromTime())));
+            sb.append(" - ").append(sdf.format(new Date(program.getToTime())));
+            getActivity().runOnUiThread(new Runnable() {
+                @Override
+                public void run() {
+                    if (getActivity() == null || !PlayerFragmentTab.this.isAdded()) return;
+                    if (txtDescription != null)
+                        txtDescription.setText(sb.toString());
+                }
+            });
+        } else {
+            txtDescription.setText("");
+        }
     }
 
     private Channel selectedChannel;
@@ -292,6 +296,7 @@ public class PlayerFragmentTab extends FragmentTab implements ServiceConnection,
     private void updateInformation() {
         if (mService == null) return;
         String obj = null;
+        selectedChannel = null;
         try {
             obj = mService.getChannelObject();
             if (obj != null && obj.length() > 0) {
@@ -302,7 +307,6 @@ public class PlayerFragmentTab extends FragmentTab implements ServiceConnection,
                     SimpleAppLog.error("Could not parse channel",e);
                 }
             }
-
         } catch (RemoteException e) {
             SimpleAppLog.error("Could not get channel object", e);
         }

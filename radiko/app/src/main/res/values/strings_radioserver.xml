@@ -111,6 +111,12 @@
     <string name="wifi_policy_warning_positive_button">Wifiスリープ設定を開く</string>
     <string name="wifi_policy_warning_negative_button">キャンセル</string>
 
+    <!-- GPS enable -->
+    <string name="gps_warning_title">お知らせ</string>
+    <string name="gps_warning_message">位置情報を有効にしてください。有効にしないと地域のチャンネルが聴けないくなります</string>
+    <string name="gps_warning_positive_button">位置情報設定く</string>
+    <string name="gps_warning_negative_button">キャンセル</string>
+
     <!-- For debug -->
     <string name="ads_place">広　告　枠</string>
     <string name="default_channel_name">TBS ラジオ</string>

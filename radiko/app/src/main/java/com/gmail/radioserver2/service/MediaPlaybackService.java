@@ -77,10 +77,14 @@ import java.io.IOException;
 import java.io.PrintWriter;
 import java.lang.ref.WeakReference;
 import java.text.SimpleDateFormat;
+import java.util.Calendar;
 import java.util.Date;
+import java.util.HashMap;
 import java.util.List;
 import java.util.Locale;
+import java.util.Map;
 import java.util.Random;
+import java.util.TimeZone;
 import java.util.Vector;
 
 import at.aau.itec.android.mediaplayer.FileSource;
@@ -198,6 +202,7 @@ public class MediaPlaybackService extends Service {
 
     private File recordedFile;
 
+    private Map<String, RadioProgram.Program> programMap = new HashMap<String, RadioProgram.Program>();
 
     private FFmpegMediaPlayer.OnRecordingListener recordingListener = new FFmpegMediaPlayer.OnRecordingListener() {
         @Override
@@ -218,9 +223,11 @@ public class MediaPlaybackService extends Service {
                     RecordedProgram recordedProgram = new RecordedProgram();
                     recordedProgram.setChannelName(channel.getName() == null ? "" : channel.getName());
                     recordedProgram.setChannelKey(gson.toJson(channel));
-                    if (channel.getCurrentProgram() != null) {
-                        recordedProgram.setName(channel.getCurrentProgram().getTitle());
+
+                    if (programMap.containsKey(channel.getUrl().toLowerCase())) {
+                        recordedProgram.setName(programMap.get(channel.getUrl().toLowerCase()).getTitle());
                     }
+
                     if (recordedProgram.getName() == null) {
                         recordedProgram.setName("");
                     }
@@ -289,8 +296,10 @@ public class MediaPlaybackService extends Service {
             } catch (Exception e) {
                 SimpleAppLog.error("Could not parse channel object", e);
             }
+        } else {
+            currentChannel = null;
+            notifyChange(META_CHANGED);
         }
-
     }
 
     public void openStream(String token, String channelObject) {
@@ -1605,6 +1614,7 @@ public class MediaPlaybackService extends Service {
                 }
             } else {
                 RecordedProgramDBAdapter dbAdapter = new RecordedProgramDBAdapter(getApplicationContext());
+                String programInfo = "";
                 try {
                     dbAdapter.open();
                     RecordedProgram program = dbAdapter.findByFilePath(mFileToPlay);
@@ -1625,7 +1635,7 @@ public class MediaPlaybackService extends Service {
                                 channel.getCurrentProgram().setFromTime(program.getStartTime().getTime());
                                 channel.getCurrentProgram().setToTime(program.getEndTime().getTime());
                             }
-                            setChannelObject(gson.toJson(channel));
+                            programInfo = gson.toJson(channel);
                         }
 
                     } else {
@@ -1635,6 +1645,7 @@ public class MediaPlaybackService extends Service {
                     SimpleAppLog.error("Could not get recorded program info",ex);
                 } finally {
                     dbAdapter.close();
+                    setChannelObject(programInfo);
                 }
                 mPlayer.setDataSource(mFileToPlay);
                 if (mPlayer.isInitialized()) {
@@ -1722,6 +1733,9 @@ public class MediaPlaybackService extends Service {
                 mMediaplayerHandler.sendEmptyMessage(FADEUP);
 
                 updateNotification();
+                handlerUpdateNotification.removeCallbacks(runnableUpdateNotification);
+                handlerUpdateNotification.postDelayed(runnableUpdateNotification, 60 * 1000);
+
                 if (!mIsSupposedToBePlaying) {
                     mIsSupposedToBePlaying = true;
                     notifyChange(PLAYSTATE_CHANGED);
@@ -1780,15 +1794,40 @@ public class MediaPlaybackService extends Service {
                         rChannel.setService(currentChannel.getType());
                         rChannel.setServiceChannelId(currentChannel.getUrl());
                         rChannel.setServiceChannelId(currentChannel.getKey());
+                        requester.setRequesterListener(new APIRequester.RequesterListener() {
+                            @Override
+                            public void onMessage(String message) {
+                                SimpleAppLog.info(message);
+                            }
 
+                            @Override
+                            public void onError(String error, Throwable throwable) {
+                                SimpleAppLog.error(error, throwable);
+                            }
+                        });
                         RadioProgram radioProgram = requester.getPrograms(rChannel, RadioArea.getArea(rawAreaId, currentChannel.getType()));
                         if (radioProgram != null) {
                             List<RadioProgram.Program> programList = radioProgram.getPrograms();
+                            SimpleDateFormat sdfT = new SimpleDateFormat("yyyy-MM-dd HH:mm:ss");
                             if (programList != null && programList.size() > 0) {
                                 for (RadioProgram.Program program : programList) {
-                                    long now = System.currentTimeMillis();
-                                    if (now > program.getFromTime() && now < program.getToTime()) {
+                                    TimeZone tz = TimeZone.getTimeZone("GMT+09");
+                                    Calendar calNow = Calendar.getInstance(tz);
+                                    Calendar calFrom = Calendar.getInstance(tz);
+                                    calFrom.setTimeInMillis(program.getFromTime());
+                                    Calendar calTo = Calendar.getInstance(tz);
+                                    calTo.setTimeInMillis(program.getToTime());
+
+                                    SimpleAppLog.info("Found program: " + program.getTitle()
+                                            +". Start time: " + sdfT.format(calFrom.getTime())
+                                    + ". End time: " + sdfT.format(calTo.getTime())
+                                    + ". Current time: " + sdfT.format(calNow.getTime()));
+
+                                    if (calNow.getTimeInMillis() >= calFrom.getTimeInMillis()
+                                            && calNow.getTimeInMillis() <= calTo.getTimeInMillis()) {
+                                        SimpleAppLog.info("Current program is: " + program.getTitle());
                                         currentChannel.setCurrentProgram(program);
+                                        programMap.put(currentChannel.getUrl().toLowerCase(), program);
                                         SimpleDateFormat sdf = new SimpleDateFormat("HH:mm", Locale.JAPANESE);
                                         final StringBuffer sb = new StringBuffer();
                                         sb.append(program.getTitle()).append("\n");
@@ -1841,6 +1880,16 @@ public class MediaPlaybackService extends Service {
         startForeground(PLAYBACKSERVICE_STATUS, status);
     }
 
+    private Runnable runnableUpdateNotification = new Runnable() {
+        @Override
+        public void run() {
+            updateNotification();
+            handlerUpdateNotification.postDelayed(runnableUpdateNotification, 60 * 1000);
+        }
+    };
+
+    private Handler handlerUpdateNotification = new Handler();
+
     private void updateNotification() {
         if (currentChannel != null) {
             updateCurrentProgram(currentChannel, currentAreaId);
@@ -1869,6 +1918,7 @@ public class MediaPlaybackService extends Service {
 
     private void stop(boolean remove_status_icon) {
         mIsSupposedToBePlaying = false;
+        handlerUpdateNotification.removeCallbacks(runnableUpdateNotification);
         stopFast();
         stopSlow();
         stopAB();

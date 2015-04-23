@@ -85,6 +85,7 @@ public abstract class TokenFetcher {
                 if ((System.currentTimeMillis() - radikoToken.getTimestamp()) <= MAX_TOKEN_AGE) {
                     token = radikoToken.token;
                     onTokenFound(token, radikoToken.rawAreaId);
+                    return;
                 }
             } catch (Exception e) {
                 e.printStackTrace();

@@ -70,14 +70,6 @@ public class MainActivity extends BaseFragmentActivity implements ServiceConnect
 
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
-        new AsyncTask<Void, Void, Void>() {
-            @Override
-            protected Void doInBackground(Void... params) {
-                DataPrepareService prepareService = new DataPrepareService(MainActivity.this);
-                prepareService.execute();
-                return null;
-            }
-        }.execute();
 
         // Start timer
         Intent intent = new Intent(TimerManagerReceiver.ACTION_START_TIMER);
@@ -104,6 +96,18 @@ public class MainActivity extends BaseFragmentActivity implements ServiceConnect
         mServiceToken = MusicUtils.bindToService(this, this);
         registerReceiver(mHandleAction, new IntentFilter(Constants.INTENT_FILTER_FRAGMENT_ACTION));
         checkWifiPolicy();
+    }
+
+    @Override
+    public void updateChannels() {
+        new AsyncTask<Void, Void, Void>() {
+            @Override
+            protected Void doInBackground(Void... params) {
+                DataPrepareService prepareService = new DataPrepareService(MainActivity.this);
+                prepareService.execute();
+                return null;
+            }
+        }.execute();
     }
 
     private boolean checkWifiPolicy() {
