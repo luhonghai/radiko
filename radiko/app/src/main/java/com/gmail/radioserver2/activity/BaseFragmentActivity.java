@@ -42,14 +42,13 @@ public abstract class BaseFragmentActivity extends SherlockFragmentActivity impl
                 Thread.getDefaultUncaughtExceptionHandler(),
                 this);
         Thread.setDefaultUncaughtExceptionHandler(myHandler);
-
-        locationCheck();
         updateChannels();
     }
 
     @Override
     protected void onResume() {
         super.onResume();
+        locationCheck();
     }
 
     public abstract void updateChannels();
@@ -87,13 +86,19 @@ public abstract class BaseFragmentActivity extends SherlockFragmentActivity impl
         if(lm==null)
             lm = (LocationManager) this.getSystemService(Context.LOCATION_SERVICE);
         try{
-            lm.requestLocationUpdates(LocationManager.GPS_PROVIDER, 10 * 60 * 1000, 1000, this);
             gps_enabled = lm.isProviderEnabled(LocationManager.GPS_PROVIDER);
         }catch(Exception ex){}
+        try {
+            lm.requestLocationUpdates(LocationManager.GPS_PROVIDER, 10 * 60 * 1000, 1000, this);
+        } catch (Exception e) {
+
+        }
         try{
-            lm.requestLocationUpdates(LocationManager.NETWORK_PROVIDER, 10 * 60 * 1000, 1000, this);
             network_enabled = lm.isProviderEnabled(LocationManager.NETWORK_PROVIDER);
         }catch(Exception ex){}
+        try {
+            lm.requestLocationUpdates(LocationManager.NETWORK_PROVIDER, 10 * 60 * 1000, 1000, this);
+        } catch (Exception e) {}
 
         if(!gps_enabled && !network_enabled){
             AlertDialog.Builder dialog = new AlertDialog.Builder(this);

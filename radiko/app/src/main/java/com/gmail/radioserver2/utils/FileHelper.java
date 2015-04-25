@@ -28,6 +28,8 @@ public class FileHelper {
 
     private static final String DEFAULT_TEMP_FLV = "dump.flv";
 
+    public static final String LOCATION_DUMP_API = "loc.api";
+
     private final Context context;
 
     public FileHelper(Context context) {

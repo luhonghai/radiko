@@ -20,6 +20,7 @@ import com.gmail.radioserver2.data.RecordedProgram;
 import com.gmail.radioserver2.data.Timer;
 import com.gmail.radioserver2.data.sqlite.ext.RecordedProgramDBAdapter;
 import com.gmail.radioserver2.radiko.TokenFetcher;
+import com.gmail.radioserver2.utils.AndroidUtil;
 import com.gmail.radioserver2.utils.Constants;
 import com.gmail.radioserver2.utils.FileHelper;
 import com.gmail.radioserver2.utils.SimpleAppLog;
@@ -170,7 +171,7 @@ public class TimerBroadcastReceiver extends BroadcastReceiver implements Service
                                         rChannel.setService(channel.getType());
                                         rChannel.setServiceChannelId(channel.getUrl());
                                         rChannel.setServiceChannelId(channel.getKey());
-                                        RadioProgram radioProgram = requester.getPrograms(rChannel, RadioArea.getArea(rawAreaId, channel.getType()));
+                                        RadioProgram radioProgram = requester.getPrograms(rChannel, RadioArea.getArea(rawAreaId, channel.getType()), AndroidUtil.getAdsId(mContext));
                                         if (radioProgram != null) {
                                             List<RadioProgram.Program> programList = radioProgram.getPrograms();
                                             if (programList != null && programList.size() > 0) {

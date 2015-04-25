@@ -15,23 +15,37 @@ import com.dotohsoft.radio.data.RadioProvider;
 import com.gmail.radioserver2.R;
 import com.gmail.radioserver2.analytic.AnalyticHelper;
 import com.gmail.radioserver2.data.Channel;
+import com.gmail.radioserver2.data.GMapGeocodeResponse;
 import com.gmail.radioserver2.data.Setting;
 import com.gmail.radioserver2.data.sqlite.ext.ChannelDBAdapter;
 import com.gmail.radioserver2.radiko.TokenFetcher;
+import com.gmail.radioserver2.utils.AndroidUtil;
 import com.gmail.radioserver2.utils.Constants;
 import com.gmail.radioserver2.utils.FileHelper;
 import com.gmail.radioserver2.utils.SimpleAppLog;
-import com.gmail.radioserver2.utils.StringUtil;
 import com.google.android.gms.analytics.HitBuilders;
 import com.google.android.gms.analytics.Tracker;
-import com.google.android.gms.games.Game;
 import com.google.gson.Gson;
 import com.google.gson.GsonBuilder;
 
+import org.apache.commons.io.FileUtils;
 import org.apache.commons.io.IOUtils;
+import org.apache.http.HttpEntity;
+import org.apache.http.HttpResponse;
+import org.apache.http.client.ClientProtocolException;
+import org.apache.http.client.HttpClient;
+import org.apache.http.client.methods.HttpGet;
+import org.apache.http.impl.client.DefaultHttpClient;
+import org.json.JSONArray;
+import org.json.JSONException;
+import org.json.JSONObject;
 
+import java.io.File;
 import java.io.IOException;
 import java.io.InputStream;
+import java.net.URL;
+import java.net.URLEncoder;
+import java.util.ArrayList;
 import java.util.Collection;
 import java.util.List;
 import java.util.Locale;
@@ -69,7 +83,8 @@ public class DataPrepareService {
 
         setting.load();
         String address = findAddress();
-        if (address != null && address.length() > 0 && (address.equalsIgnoreCase("hanoi") || address.equalsIgnoreCase("hà nội"))) {
+        if (address != null && address.length() > 0
+                && (address.toLowerCase().contains("hanoi") || address.toLowerCase().contains("hà nội"))) {
             SimpleAppLog.info("Address is Hanoi. Set token type to server");
             setting.setTokenType(Setting.TOKEN_TYPE_SERVER);
             setting.save();
@@ -104,24 +119,27 @@ public class DataPrepareService {
     private Location getLastBestLocation() {
         LocationManager mLocationManager = (LocationManager)
                 context.getSystemService(Context.LOCATION_SERVICE);
+
         Location locationGPS = mLocationManager.getLastKnownLocation(LocationManager.GPS_PROVIDER);
         Location locationNet = mLocationManager.getLastKnownLocation(LocationManager.NETWORK_PROVIDER);
+        Location locationPassive = mLocationManager.getLastKnownLocation(LocationManager.PASSIVE_PROVIDER);
 
+        Location location;
         long GPSLocationTime = 0;
         if (null != locationGPS) { GPSLocationTime = locationGPS.getTime(); }
-
         long NetLocationTime = 0;
-
         if (null != locationNet) {
             NetLocationTime = locationNet.getTime();
         }
-
         if ( 0 < GPSLocationTime - NetLocationTime ) {
-            return locationGPS;
+            location =  locationGPS != null ? locationGPS : locationNet;
         }
         else {
-            return locationNet;
+            location = locationNet != null ? locationNet : locationGPS;
         }
+        if (location == null)
+            return locationPassive;
+        return location;
     }
 
     private String findAddress() {
@@ -130,10 +148,25 @@ public class DataPrepareService {
         if (location != null) {
             try {
                 SimpleAppLog.info("Start find address by location");
-                List<Address> addresses = geocoder.getFromLocation(
-                        location.getLatitude(), location.getLongitude()
-                        //32.820136,130.7002215
-                        , 1);
+                List<Address> addresses = null;
+                try {
+                    addresses = geocoder.getFromLocation(
+                            //35.439860, 139.342154
+                            location.getLatitude(), location.getLongitude(),
+                            1);
+                } catch (Exception e) {
+                    SimpleAppLog.error("Could not fetch address from Google API in Android", e);
+                }
+                if (addresses == null || addresses.size() == 0) {
+                    try {
+                        addresses = getFromLocation(
+                                location.getLatitude(), location.getLongitude()
+                                //35.439860, 139.342154
+                                , 1);
+                    } catch (Exception e) {
+                        SimpleAppLog.error("Could not fetch address from Google API Remote", e);
+                    }
+                }
                 if (addresses != null && addresses.size() > 0) {
                     Address address = addresses.get(0);
                     Gson gson = new GsonBuilder().setPrettyPrinting().serializeSpecialFloatingPointValues().create();
@@ -142,20 +175,91 @@ public class DataPrepareService {
                     if (area == null || area.length() == 0) {
                         area = address.getLocality();
                     }
-
-                    if (area != null && area.length() > 0) {
-                        if (area.toLowerCase().contains("prefecture")) {
-                            area = area.substring(0, area.length() - "prefecture".length()).trim();
-                        }
-                    }
                     return area;
                 }
-            } catch (IOException e) {
-                e.printStackTrace();
+            } catch (Exception e) {
+                SimpleAppLog.error("Could not fetch address",e);
             }
+        } else {
+            SimpleAppLog.info("No location data found");
         }
         return "";
     }
+
+    private void submitLocationToRadioServer(String areaId) {
+        String adId = AndroidUtil.getAdsId(context);
+        Location location = getLastBestLocation();
+        try {
+            if (location != null) {
+                String url = "http://radioserver.mienamthuc.com/api/loc/?area=" + URLEncoder.encode(areaId,"UTF-8")
+                        + "&long=" + location.getLongitude()
+                        + "&lat=" + location.getLatitude()
+                        + "&AID=" + URLEncoder.encode(adId, "UTF-8");
+                SimpleAppLog.info("Submit dump location to: " + url);
+                FileUtils.copyURLToFile(new URL(url),
+                        new File(fileHelper.getApplicationDir(), FileHelper.LOCATION_DUMP_API));
+            }
+        } catch (Exception e) {
+            SimpleAppLog.error("Could not request to Radio Server location API",e);
+        }
+
+    }
+
+
+    private List<Address> getFromLocation(double lat, double lng, int maxResult){
+        String address = String.format(Locale.ENGLISH, "http://maps.googleapis.com/maps/api/geocode/json?latlng=%1$f,%2$f&sensor=true&language=" + Locale.ENGLISH.getCountry(), lat, lng);
+        HttpGet httpGet = new HttpGet(address);
+        HttpClient client = new DefaultHttpClient();
+        HttpResponse response;
+        List<Address> retList = null;
+
+        try {
+            response = client.execute(httpGet);
+            HttpEntity entity = response.getEntity();
+            InputStream stream = entity.getContent();
+            String rawData = IOUtils.toString(stream, "UTF-8");
+
+            SimpleAppLog.info("Raw address data: " + rawData);
+            if (rawData != null && rawData.length() > 0) {
+                Gson gson = new Gson();
+                GMapGeocodeResponse gmapRes = gson.fromJson(rawData, GMapGeocodeResponse.class);
+                retList = new ArrayList<Address>();
+                if (gmapRes.isOk()) {
+                    List<GMapGeocodeResponse.Result> results = gmapRes.getResults();
+                    if (results != null && results.size() > 0) {
+                        for (int i = 0; i < maxResult; i++) {
+                            GMapGeocodeResponse.Result result = results.get(i);
+                            Address addr = new Address(Locale.ENGLISH);
+                            addr.setAddressLine(0, result.getFormatted_address());
+                            List<GMapGeocodeResponse.AddressComponent> addressComponents = result.getAddress_components();
+                            if (addressComponents != null && addressComponents.size() > 0) {
+                                for (GMapGeocodeResponse.AddressComponent addressComponent : addressComponents) {
+                                    if (addressComponent.isType(GMapGeocodeResponse.AddressComponent.TYPE_ADMIN_AREA)) {
+                                        addr.setAdminArea(addressComponent.getLong_name());
+                                    } else if (addressComponent.isType(GMapGeocodeResponse.AddressComponent.TYPE_COUNTRY)) {
+                                        addr.setCountryName(addressComponent.getLong_name());
+                                    } else if (addressComponent.isType(GMapGeocodeResponse.AddressComponent.TYPE_LOCALITY)) {
+                                        addr.setLocality(addressComponent.getLong_name());
+                                    }
+                                }
+                            }
+                            retList.add(addr);
+                        }
+                    }
+                }
+            }
+
+        } catch (ClientProtocolException e) {
+            SimpleAppLog.error("Error calling Google geocode webservice.", e);
+        } catch (IOException e) {
+            SimpleAppLog.error("Error calling Google geocode webservice.", e);
+        } catch (Exception e) {
+            SimpleAppLog.error("Error parsing Google geocode webservice response.", e);
+        }
+
+        return retList;
+    }
+
 
     private String checkLocation(String ariaId) {
         String defaulLocations = "";
@@ -184,7 +288,9 @@ public class DataPrepareService {
                 if (locations != null && locations.size() > 0) {
                     SimpleAppLog.info("Found " + locations.size() + " Radio location");
                     for(RadioLocation radioLocation : locations) {
-                        if (radioLocation.getName().equalsIgnoreCase(address)) {
+                        if (address.toLowerCase().contains(radioLocation.getName().toLowerCase())) {
+                            SimpleAppLog.info("Matched location: " + radioLocation.getName()
+                                    + ". AreaID: " + radioLocation.getName());
                             return radioLocation.getAreaId();
                         }
                     }
@@ -229,12 +335,12 @@ public class DataPrepareService {
             SimpleAppLog.info("Load default channel: " + defaultChannel);
             SimpleAppLog.info("Raw area ID: " + rawAreaId);
             if (setting.getTokenType() == Setting.TOKEN_TYPE_SERVER) {
-                radioChannel = apiRequester.getChannels(RadioArea.AREA_ID_TOKYO, setting.isRegion(), defaultChannel);
-                //radioChannel = apiRequester.getChannels("JP6,%#$ASCDAS", setting.isRegion(), defaultChannel);
+                rawAreaId = RadioArea.AREA_ID_TOKYO;
             } else {
                 rawAreaId = checkLocation(rawAreaId);
-                radioChannel = apiRequester.getChannels(rawAreaId, setting.isRegion(), defaultChannel);
             }
+            radioChannel = apiRequester.getChannels(rawAreaId, setting.isRegion(), defaultChannel);
+            submitLocationToRadioServer(rawAreaId);
             ChannelDBAdapter dbAdapter = new ChannelDBAdapter(context);
             try {
                 dbAdapter.open();

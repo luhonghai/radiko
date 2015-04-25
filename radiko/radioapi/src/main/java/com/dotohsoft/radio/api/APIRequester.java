@@ -18,6 +18,7 @@ import org.jsoup.select.Elements;
 import java.io.File;
 import java.io.IOException;
 import java.net.URL;
+import java.net.URLEncoder;
 import java.text.SimpleDateFormat;
 import java.util.ArrayList;
 import java.util.Calendar;
@@ -117,7 +118,7 @@ public class APIRequester {
         }
     }
 
-    public RadioProgram getPrograms(RadioChannel.Channel channel, RadioArea area) throws IOException {
+    public RadioProgram getPrograms(RadioChannel.Channel channel, RadioArea area, String adID) throws IOException {
         if (area == null || area.getId() == null || area.getId().length() == 0 || channel == null) return null;
         String strCachedFile = "program_" + area.getProvider() + "_" + channel.getServiceChannelId() + "_" + area.getId() + "_" + sdf.format(now) + ".json";
         File cachedFile = new File(cachedFolder, strCachedFile);
@@ -125,8 +126,9 @@ public class APIRequester {
         if (!cachedFile.exists()) {
             String requesturl = Constant.ROOT_API_URL  + Constant.API_PROGRAM
                     + "?" + Constant.ARG_PROVIDER + "=" + area.getProvider()
-                    + "&" + Constant.ARG_CHANNEL + "=" + channel.getServiceChannelId()
-                    + "&" + Constant.ARG_AREA + "=" + area.getId();
+                    + "&" + Constant.ARG_CHANNEL + "=" + URLEncoder.encode(channel.getServiceChannelId(), "UTF-8")
+                    + "&" + Constant.ARG_AREA + "=" + URLEncoder.encode(area.getId(),"UTF-8")
+                    + "&AID=" + URLEncoder.encode(adID, "UTF-8");
             URL url =new URL(requesturl);
 
             if (requesterListener != null) requesterListener.onMessage("Request program url: " + requesturl);

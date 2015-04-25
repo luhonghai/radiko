@@ -7,9 +7,9 @@ public class Constant {
 
     public static final String DEFAULT_DATE_FORMAT = "yyyy-MM-dd";
 
-    public static final String ROOT_API_URL = "http://stest.dotohsoft.com/~khach/";
+    public static final String ROOT_API_URL = "http://radioserver.mienamthuc.com/api/";
 
-    public static final String API_PROGRAM = "program.php";
+    public static final String API_PROGRAM = "program";
 
     public static final String ARG_PROVIDER = "provider";
 

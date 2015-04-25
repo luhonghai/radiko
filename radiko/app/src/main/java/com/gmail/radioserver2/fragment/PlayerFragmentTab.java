@@ -287,7 +287,8 @@ public class PlayerFragmentTab extends FragmentTab implements ServiceConnection,
                 }
             });
         } else {
-            txtDescription.setText("");
+            if (txtDescription != null)
+                txtDescription.setText("");
         }
     }
 
