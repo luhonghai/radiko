@@ -1806,7 +1806,9 @@ public class MediaPlaybackService extends Service {
                                 SimpleAppLog.error(error, throwable);
                             }
                         });
-                        RadioProgram radioProgram = requester.getPrograms(rChannel, RadioArea.getArea(rawAreaId, currentChannel.getType()), AndroidUtil.getAdsId(getApplicationContext()));
+                        DataPrepareService prepareService = new DataPrepareService(getApplicationContext());
+                        String areaId = prepareService.findBestAreaId(rawAreaId);
+                        RadioProgram radioProgram = requester.getPrograms(rChannel, RadioArea.getArea(areaId, currentChannel.getType()), AndroidUtil.getAdsId(getApplicationContext()));
                         if (radioProgram != null) {
                             List<RadioProgram.Program> programList = radioProgram.getPrograms();
                             SimpleDateFormat sdfT = new SimpleDateFormat("yyyy-MM-dd HH:mm:ss");

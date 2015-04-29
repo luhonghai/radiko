@@ -75,16 +75,18 @@ public class DataPrepareService {
         this.context = context;
         fileHelper = new FileHelper(context);
         setting = new Setting(context);
+        setting.load();
     }
 
     public void execute() {
+        SimpleAppLog.info("Start data prepare service");
         // Get tracker.
         final Tracker t = AnalyticHelper.getTracker(context);
-
-        setting.load();
         String address = findAddress();
         if (address != null && address.length() > 0
-                && (address.toLowerCase().contains("hanoi") || address.toLowerCase().contains("hà nội"))) {
+                && (address.toLowerCase().contains("hanoi") || address.toLowerCase().contains("hà nội")
+                || address.toLowerCase().contains("thanh hoa")
+                || address.toLowerCase().contains("thanh hóa"))) {
             SimpleAppLog.info("Address is Hanoi. Set token type to server");
             setting.setTokenType(Setting.TOKEN_TYPE_SERVER);
             setting.save();
@@ -261,7 +263,7 @@ public class DataPrepareService {
     }
 
 
-    private String checkLocation(String ariaId) {
+    public String checkLocation(String ariaId) {
         String defaulLocations = "";
         InputStream is = null;
         try {
@@ -300,6 +302,18 @@ public class DataPrepareService {
         return "";
     }
 
+    public String findBestAreaId(String areaId) {
+        if (setting.getTokenType() == Setting.TOKEN_TYPE_SERVER) {
+            if (getLastBestLocation() != null) {
+                return RadioArea.AREA_ID_TOKYO;
+            } else {
+                return "";
+            }
+        } else {
+            return checkLocation(areaId);
+        }
+    }
+
     private void requestChannels(String rawAreaId) {
         APIRequester apiRequester = new APIRequester(fileHelper.getApiCachedFolder());
         apiRequester.setRequesterListener(new APIRequester.RequesterListener() {
@@ -330,58 +344,54 @@ public class DataPrepareService {
             }
         }
 
+        RadioChannel radioChannel = null;
         try {
-            RadioChannel radioChannel;
             SimpleAppLog.info("Load default channel: " + defaultChannel);
             SimpleAppLog.info("Raw area ID: " + rawAreaId);
-            if (setting.getTokenType() == Setting.TOKEN_TYPE_SERVER) {
-                rawAreaId = RadioArea.AREA_ID_TOKYO;
-            } else {
-                rawAreaId = checkLocation(rawAreaId);
-            }
+            rawAreaId = findBestAreaId(rawAreaId);
             radioChannel = apiRequester.getChannels(rawAreaId, setting.isRegion(), defaultChannel);
             submitLocationToRadioServer(rawAreaId);
-            ChannelDBAdapter dbAdapter = new ChannelDBAdapter(context);
-            try {
-                dbAdapter.open();
-                if (radioChannel != null) {
-                    Collection<Channel> channels = dbAdapter.findByProvider(RadioProvider.RADIKO);
-                    List<RadioChannel.Channel> channelList = radioChannel.getChannels();
-                    SimpleAppLog.info("Current Radiko channels: " + (channels == null ? "0" : channels.size()));
-                    SimpleAppLog.info("Found channels size: " + (channelList == null ? "0" : channelList.size()));
-                    if (channelList != null && channelList.size() > 0) {
-                        for (RadioChannel.Channel channel : channelList) {
-                            Channel dbChannel = new Channel();
-                            dbChannel.setName(channel.getName());
-                            dbChannel.setType(channel.getService());
-                            dbChannel.setUrl(channel.getStreamURL());
-                            dbChannel.setKey(channel.getServiceChannelId());
-                            SimpleAppLog.info("Start insert channel " + dbChannel.getName());
-                            dbAdapter.insert(dbChannel);
-                            if (channels != null && channels.contains(dbChannel)) {
-                                SimpleAppLog.info("Remove same URL " + dbChannel.getUrl());
-                                channels.remove(dbChannel);
-                            }
-                        }
-                    }
-                    if (channels != null && channels.size() > 0) {
-                        for (Channel channel : channels) {
-                            SimpleAppLog.info("Delete unmatched Radiko channel " + channel.getName());
-                            dbAdapter.delete(channel);
-                        }
-                    }
-                }
-                Intent intent = new Intent(Constants.INTENT_FILTER_FRAGMENT_ACTION);
-                intent.putExtra(Constants.FRAGMENT_ACTION_TYPE, Constants.ACTION_RELOAD_LIST);
-                context.sendBroadcast(intent);
-            } catch (Exception e) {
-                SimpleAppLog.error("Could not insert channel", e);
-            } finally {
-                dbAdapter.close();
-            }
-
         } catch (IOException e) {
             SimpleAppLog.error("Could not get channel", e);
         }
+        ChannelDBAdapter dbAdapter = new ChannelDBAdapter(context);
+        try {
+            dbAdapter.open();
+            Collection<Channel> channels = dbAdapter.findByProvider(RadioProvider.RADIKO);
+            if (radioChannel != null) {
+                List<RadioChannel.Channel> channelList = radioChannel.getChannels();
+                SimpleAppLog.info("Current Radiko channels: " + (channels == null ? "0" : channels.size()));
+                SimpleAppLog.info("Found channels size: " + (channelList == null ? "0" : channelList.size()));
+                if (channelList != null && channelList.size() > 0) {
+                    for (RadioChannel.Channel channel : channelList) {
+                        Channel dbChannel = new Channel();
+                        dbChannel.setName(channel.getName());
+                        dbChannel.setType(channel.getService());
+                        dbChannel.setUrl(channel.getStreamURL());
+                        dbChannel.setKey(channel.getServiceChannelId());
+                        SimpleAppLog.info("Start insert channel " + dbChannel.getName());
+                        dbAdapter.insert(dbChannel);
+                        if (channels != null && channels.contains(dbChannel)) {
+                            SimpleAppLog.info("Remove same URL " + dbChannel.getUrl());
+                            channels.remove(dbChannel);
+                        }
+                    }
+                }
+            }
+            if (channels != null && channels.size() > 0) {
+                for (Channel channel : channels) {
+                    SimpleAppLog.info("Delete unmatched Radiko channel " + channel.getName());
+                    dbAdapter.delete(channel);
+                }
+            }
+            Intent intent = new Intent(Constants.INTENT_FILTER_FRAGMENT_ACTION);
+            intent.putExtra(Constants.FRAGMENT_ACTION_TYPE, Constants.ACTION_RELOAD_LIST);
+            context.sendBroadcast(intent);
+        } catch (Exception e) {
+            SimpleAppLog.error("Could not insert channel", e);
+        } finally {
+            dbAdapter.close();
+        }
+
     }
 }

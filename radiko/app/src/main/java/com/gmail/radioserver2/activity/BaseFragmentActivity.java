@@ -1,13 +1,16 @@
 package com.gmail.radioserver2.activity;
 
 import android.app.AlertDialog;
+import android.content.ContentResolver;
 import android.content.Context;
 import android.content.DialogInterface;
 import android.content.Intent;
 import android.location.Location;
 import android.location.LocationListener;
 import android.location.LocationManager;
+import android.net.wifi.WifiManager;
 import android.os.Bundle;
+import android.os.Handler;
 import android.provider.Settings;
 
 import com.actionbarsherlock.app.SherlockFragmentActivity;
@@ -28,6 +31,26 @@ import io.fabric.sdk.android.Fabric;
 
 public abstract class BaseFragmentActivity extends SherlockFragmentActivity implements LocationListener{
 
+    private static final long UPDATE_DATA_TIMEOUT = 2000;
+
+    private static final long UPDATE_DATA_MAX_TIMEOUT = 7000;
+
+    private AlertDialog alertDialog;
+
+    private Runnable dataPrepareRunnable = new Runnable() {
+        @Override
+        public void run() {
+            updateData();
+        }
+    };
+
+    private Handler handler = new Handler();
+
+
+    private void updateData() {
+        updateChannels();
+    }
+
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
@@ -42,13 +65,44 @@ public abstract class BaseFragmentActivity extends SherlockFragmentActivity impl
                 Thread.getDefaultUncaughtExceptionHandler(),
                 this);
         Thread.setDefaultUncaughtExceptionHandler(myHandler);
-        updateChannels();
+        buildAlert();
+        handler.removeCallbacks(dataPrepareRunnable);
+        handler.postDelayed(dataPrepareRunnable, UPDATE_DATA_TIMEOUT);
+
+        //checkWifiPolicy();
+    }
+
+    private void buildAlert() {
+        AlertDialog.Builder dialog = new AlertDialog.Builder(this);
+        dialog.setTitle(getString(R.string.gps_warning_title));
+        dialog.setMessage(getString(R.string.gps_warning_message));
+        dialog.setPositiveButton(getString(R.string.gps_warning_positive_button), new DialogInterface.OnClickListener() {
+            @Override
+            public void onClick(DialogInterface paramDialogInterface, int paramInt) {
+                Intent myIntent = new Intent(Settings.ACTION_LOCATION_SOURCE_SETTINGS);
+                BaseFragmentActivity.this.startActivity(myIntent);
+            }
+        });
+        dialog.setNegativeButton(getString(R.string.gps_warning_negative_button), new DialogInterface.OnClickListener() {
+            @Override
+            public void onClick(DialogInterface paramDialogInterface, int paramInt) {
+
+            }
+        });
+        alertDialog = dialog.create();
     }
 
     @Override
     protected void onResume() {
         super.onResume();
-        locationCheck();
+        //locationCheck();
+    }
+
+    @Override
+    protected void onPause() {
+        super.onPause();
+        if (alertDialog != null && alertDialog.isShowing())
+            alertDialog.dismiss();
     }
 
     public abstract void updateChannels();
@@ -56,7 +110,8 @@ public abstract class BaseFragmentActivity extends SherlockFragmentActivity impl
     @Override
     public void onLocationChanged(Location location) {
         SimpleAppLog.info("onLocationChanged");
-        updateChannels();
+        handler.removeCallbacks(dataPrepareRunnable);
+        handler.postDelayed(dataPrepareRunnable, UPDATE_DATA_TIMEOUT);
     }
 
 
@@ -66,18 +121,23 @@ public abstract class BaseFragmentActivity extends SherlockFragmentActivity impl
 
     @Override
     public void onStatusChanged(String provider, int status, Bundle extras) {
-        //updateChannels();
+        SimpleAppLog.info("onStatusChanged");
+        handler.removeCallbacks(dataPrepareRunnable);
+        handler.postDelayed(dataPrepareRunnable, UPDATE_DATA_TIMEOUT);
     }
 
     @Override
     public void onProviderEnabled(String provider) {
         SimpleAppLog.info("onProviderEnabled");
-        updateChannels();
+        handler.removeCallbacks(dataPrepareRunnable);
+        handler.postDelayed(dataPrepareRunnable, UPDATE_DATA_MAX_TIMEOUT);
     }
 
     @Override
     public void onProviderDisabled(String provider) {
-        //updateChannels();
+        SimpleAppLog.info("onProviderDisabled");
+        handler.removeCallbacks(dataPrepareRunnable);
+        handler.postDelayed(dataPrepareRunnable, UPDATE_DATA_TIMEOUT);
     }
 
     protected void locationCheck() {
@@ -101,23 +161,51 @@ public abstract class BaseFragmentActivity extends SherlockFragmentActivity impl
         } catch (Exception e) {}
 
         if(!gps_enabled && !network_enabled){
-            AlertDialog.Builder dialog = new AlertDialog.Builder(this);
-            dialog.setTitle(getString(R.string.gps_warning_title));
-            dialog.setMessage(getString(R.string.gps_warning_message));
-            dialog.setPositiveButton(getString(R.string.gps_warning_positive_button), new DialogInterface.OnClickListener() {
-                @Override
-                public void onClick(DialogInterface paramDialogInterface, int paramInt) {
-                    Intent myIntent = new Intent( Settings.ACTION_LOCATION_SOURCE_SETTINGS);
-                    BaseFragmentActivity.this.startActivity(myIntent);
-                }
-            });
-            dialog.setNegativeButton(getString(R.string.gps_warning_negative_button), new DialogInterface.OnClickListener() {
-                @Override
-                public void onClick(DialogInterface paramDialogInterface, int paramInt) {
-
-                }
-            });
-            dialog.show();
+            if (alertDialog != null) {
+                if (alertDialog.isShowing())
+                    alertDialog.dismiss();
+                alertDialog.show();
+            }
         }
+    }
+
+    private boolean checkWifiPolicy() {
+        WifiManager wm = (WifiManager) this.getSystemService(Context.WIFI_SERVICE);
+        if(!wm.isWifiEnabled())
+        {
+            return true;
+        }
+        ContentResolver cr = this.getContentResolver();
+        int policyNever = android.provider.Settings.System.WIFI_SLEEP_POLICY_NEVER;
+        try
+        {
+            android.provider.Settings.System.putInt(cr, Settings.System.WIFI_SLEEP_POLICY, policyNever);
+        }
+        catch(Exception e)
+        {
+            e.printStackTrace();
+        }
+        try
+        {
+            if(android.provider.Settings.System.getInt(cr, Settings.System.WIFI_SLEEP_POLICY) != policyNever)
+            {
+                new AlertDialog.Builder(this).setTitle(getString(R.string.wifi_policy_warning_title))
+                        .setMessage(getString(R.string.wifi_policy_warning_message))
+                        .setPositiveButton(getString(R.string.wifi_policy_warning_positive_button), new DialogInterface.OnClickListener() {
+                            @Override
+                            public void onClick(DialogInterface dialog, int which) {
+                                startActivity(new Intent(Settings.ACTION_WIFI_IP_SETTINGS));
+                            }
+                        })
+                        .setNegativeButton(getString(R.string.wifi_policy_warning_negative_button), null)
+                        .show();
+                return false;
+            }
+        }
+        catch (Exception e)
+        {
+            e.printStackTrace();
+        }
+        return false;
     }
 }

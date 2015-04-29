@@ -95,7 +95,7 @@ public class MainActivity extends BaseFragmentActivity implements ServiceConnect
         initializeTabs();
         mServiceToken = MusicUtils.bindToService(this, this);
         registerReceiver(mHandleAction, new IntentFilter(Constants.INTENT_FILTER_FRAGMENT_ACTION));
-        checkWifiPolicy();
+
     }
 
     @Override
@@ -110,45 +110,6 @@ public class MainActivity extends BaseFragmentActivity implements ServiceConnect
         }.execute();
     }
 
-    private boolean checkWifiPolicy() {
-        WifiManager wm = (WifiManager) this.getSystemService(Context.WIFI_SERVICE);
-        if(!wm.isWifiEnabled())
-        {
-            return true;
-        }
-        ContentResolver cr = this.getContentResolver();
-        int policyNever = android.provider.Settings.System.WIFI_SLEEP_POLICY_NEVER;
-        try
-        {
-            android.provider.Settings.System.putInt(cr, Settings.System.WIFI_SLEEP_POLICY, policyNever);
-        }
-        catch(Exception e)
-        {
-            e.printStackTrace();
-        }
-        try
-        {
-            if(android.provider.Settings.System.getInt(cr, Settings.System.WIFI_SLEEP_POLICY) != policyNever)
-            {
-                new AlertDialog.Builder(this).setTitle(getString(R.string.wifi_policy_warning_title))
-                        .setMessage(getString(R.string.wifi_policy_warning_message))
-                        .setPositiveButton(getString(R.string.wifi_policy_warning_positive_button), new DialogInterface.OnClickListener() {
-                            @Override
-                            public void onClick(DialogInterface dialog, int which) {
-                                startActivity(new Intent(Settings.ACTION_WIFI_IP_SETTINGS));
-                            }
-                        })
-                        .setNegativeButton(getString(R.string.wifi_policy_warning_negative_button), null)
-                        .show();
-                return false;
-            }
-        }
-        catch (Exception e)
-        {
-            e.printStackTrace();
-        }
-        return false;
-    }
 
     private void showTimer() {
         Intent intent = new Intent();
