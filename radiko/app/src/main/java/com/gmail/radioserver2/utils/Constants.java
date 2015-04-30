@@ -34,11 +34,13 @@ public class Constants {
 
     public static final int TAB_HOME_ID = 0;
 
-    public static final int TAB_RECORDED_PROGRAM_ID = 1;
+    public static final int TAB_PLAY_SCREEN_ID = 1;
 
-    public static final int TAB_LIBRARY_ID = 2;
+    public static final int TAB_RECORDED_PROGRAM_ID = 2;
 
-    public static final int TAB_SETTING_ID = 3;
+    public static final int TAB_LIBRARY_ID = 3;
+
+    public static final int TAB_SETTING_ID = 4;
 
     public static final String PLAYBACK_VIEWER_INTENT = "com.gmail.radioserver2.PLAYBACK_VIEWER";
 

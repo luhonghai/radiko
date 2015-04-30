@@ -409,8 +409,16 @@ public class MediaPlaybackService extends Service {
     }
 
     private int stateAB = ABState.STOP;
-    private long posA;
-    private long posB;
+    private long posA = -1;
+    private long posB = -1;
+
+    public long getPosA() {
+        return posA;
+    }
+
+    public long getPosB() {
+        return posB;
+    }
 
     private int getStateAB() {
         if (isStreaming)
@@ -433,7 +441,7 @@ public class MediaPlaybackService extends Service {
         @Override
         public void run() {
             checkAB();
-            handlerCheckAB.postDelayed(checkABRunnable, 500);
+            handlerCheckAB.postDelayed(checkABRunnable, 100);
         }
     };
 
@@ -486,16 +494,30 @@ public class MediaPlaybackService extends Service {
 
     private Handler fastHandler = new Handler();
 
+    private boolean isFast;
+
+    private boolean isSlow;
+
+    public boolean isFast() {
+        return isFast;
+    }
+
+    public boolean isSlow() {
+        return isSlow;
+    }
+
     private void doFast(float level) {
         stopFast();
         stopSlow();
         //fastHandler.post(fastRunnable);
         if (!isStreaming && mPlayer.isInitialized()) {
             mPlayer.setPlaybackSpeed(level);
+            isFast = true;
         }
     }
 
     private void stopFast() {
+        isFast = false;
         if (isStreaming || !mPlayer.isInitialized()) return;
         try {
             //  fastHandler.removeCallbacks(fastRunnable);
@@ -533,11 +555,12 @@ public class MediaPlaybackService extends Service {
         // slowHandler.post(slowRunnable);
         if (!isStreaming && mPlayer.isInitialized()) {
             mPlayer.setPlaybackSpeed(level);
+            isSlow = true;
         }
     }
 
     private void stopSlow() {
-
+        isSlow = false;
         try {
             mPlayer.setPlaybackSpeed(1.0f);
             //    slowHandler.removeCallbacks(slowRunnable);
@@ -3159,6 +3182,26 @@ public class MediaPlaybackService extends Service {
         @Override
         public void stopAB() throws RemoteException {
             mService.get().stopAB();
+        }
+
+        @Override
+        public long getAPos() throws RemoteException {
+            return mService.get().getPosA();
+        }
+
+        @Override
+        public long getBPos() throws RemoteException {
+            return mService.get().getPosB();
+        }
+
+        @Override
+        public boolean isFast() throws RemoteException {
+            return mService.get().isFast();
+        }
+
+        @Override
+        public boolean isSlow() throws RemoteException {
+            return mService.get().isSlow();
         }
 
         @Override

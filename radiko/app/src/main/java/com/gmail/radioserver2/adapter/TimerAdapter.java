@@ -35,6 +35,18 @@ public class TimerAdapter extends DefaultAdapter<Timer> {
             holder = new ViewHolder();
             holder.txtTitle = (TextView) convertView.findViewById(R.id.txtTitle);
             holder.btnDelete = (Button) convertView.findViewById(R.id.btnDelete);
+            holder.txtTitle.setOnClickListener(new View.OnClickListener() {
+                @Override
+                public void onClick(View v) {
+                    getListItemAction().onSelectItem((Timer) v.getTag());
+                }
+            });
+            holder.btnDelete.setOnClickListener(new View.OnClickListener() {
+                @Override
+                public void onClick(View v) {
+                    getListItemAction().onDeleteItem((Timer) v.getTag());
+                }
+            });
             convertView.setTag(holder);
         } else {
             holder = (ViewHolder) convertView.getTag();
@@ -45,19 +57,9 @@ public class TimerAdapter extends DefaultAdapter<Timer> {
         Timer timer = getObjects()[position];
         holder.txtTitle.setText(timer.toPrettyString(getContext()));
         holder.txtTitle.setTag(timer);
-        holder.txtTitle.setOnClickListener(new View.OnClickListener() {
-            @Override
-            public void onClick(View v) {
-                getListItemAction().onSelectItem((Timer) v.getTag());
-            }
-        });
+
         holder.btnDelete.setTag(timer);
-        holder.btnDelete.setOnClickListener(new View.OnClickListener() {
-            @Override
-            public void onClick(View v) {
-                getListItemAction().onDeleteItem((Timer) v.getTag());
-            }
-        });
+
         return convertView;
     }
 }

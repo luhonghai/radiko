@@ -39,6 +39,7 @@ import com.gmail.radioserver2.service.MusicUtils;
 import com.gmail.radioserver2.utils.Constants;
 import com.gmail.radioserver2.utils.FileHelper;
 import com.gmail.radioserver2.utils.SimpleAppLog;
+import com.gmail.radioserver2.view.CustomSeekBar;
 import com.google.android.gms.ads.AdRequest;
 import com.google.android.gms.ads.AdView;
 import com.google.gson.Gson;
@@ -93,7 +94,7 @@ public class PlayerFragmentTab extends FragmentTab implements ServiceConnection,
 
     private ImageButton btnNext;
 
-    private SeekBar seekBarPlayer;
+    private CustomSeekBar seekBarPlayer;
 
     private WebView gifView;
 
@@ -225,13 +226,12 @@ public class PlayerFragmentTab extends FragmentTab implements ServiceConnection,
         txtTitle = (TextView) v.findViewById(R.id.txtTitle);
         txtDescription = (TextView) v.findViewById(R.id.txtDescription);
 
-        seekBarPlayer = (SeekBar) v.findViewById(R.id.seekBarPlayer);
+        seekBarPlayer = (CustomSeekBar) v.findViewById(R.id.seekBarPlayer);
         seekBarPlayer.setMax(1000);
         seekBarPlayer.setOnSeekBarChangeListener(mSeekListener);
         switchButtonStage(ButtonStage.DISABLED);
         showPlayerInit();
-        long next = refreshNow();
-        queueNextRefresh(next);
+
         return v;
     }
 
@@ -289,6 +289,32 @@ public class PlayerFragmentTab extends FragmentTab implements ServiceConnection,
         } else {
             if (txtDescription != null)
                 txtDescription.setText("");
+        }
+    }
+
+    private void showABState() {
+        try {
+            if (mService != null && mService.isPlaying()) {
+                float posA = -1;
+                float posB = -1;
+                if (mService.getStateAB() != MediaPlaybackService.ABState.STOP
+                        || mService.getStateAB() != MediaPlaybackService.ABState.ERROR) {
+                    long duration = mService.duration();
+                    if (mService.getAPos() != -1) {
+                        posA = (float) mService.getAPos() / duration;
+                    }
+                    if (mService.getBPos() != -1) {
+                        posB = (float) mService.getBPos() / duration;
+                    }
+                }
+                if (seekBarPlayer != null) {
+                    seekBarPlayer.setPosA(posA);
+                    seekBarPlayer.setPosB(posB);
+                    seekBarPlayer.invalidate();
+                }
+            }
+        } catch (Exception e) {
+            SimpleAppLog.error("Could not update ABState",e);
         }
     }
 
@@ -355,6 +381,7 @@ public class PlayerFragmentTab extends FragmentTab implements ServiceConnection,
             seekBarPlayer.setVisibility(View.GONE);
             gifView.setVisibility(View.GONE);
             seekBarPlayer.setEnabled(false);
+
             if (mService != null) {
                 btnPlay.setEnabled(true);
                 txtPlay.setEnabled(true);
@@ -397,7 +424,7 @@ public class PlayerFragmentTab extends FragmentTab implements ServiceConnection,
                         btnNext.setVisibility(View.VISIBLE);
                     }
                 } else {
-                    if (!isLoading) {
+                    if (mService.getChannelObject() == null || mService.getChannelObject().length() == 0) {
                         btnPlay.setImageResource(R.drawable.btn_pause_gray);
                         txtPlay.setText(R.string.button_pause);
                         btnPlay.setEnabled(false);
@@ -465,6 +492,7 @@ public class PlayerFragmentTab extends FragmentTab implements ServiceConnection,
                     txtTimer.setEnabled(false);
                     btnTimer.setImageResource(R.drawable.btn_timer_gray);
                 }
+                showABState();
             }
         } catch (Exception e) {
             SimpleAppLog.error("Could to change player state",e);
@@ -567,8 +595,11 @@ public class PlayerFragmentTab extends FragmentTab implements ServiceConnection,
                                             mService.stopRecord();
                                         }
                                         mService.stop();
-                                    } catch (RemoteException e) {
-                                        e.printStackTrace();
+                                        if (mService != null) {
+                                            mService.setChannelObject("");
+                                        }
+                                    } catch (Exception e) {
+                                        SimpleAppLog.error("Could not stop stream",e);
                                     }
                                     try {
                                         getActivity().runOnUiThread(new Runnable() {
@@ -666,7 +697,11 @@ public class PlayerFragmentTab extends FragmentTab implements ServiceConnection,
             case R.id.btnSlow:
                 try {
                     if (mService.isPlaying()) {
-                        mService.doSlow(setting.getSlowLevel());
+                        if (mService.isSlow()) {
+                            mService.stopSlow();
+                        } else {
+                            mService.doSlow(setting.getSlowLevel());
+                        }
                     }
                 } catch (Exception ex) {
                     SimpleAppLog.error("Could call slow", ex);
@@ -675,7 +710,11 @@ public class PlayerFragmentTab extends FragmentTab implements ServiceConnection,
             case R.id.btnFast:
                 try {
                     if (mService.isPlaying()) {
-                        mService.doFast(setting.getFastLevel());
+                        if (mService.isFast()) {
+                            mService.stopFast();
+                        } else {
+                            mService.doFast(setting.getFastLevel());
+                        }
                     }
                 } catch (Exception ex) {
                     SimpleAppLog.error("Could call fast", ex);
@@ -771,6 +810,8 @@ public class PlayerFragmentTab extends FragmentTab implements ServiceConnection,
     public void onStart() {
         super.onStart();
         paused = false;
+        long next = refreshNow();
+        queueNextRefresh(next);
     }
 
     @Override

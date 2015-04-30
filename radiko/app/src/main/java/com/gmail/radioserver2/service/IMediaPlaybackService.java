@@ -110,6 +110,22 @@ public interface IMediaPlaybackService extends android.os.IInterface
                     reply.writeNoException();
                     return true;
                 }
+                case TRANSACTION_getAPos:
+                {
+                    data.enforceInterface(DESCRIPTOR);
+                    long _result = this.getAPos();
+                    reply.writeNoException();
+                    reply.writeLong(_result);
+                    return true;
+                }
+                case TRANSACTION_getBPos:
+                {
+                    data.enforceInterface(DESCRIPTOR);
+                    long _result = this.getBPos();
+                    reply.writeNoException();
+                    reply.writeLong(_result);
+                    return true;
+                }
                 case TRANSACTION_doBack: {
                     data.enforceInterface(DESCRIPTOR);
                     int length = data.readInt();
@@ -140,6 +156,21 @@ public interface IMediaPlaybackService extends android.os.IInterface
                 case TRANSACTION_stopSlow: {
                     data.enforceInterface(DESCRIPTOR);
                     this.stopSlow();
+                    reply.writeNoException();
+                    return true;
+                }
+
+                case TRANSACTION_isSlow: {
+                    data.enforceInterface(DESCRIPTOR);
+                    boolean r = this.isSlow();
+                    reply.writeInt(r ? 1 : 0);
+                    reply.writeNoException();
+                    return true;
+                }
+                case TRANSACTION_isFast: {
+                    data.enforceInterface(DESCRIPTOR);
+                    boolean r = this.isFast();
+                    reply.writeInt(r ? 1 : 0);
                     reply.writeNoException();
                     return true;
                 }
@@ -1023,7 +1054,7 @@ public interface IMediaPlaybackService extends android.os.IInterface
                 boolean _result = false;
                 try {
                     _data.writeInterfaceToken(DESCRIPTOR);
-                    mRemote.transact(Stub.TRANSACTION_stopRecord, _data, _reply, 0);
+                    mRemote.transact(Stub.TRANSACTION_isRecording, _data, _reply, 0);
                     _reply.readException();
                     _result = (_reply.readInt() != 0);
                 }
@@ -1159,7 +1190,7 @@ public interface IMediaPlaybackService extends android.os.IInterface
                 try {
                     _data.writeInterfaceToken(DESCRIPTOR);
                     _data.writeInt(isStreaming ? 1 : 0);
-                    mRemote.transact(Stub.TRANSACTION_doSlow, _data, _reply, 0);
+                    mRemote.transact(Stub.TRANSACTION_setStreaming, _data, _reply, 0);
                     _reply.readException();
                 }
                 finally {
@@ -1174,7 +1205,7 @@ public interface IMediaPlaybackService extends android.os.IInterface
                 boolean _result;
                 try {
                     _data.writeInterfaceToken(DESCRIPTOR);
-                    mRemote.transact(Stub.TRANSACTION_stopSlow, _data, _reply, 0);
+                    mRemote.transact(Stub.TRANSACTION_isStreaming, _data, _reply, 0);
                     _reply.readException();
                     _result = (_reply.readInt() != 0);
                 }
@@ -1256,6 +1287,78 @@ public interface IMediaPlaybackService extends android.os.IInterface
                     _data.recycle();
                 }
             }
+
+            @Override public boolean isFast() throws android.os.RemoteException
+            {
+                android.os.Parcel _data = android.os.Parcel.obtain();
+                android.os.Parcel _reply = android.os.Parcel.obtain();
+                boolean _result;
+                try {
+                    _data.writeInterfaceToken(DESCRIPTOR);
+                    mRemote.transact(Stub.TRANSACTION_isFast, _data, _reply, 0);
+                    _reply.readException();
+                    _result = (_reply.readInt() != 0);
+                }
+                finally {
+                    _reply.recycle();
+                    _data.recycle();
+                }
+                return _result;
+            }
+
+            @Override public boolean isSlow() throws android.os.RemoteException
+            {
+                android.os.Parcel _data = android.os.Parcel.obtain();
+                android.os.Parcel _reply = android.os.Parcel.obtain();
+                boolean _result;
+                try {
+                    _data.writeInterfaceToken(DESCRIPTOR);
+                    mRemote.transact(Stub.TRANSACTION_isSlow, _data, _reply, 0);
+                    _reply.readException();
+                    _result = (_reply.readInt() != 0);
+                }
+                finally {
+                    _reply.recycle();
+                    _data.recycle();
+                }
+                return _result;
+            }
+
+            @Override public long getAPos() throws android.os.RemoteException
+            {
+                android.os.Parcel _data = android.os.Parcel.obtain();
+                android.os.Parcel _reply = android.os.Parcel.obtain();
+                long _result;
+                try {
+                    _data.writeInterfaceToken(DESCRIPTOR);
+                    mRemote.transact(Stub.TRANSACTION_getAPos, _data, _reply, 0);
+                    _reply.readException();
+                    _result = _reply.readLong();
+                }
+                finally {
+                    _reply.recycle();
+                    _data.recycle();
+                }
+                return _result;
+            }
+
+            @Override public long getBPos() throws android.os.RemoteException
+            {
+                android.os.Parcel _data = android.os.Parcel.obtain();
+                android.os.Parcel _reply = android.os.Parcel.obtain();
+                long _result;
+                try {
+                    _data.writeInterfaceToken(DESCRIPTOR);
+                    mRemote.transact(Stub.TRANSACTION_getBPos, _data, _reply, 0);
+                    _reply.readException();
+                    _result = _reply.readLong();
+                }
+                finally {
+                    _reply.recycle();
+                    _data.recycle();
+                }
+                return _result;
+            }
         }
         // Added by Hai
         static final int TRANSACTION_startRecord = (android.os.IBinder.FIRST_CALL_TRANSACTION + 32);
@@ -1275,6 +1378,12 @@ public interface IMediaPlaybackService extends android.os.IInterface
         static final int TRANSACTION_getChannelObject = (android.os.IBinder.FIRST_CALL_TRANSACTION + 46);
         static final int TRANSACTION_updateRtmpSuck = (android.os.IBinder.FIRST_CALL_TRANSACTION + 47);
         static final int TRANSACTION_setChannelObject = (android.os.IBinder.FIRST_CALL_TRANSACTION + 48);
+        static final int TRANSACTION_isFast = (android.os.IBinder.FIRST_CALL_TRANSACTION + 49);
+        static final int TRANSACTION_isSlow = (android.os.IBinder.FIRST_CALL_TRANSACTION + 50);
+        static final int TRANSACTION_getAPos = (android.os.IBinder.FIRST_CALL_TRANSACTION + 51);
+        static final int TRANSACTION_getBPos= (android.os.IBinder.FIRST_CALL_TRANSACTION + 52);
+
+
         // Default
         static final int TRANSACTION_openFile = (android.os.IBinder.FIRST_CALL_TRANSACTION + 0);
         static final int TRANSACTION_open = (android.os.IBinder.FIRST_CALL_TRANSACTION + 1);
@@ -1318,11 +1427,20 @@ public interface IMediaPlaybackService extends android.os.IInterface
     public void markAB() throws android.os.RemoteException;
     public int getStateAB() throws android.os.RemoteException;
     public void stopAB() throws android.os.RemoteException;
+
+    public long getAPos() throws android.os.RemoteException;
+    public long getBPos() throws android.os.RemoteException;
+    public boolean isFast() throws android.os.RemoteException;
+    public boolean isSlow() throws android.os.RemoteException;
+
     public void doBack(int length) throws android.os.RemoteException;
     public void doFast(float level) throws android.os.RemoteException;
+
     public void stopFast() throws android.os.RemoteException;
     public void doSlow(float level) throws android.os.RemoteException;
+
     public void stopSlow() throws android.os.RemoteException;
+
     public boolean isStreaming() throws RemoteException;
     public void setStreaming(boolean isStreaming) throws RemoteException;
     public void openStream(String token, String objChannel) throws RemoteException;

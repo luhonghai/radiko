@@ -41,6 +41,25 @@ public class RecordedProgramAdapter extends DefaultAdapter<RecordedProgram> {
             holder.txtTitle = (TextView) convertView.findViewById(R.id.txtTitle);
             holder.btnDelete = (Button) convertView.findViewById(R.id.btnDelete);
             holder.btnEdit = (Button) convertView.findViewById(R.id.btnEdit);
+            holder.btnDelete.setOnClickListener(new View.OnClickListener() {
+                @Override
+                public void onClick(View v) {
+                    getListItemAction().onDeleteItem((RecordedProgram) v.getTag());
+                }
+            });
+            holder.txtTitle.setOnClickListener(new View.OnClickListener() {
+                @Override
+                public void onClick(View v) {
+                    getListItemAction().onSelectItem((RecordedProgram) v.getTag());
+                }
+
+            });
+            holder.btnEdit.setOnClickListener(new View.OnClickListener() {
+                @Override
+                public void onClick(View v) {
+                    getListItemAction().onEditItem((RecordedProgram) v.getTag());
+                }
+            });
             convertView.setTag(holder);
         } else {
             holder = (ViewHolder) convertView.getTag();
@@ -51,26 +70,8 @@ public class RecordedProgramAdapter extends DefaultAdapter<RecordedProgram> {
         RecordedProgram object = getObjects()[position];
         holder.txtTitle.setText(object.toPrettyString(getContext()));
         holder.txtTitle.setTag(object);
-        holder.txtTitle.setOnClickListener(new View.OnClickListener() {
-            @Override
-            public void onClick(View v) {
-                getListItemAction().onSelectItem((RecordedProgram) v.getTag());
-            }
-        });
         holder.btnDelete.setTag(object);
-        holder.btnDelete.setOnClickListener(new View.OnClickListener() {
-            @Override
-            public void onClick(View v) {
-                getListItemAction().onDeleteItem((RecordedProgram) v.getTag());
-            }
-        });
         holder.btnEdit.setTag(object);
-        holder.btnEdit.setOnClickListener(new View.OnClickListener() {
-            @Override
-            public void onClick(View v) {
-                getListItemAction().onEditItem((RecordedProgram) v.getTag());
-            }
-        });
         return convertView;
     }
 }

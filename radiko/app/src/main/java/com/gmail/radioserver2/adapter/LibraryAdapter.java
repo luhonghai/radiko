@@ -36,6 +36,18 @@ public class LibraryAdapter extends DefaultAdapter<Library> {
             holder = new ViewHolder();
             holder.txtTitle = (TextView) convertView.findViewById(R.id.txtTitle);
             holder.btnDelete = (Button) convertView.findViewById(R.id.btnDelete);
+            holder.btnDelete.setOnClickListener(new View.OnClickListener() {
+                @Override
+                public void onClick(View v) {
+                    getListItemAction().onDeleteItem((Library) v.getTag());
+                }
+            });
+            holder.txtTitle.setOnClickListener(new View.OnClickListener() {
+                @Override
+                public void onClick(View v) {
+                    getListItemAction().onSelectItem((Library) v.getTag());
+                }
+            });
             convertView.setTag(holder);
         } else {
             holder = (ViewHolder) convertView.getTag();
@@ -46,19 +58,9 @@ public class LibraryAdapter extends DefaultAdapter<Library> {
         Library object = getObjects()[position];
         holder.txtTitle.setText(object.toPrettyString(getContext()));
         holder.txtTitle.setTag(object);
-        holder.txtTitle.setOnClickListener(new View.OnClickListener() {
-            @Override
-            public void onClick(View v) {
-                getListItemAction().onSelectItem((Library) v.getTag());
-            }
-        });
+
         holder.btnDelete.setTag(object);
-        holder.btnDelete.setOnClickListener(new View.OnClickListener() {
-            @Override
-            public void onClick(View v) {
-                getListItemAction().onDeleteItem((Library) v.getTag());
-            }
-        });
+
         return convertView;
     }
 }

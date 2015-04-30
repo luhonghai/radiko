@@ -23,6 +23,10 @@ public class CustomSeekBar extends SeekBar {
 
     private int thumbHeight = 0;
 
+    private float posA = -1;
+
+    private float posB = -1;
+
     public CustomSeekBar(Context context) {
         super(context);
         init();
@@ -61,28 +65,58 @@ public class CustomSeekBar extends SeekBar {
         int pointWidth = 6;
         int padding = thumbWidth / 2;
         int seekLength = width - padding * 2;
+        if (items != null && items.length > 0) {
+            canvas.drawRect(padding, height / 2 - pointWidth / 2, width - padding, height / 2 + pointWidth / 2, paint);
+            canvas.drawRect(padding - pointWidth / 2,
+                    (height - pointHeight) / 2,
+                    padding + pointWidth / 2,
+                    height - (height - pointHeight) / 2, paint);
+            canvas.drawRect(width - padding - pointWidth / 2,
+                    (height - pointHeight) / 2,
+                    width - padding + pointWidth / 2,
+                    height - (height - pointHeight) / 2, paint);
+            canvas.drawRect(padding + seekLength / 3 - pointWidth / 2,
+                    (height - pointHeight) / 2,
+                    padding + seekLength / 3 + pointWidth / 2,
+                    height - (height - pointHeight) / 2, paint);
+            canvas.drawRect(padding + 2 * seekLength / 3 - pointWidth / 2,
+                    (height - pointHeight) / 2,
+                    padding + 2 * seekLength / 3 + pointWidth / 2,
+                    height - (height - pointHeight) / 2, paint);
+        }
+        if (posA != -1) {
+            canvas.drawRect(padding + seekLength * posA - pointWidth / 2,
+                    (height - pointHeight) / 2,
+                    padding + seekLength * posA + pointWidth / 2,
+                    height - (height - pointHeight) / 2, paint);
+        }
+        if (posB != -1) {
+            canvas.drawRect(padding + seekLength * posB - pointWidth / 2 + 5,
+                    (height - pointHeight) / 2,
+                    padding + seekLength * posB + pointWidth / 2 + 5,
+                    height - (height - pointHeight) / 2, paint);
+        }
 
-        canvas.drawRect(padding, height / 2 - pointWidth / 2, width - padding, height / 2 + pointWidth / 2, paint);
-        canvas.drawRect(padding - pointWidth / 2,
-                (height - pointHeight) / 2,
-                padding + pointWidth / 2,
-                height - (height - pointHeight) / 2, paint);
-        canvas.drawRect( width - padding - pointWidth / 2,
-                (height - pointHeight) / 2,
-                 width - padding + pointWidth / 2,
-                height - (height - pointHeight) / 2, paint);
-        canvas.drawRect(padding + seekLength / 3 - pointWidth / 2,
-                (height - pointHeight) / 2,
-                 padding + seekLength / 3 + pointWidth / 2,
-                height - (height - pointHeight) / 2, paint);
-        canvas.drawRect( padding + 2 * seekLength / 3 - pointWidth / 2,
-                (height - pointHeight) / 2,
-                  padding + 2 * seekLength / 3 + pointWidth / 2,
-                height - (height - pointHeight) / 2, paint);
         super.onDraw(canvas);
     }
 
     public void setItems(String[] items) {
         this.items = items;
+    }
+
+    public float getPosA() {
+        return posA;
+    }
+
+    public void setPosA(float posA) {
+        this.posA = posA;
+    }
+
+    public float getPosB() {
+        return posB;
+    }
+
+    public void setPosB(float posB) {
+        this.posB = posB;
     }
 }

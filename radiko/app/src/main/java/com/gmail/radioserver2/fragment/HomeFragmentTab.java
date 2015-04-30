@@ -178,6 +178,7 @@ public class HomeFragmentTab extends FragmentTab implements OnListItemActionList
 
     @Override
     public void onSelectItem(Channel obj) {
+        SimpleAppLog.info("Select item: " + obj.getName());
         Intent intent = new Intent(Constants.INTENT_FILTER_FRAGMENT_ACTION);
         intent.putExtra(Constants.FRAGMENT_ACTION_TYPE, Constants.ACTION_SELECT_CHANNEL_ITEM);
         Gson gson = new Gson();

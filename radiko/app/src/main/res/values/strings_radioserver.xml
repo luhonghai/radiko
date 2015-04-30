@@ -26,6 +26,7 @@
     <string name="tab_recorded_program">録音した\n番組</string>
     <string name="tab_library">フォルダ</string>
     <string name="tab_setting">設定</string>
+    <string name="tab_play_screen">再生\n録音</string>
 
     <!-- Action button -->
     <string name="button_delete">削除</string>
@@ -40,9 +41,10 @@
     <string name="hint_search_channel">チャンネル名を入力</string>
     <string name="label_recent_channels">最近検索したチャンネル</string>
 
+
     <!-- Recorded programs -->
     <string name="label_recorded_programs">録音した番組</string>
-    <string name="label_recorded_programs_library">フォルダの録音した番組</string>
+    <string name="label_recorded_programs_library">フォルダ内の録音した番組</string>
 
     <!-- Library list screen -->
     <string name="label_library_list">フォルダ</string>

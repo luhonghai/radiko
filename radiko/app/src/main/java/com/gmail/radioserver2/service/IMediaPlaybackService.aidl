@@ -37,6 +37,11 @@ interface IMediaPlaybackService
     void doSlow(float level);
     void stopSlow();
 
+    long getAPos();
+    long getBPos();
+    boolean isFast();
+    boolean isSlow();
+
     boolean isStreaming();
     void setStreaming(boolean isStreaming);
 

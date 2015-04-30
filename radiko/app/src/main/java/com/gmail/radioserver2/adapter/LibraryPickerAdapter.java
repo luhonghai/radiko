@@ -68,6 +68,33 @@ public class LibraryPickerAdapter extends DefaultAdapter<Library> {
             holder.txtTitle = (TextView) convertView.findViewById(R.id.txtTitle);
             holder.btnDelete = (Button) convertView.findViewById(R.id.btnDelete);
             holder.cbxSelectLib = (CheckBox) convertView.findViewById(R.id.cbxSelectLib);
+
+            holder.txtTitle.setOnClickListener(new View.OnClickListener() {
+                @Override
+                public void onClick(View v) {
+                    setSelectedIndex((Integer) v.getTag());
+                    notifyDataSetInvalidated();
+                }
+            });
+            holder.cbxSelectLib.setOnClickListener(new View.OnClickListener() {
+                @Override
+                public void onClick(View v) {
+                    setSelectedIndex((Integer) v.getTag());
+                    notifyDataSetInvalidated();
+                }
+            });
+            holder.btnDelete.setOnClickListener(new View.OnClickListener() {
+                @Override
+                public void onClick(View v) {
+                    Library lib = (Library) v.getTag();
+                    if (selectedItems.contains(lib)) {
+                        selectedItems.remove(lib);
+                    }
+                    getListItemAction().onDeleteItem(lib);
+                }
+            });
+
+
             convertView.setTag(holder);
         } else {
             holder = (ViewHolder) convertView.getTag();
@@ -78,33 +105,11 @@ public class LibraryPickerAdapter extends DefaultAdapter<Library> {
         Library object = getObjects()[position];
         holder.txtTitle.setText(object.toPrettyString(getContext()));
         holder.txtTitle.setTag(position);
-        holder.txtTitle.setOnClickListener(new View.OnClickListener() {
-            @Override
-            public void onClick(View v) {
-                setSelectedIndex((Integer) v.getTag());
-                notifyDataSetInvalidated();
-            }
-        });
+
         holder.btnDelete.setTag(object);
-        holder.btnDelete.setOnClickListener(new View.OnClickListener() {
-            @Override
-            public void onClick(View v) {
-                Library lib = (Library) v.getTag();
-                if (selectedItems.contains(lib)) {
-                    selectedItems.remove(lib);
-                }
-                getListItemAction().onDeleteItem(lib);
-            }
-        });
+
         holder.cbxSelectLib.setChecked(selectedItems.contains(object));
         holder.cbxSelectLib.setTag(position);
-        holder.cbxSelectLib.setOnClickListener(new View.OnClickListener() {
-            @Override
-            public void onClick(View v) {
-                setSelectedIndex((Integer) v.getTag());
-                notifyDataSetInvalidated();
-            }
-        });
 
         return convertView;
     }

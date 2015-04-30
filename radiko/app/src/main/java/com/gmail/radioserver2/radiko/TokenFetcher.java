@@ -130,10 +130,10 @@ public abstract class TokenFetcher {
         Setting setting = new Setting(context);
         setting.load();
         if (setting.getTokenType() == Setting.TOKEN_TYPE_CLIENT) {
-            SimpleAppLog.info("User client token");
+            SimpleAppLog.info("Use client token");
             return new ClientTokenFetcher(context,onTokenListener);
         } else {
-            SimpleAppLog.info("User server token");
+            SimpleAppLog.info("Use server token");
             return new ServerTokenFetcher(context,onTokenListener);
         }
     }

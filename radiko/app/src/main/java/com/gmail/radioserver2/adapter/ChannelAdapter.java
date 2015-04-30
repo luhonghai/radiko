@@ -10,6 +10,7 @@ import android.widget.TextView;
 import android.widget.Toast;
 
 import com.gmail.radioserver2.data.Channel;
+import com.gmail.radioserver2.utils.SimpleAppLog;
 import com.gmail.radioserver2.view.swipelistview.SwipeListView;
 import com.gmail.radioserver2.R;
 import com.gmail.radioserver2.utils.Constants;
@@ -37,6 +38,20 @@ public class ChannelAdapter extends DefaultAdapter<Channel> {
             holder = new ViewHolder();
             holder.txtTitle = (TextView) convertView.findViewById(R.id.txtChannelTitle);
             holder.btnDelete = (Button) convertView.findViewById(R.id.btnDelete);
+            holder.txtTitle.setOnClickListener(new View.OnClickListener() {
+                @Override
+                public void onClick(View v) {
+                    SimpleAppLog.info("click channel row");
+                    getListItemAction().onSelectItem((Channel) v.getTag());
+                }
+            });
+            holder.btnDelete.setOnClickListener(new View.OnClickListener() {
+                @Override
+                public void onClick(View v) {
+                    getListItemAction().onDeleteItem((Channel) v.getTag());
+                }
+            });
+
             convertView.setTag(holder);
         } else {
             holder = (ViewHolder) convertView.getTag();
@@ -47,19 +62,7 @@ public class ChannelAdapter extends DefaultAdapter<Channel> {
         Channel channel = getObjects()[position];
         holder.txtTitle.setText(channel.toPrettyString(getContext()));
         holder.txtTitle.setTag(channel);
-        holder.txtTitle.setOnClickListener(new View.OnClickListener() {
-            @Override
-            public void onClick(View v) {
-                getListItemAction().onSelectItem((Channel) v.getTag());
-            }
-        });
         holder.btnDelete.setTag(channel);
-        holder.btnDelete.setOnClickListener(new View.OnClickListener() {
-            @Override
-            public void onClick(View v) {
-                getListItemAction().onDeleteItem((Channel) v.getTag());
-            }
-        });
         return convertView;
     }
 }

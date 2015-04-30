@@ -80,7 +80,7 @@
                             android:visibility="gone"
                             android:layout_height="match_parent"
                             />
-                        <SeekBar
+                        <com.gmail.radioserver2.view.CustomSeekBar
                             android:layout_width="match_parent"
                             android:layout_height="wrap_content"
                             android:id="@+id/seekBarPlayer"

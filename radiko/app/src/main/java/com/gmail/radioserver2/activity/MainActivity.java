@@ -136,6 +136,15 @@ public class MainActivity extends BaseFragmentActivity implements ServiceConnect
         spec.setIndicator(createTabView(R.string.tab_home));
         mTabHost.addTab(spec);
 
+        spec                    =   mTabHost.newTabSpec(Constants.TAB_PLAY_SCREEN);
+        spec.setContent(new TabHost.TabContentFactory() {
+            public View createTabContent(String tag) {
+                return findViewById(R.id.realtabcontent);
+            }
+        });
+        spec.setIndicator(createTabView(R.string.tab_play_screen));
+        mTabHost.addTab(spec);
+
 
         spec                    =   mTabHost.newTabSpec(Constants.TAB_RECORDED_PROGRAM);
         spec.setContent(new TabHost.TabContentFactory() {
@@ -212,11 +221,9 @@ public class MainActivity extends BaseFragmentActivity implements ServiceConnect
 
                     pushFragments(tabId, new SettingFragmentTab(), false,true);
                 }else if(tabId.equals(Constants.TAB_PLAY_SCREEN)){
-
-                    pushFragments(tabId, new PlayerFragmentTab(), false,true);
+                    pushFragments(tabId, new PlayerFragmentTab(), false,false);
                 }
             }else {
-
               /*
                *    We are switching tabs, and target tab is already has atleast one fragment.
                *    No need of animation, no need of stack pushing. Just show the target fragment
@@ -280,21 +287,25 @@ public class MainActivity extends BaseFragmentActivity implements ServiceConnect
 
 
     public void popFragments(){
+        try {
       /*
        *    Select the second last fragment in current tab's stack..
        *    which will be shown after the fragment transaction given below
        */
-        Fragment fragment             =   mStacks.get(mCurrentTab).elementAt(mStacks.get(mCurrentTab).size() - 2);
+            Fragment fragment = mStacks.get(mCurrentTab).elementAt(mStacks.get(mCurrentTab).size() - 2);
 
       /*pop current fragment from stack.. */
-        mStacks.get(mCurrentTab).pop();
+            mStacks.get(mCurrentTab).pop();
 
       /* We have the target fragment in hand.. Just show it.. Show a standard navigation animation*/
-        FragmentManager   manager         =   getSupportFragmentManager();
-        FragmentTransaction ft            =   manager.beginTransaction();
-        ft.setCustomAnimations(R.anim.slide_in_left, R.anim.slide_out_right);
-        ft.replace(R.id.realtabcontent, fragment);
-        ft.commit();
+            FragmentManager manager = getSupportFragmentManager();
+            FragmentTransaction ft = manager.beginTransaction();
+            ft.setCustomAnimations(R.anim.slide_in_left, R.anim.slide_out_right);
+            ft.replace(R.id.realtabcontent, fragment);
+            ft.commit();
+        } catch (Exception e) {
+            SimpleAppLog.error("could not pop fragment",e);
+        }
     }
 
 
@@ -331,6 +342,7 @@ public class MainActivity extends BaseFragmentActivity implements ServiceConnect
         @Override
         public void run() {
             if (selectedObj == null || selectedObj.length() ==0) return;
+            SimpleAppLog.info("Start streaming ...");
             boolean isNew = true;
             try {
                 if (mService.isPlaying()) {
@@ -385,10 +397,12 @@ public class MainActivity extends BaseFragmentActivity implements ServiceConnect
                     selectedObj = bundle.getString(Constants.ARG_OBJECT);
                     startStreamingHandler.removeCallbacks(startStreamingRunnable);
                     startStreamingHandler.post(startStreamingRunnable);
-                    pushFragments(Constants.TAB_PLAY_SCREEN, new PlayerFragmentTab(), true,false);
+                    //pushFragments(Constants.TAB_PLAY_SCREEN, new PlayerFragmentTab(), true,false);
+                    setCurrentTab(Constants.TAB_PLAY_SCREEN_ID);
                     break;
                 case Constants.ACTION_SELECT_RECORDED_PROGRAM_ITEM:
-                    pushFragments(Constants.TAB_PLAY_SCREEN, new PlayerFragmentTab(), true,false);
+                    //pushFragments(Constants.TAB_PLAY_SCREEN, new PlayerFragmentTab(), true,false);
+                    setCurrentTab(Constants.TAB_PLAY_SCREEN_ID);
                     break;
                 case Constants.ACTION_CALL_SELECT_TAB:
                     setCurrentTab(bundle.getInt(Constants.PARAMETER_SELECTED_TAB_ID));
@@ -420,12 +434,13 @@ public class MainActivity extends BaseFragmentActivity implements ServiceConnect
     private void checkPlaying() {
         try {
             if (mService != null && mService.isPlaying()) {
-                if (mService.isStreaming()) {
-                    setCurrentTab(Constants.TAB_HOME_ID);
-                } else {
-                    setCurrentTab(Constants.TAB_RECORDED_PROGRAM_ID);
-                }
-                pushFragments(Constants.TAB_PLAY_SCREEN, new PlayerFragmentTab(), false, false);
+//                if (mService.isStreaming()) {
+//                    setCurrentTab(Constants.TAB_HOME_ID);
+//                } else {
+//                    setCurrentTab(Constants.TAB_RECORDED_PROGRAM_ID);
+//                }
+//                pushFragments(Constants.TAB_PLAY_SCREEN, new PlayerFragmentTab(), false, false);
+                setCurrentTab(Constants.TAB_PLAY_SCREEN_ID);
             }
         } catch (RemoteException e) {
             SimpleAppLog.error("Could not get player status",e);
