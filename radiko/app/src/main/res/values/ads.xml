@@ -1,7 +1,7 @@
 <?xml version="1.0" encoding="utf-8"?>
 <resources>
-    <string name="banner_channel_ad_unit_id">ca-app-pub-7858167199151493/7020541964</string>
-    <string name="banner_recorded_program_ad_unit_id">ca-app-pub-7858167199151493/7020541964</string>
-    <string name="banner_player_ad_unit_id">ca-app-pub-7858167199151493/7020541964</string>
+    <string name="banner_channel_ad_unit_id">ca-app-pub-7858167199151493/4193866367</string>
+    <string name="banner_recorded_program_ad_unit_id">ca-app-pub-7858167199151493/5670599567</string>
+    <string name="banner_player_ad_unit_id">ca-app-pub-7858167199151493/5670599567</string>
     <string name="banner_playlist_ad_unit_id">ca-app-pub-7858167199151493/7020541964</string>
 </resources>
