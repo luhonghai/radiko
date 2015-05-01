@@ -21,6 +21,35 @@
     <RelativeLayout
         android:layout_width="match_parent"
         android:layout_height="wrap_content"
+        android:layout_margin="@dimen/title_margin">
+        <LinearLayout
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:orientation="horizontal">
+            <TextView
+                android:layout_width="wrap_content"
+                android:layout_height="@dimen/layout_item_height"
+                android:textAppearance="?android:attr/textAppearanceButton"
+                android:padding="6dp"
+                android:gravity="center_horizontal|center_vertical"
+                android:textColor="@android:color/white"
+                android:background="@color/default_button_color"
+                android:text="@string/channel_info"/>
+            <TextView
+                android:id="@+id/txtChannelName"
+                android:layout_width="wrap_content"
+                android:layout_height="@dimen/layout_item_height"
+                android:textAppearance="?android:attr/textAppearanceButton"
+                android:padding="6dp"
+                android:gravity="center_horizontal|center_vertical"
+                android:textColor="@color/text_color"
+                />
+        </LinearLayout>
+
+    </RelativeLayout>
+    <RelativeLayout
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
 
         android:layout_margin="@dimen/title_margin">
         <LinearLayout
@@ -222,7 +251,7 @@
     <Button
         android:id="@+id/btnTimerList"
         android:layout_width="wrap_content"
-        android:layout_height="@dimen/button_big_size"
+        android:layout_height="@dimen/layout_item_height"
         android:textStyle="bold"
         android:text="@string/button_timer_list"
         android:layout_margin="@dimen/title_margin"

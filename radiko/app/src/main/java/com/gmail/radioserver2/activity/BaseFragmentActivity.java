@@ -37,6 +37,8 @@ public abstract class BaseFragmentActivity extends SherlockFragmentActivity impl
 
     private AlertDialog alertDialog;
 
+    private Location currentLocation;
+
     private Runnable dataPrepareRunnable = new Runnable() {
         @Override
         public void run() {
@@ -48,7 +50,8 @@ public abstract class BaseFragmentActivity extends SherlockFragmentActivity impl
 
 
     private void updateData() {
-        updateChannels();
+        SimpleAppLog.info("Start update channels");
+        updateChannels(currentLocation);
     }
 
     @Override
@@ -66,6 +69,7 @@ public abstract class BaseFragmentActivity extends SherlockFragmentActivity impl
                 this);
         Thread.setDefaultUncaughtExceptionHandler(myHandler);
         buildAlert();
+        SimpleAppLog.info("Start update data after 2s");
         handler.removeCallbacks(dataPrepareRunnable);
         handler.postDelayed(dataPrepareRunnable, UPDATE_DATA_TIMEOUT);
 
@@ -95,6 +99,7 @@ public abstract class BaseFragmentActivity extends SherlockFragmentActivity impl
     @Override
     protected void onResume() {
         super.onResume();
+        requestLocation();
         //locationCheck();
     }
 
@@ -105,15 +110,15 @@ public abstract class BaseFragmentActivity extends SherlockFragmentActivity impl
             alertDialog.dismiss();
     }
 
-    public abstract void updateChannels();
+    public abstract void updateChannels(Location location);
 
     @Override
     public void onLocationChanged(Location location) {
+        currentLocation = location;
         SimpleAppLog.info("onLocationChanged");
         handler.removeCallbacks(dataPrepareRunnable);
         handler.postDelayed(dataPrepareRunnable, UPDATE_DATA_TIMEOUT);
     }
-
 
     private void updateSetting() {
         
@@ -140,6 +145,19 @@ public abstract class BaseFragmentActivity extends SherlockFragmentActivity impl
         handler.postDelayed(dataPrepareRunnable, UPDATE_DATA_TIMEOUT);
     }
 
+    protected void requestLocation() {
+        LocationManager lm = (LocationManager) this.getSystemService(Context.LOCATION_SERVICE);
+        try {
+            lm.requestLocationUpdates(LocationManager.GPS_PROVIDER, 5 * 60 * 1000, 1000, this);
+        } catch (Exception e) {
+
+        }
+        try {
+            lm.requestLocationUpdates(LocationManager.NETWORK_PROVIDER, 5 * 60 * 1000, 1000, this);
+        } catch (Exception e) {}
+
+    }
+
     protected void locationCheck() {
         LocationManager lm = null;
         boolean gps_enabled = false,network_enabled = false;
@@ -149,7 +167,7 @@ public abstract class BaseFragmentActivity extends SherlockFragmentActivity impl
             gps_enabled = lm.isProviderEnabled(LocationManager.GPS_PROVIDER);
         }catch(Exception ex){}
         try {
-            lm.requestLocationUpdates(LocationManager.GPS_PROVIDER, 10 * 60 * 1000, 1000, this);
+            lm.requestLocationUpdates(LocationManager.GPS_PROVIDER, 5 * 60 * 1000, 1000, this);
         } catch (Exception e) {
 
         }
@@ -157,7 +175,7 @@ public abstract class BaseFragmentActivity extends SherlockFragmentActivity impl
             network_enabled = lm.isProviderEnabled(LocationManager.NETWORK_PROVIDER);
         }catch(Exception ex){}
         try {
-            lm.requestLocationUpdates(LocationManager.NETWORK_PROVIDER, 10 * 60 * 1000, 1000, this);
+            lm.requestLocationUpdates(LocationManager.NETWORK_PROVIDER, 5 * 60 * 1000, 1000, this);
         } catch (Exception e) {}
 
         if(!gps_enabled && !network_enabled){

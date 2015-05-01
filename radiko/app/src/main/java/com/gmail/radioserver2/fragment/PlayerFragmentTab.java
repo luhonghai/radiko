@@ -294,11 +294,11 @@ public class PlayerFragmentTab extends FragmentTab implements ServiceConnection,
 
     private void showABState() {
         try {
-            if (mService != null && mService.isPlaying()) {
+            if (mService != null && mService.isPlaying() && !mService.isStreaming()) {
                 float posA = -1;
                 float posB = -1;
                 if (mService.getStateAB() != MediaPlaybackService.ABState.STOP
-                        || mService.getStateAB() != MediaPlaybackService.ABState.ERROR) {
+                        && mService.getStateAB() != MediaPlaybackService.ABState.ERROR) {
                     long duration = mService.duration();
                     if (mService.getAPos() != -1) {
                         posA = (float) mService.getAPos() / duration;
@@ -595,9 +595,9 @@ public class PlayerFragmentTab extends FragmentTab implements ServiceConnection,
                                             mService.stopRecord();
                                         }
                                         mService.stop();
-                                        if (mService != null) {
-                                            mService.setChannelObject("");
-                                        }
+//                                        if (mService != null) {
+//                                            mService.setChannelObject("");
+//                                        }
                                     } catch (Exception e) {
                                         SimpleAppLog.error("Could not stop stream",e);
                                     }
@@ -628,6 +628,7 @@ public class PlayerFragmentTab extends FragmentTab implements ServiceConnection,
                             mService.stop();
                         }
                         if (mService.isStreaming()) {
+                            lastChannelObject = mService.getChannelObject();
                             if (lastChannelObject != null && lastChannelObject.length() > 0)
                                 mService.openStream("", lastChannelObject);
                         } else {

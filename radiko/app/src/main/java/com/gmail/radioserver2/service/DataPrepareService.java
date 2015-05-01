@@ -71,9 +71,12 @@ public class DataPrepareService {
     private FileHelper fileHelper;
     private Setting setting;
 
-    public DataPrepareService(Context context) {
+    private Location location;
+
+    public DataPrepareService(Context context, Location location) {
         this.context = context;
         fileHelper = new FileHelper(context);
+        this.location = location;
         setting = new Setting(context);
         setting.load();
     }
@@ -95,6 +98,7 @@ public class DataPrepareService {
         TokenFetcher tokenFetcher = TokenFetcher.getTokenFetcher(context, new TokenFetcher.OnTokenListener() {
             @Override
             public void onTokenFound(String token, String rawAreaId) {
+                SimpleAppLog.info("On token found. Token: " + token + ". Area ID: " + rawAreaId);
                 requestChannels(rawAreaId);
                 t.send(new HitBuilders.EventBuilder()
                         .setCategory(AnalyticHelper.CATEGORY_AREA_ID)
@@ -104,6 +108,7 @@ public class DataPrepareService {
 
             @Override
             public void onError(String message, Throwable throwable) {
+                SimpleAppLog.info("On token error. Message: " + message);
                 SimpleAppLog.error(message, throwable);
                 //requestChannels("");
                 t.send(new HitBuilders.EventBuilder()
@@ -119,6 +124,7 @@ public class DataPrepareService {
      * @return the last know best location
      */
     private Location getLastBestLocation() {
+        if (location != null) return location;
         LocationManager mLocationManager = (LocationManager)
                 context.getSystemService(Context.LOCATION_SERVICE);
 

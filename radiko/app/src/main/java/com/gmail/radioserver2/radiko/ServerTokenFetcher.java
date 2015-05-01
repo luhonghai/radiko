@@ -6,6 +6,7 @@ import android.os.AsyncTask;
 import com.dotohsoft.radio.data.RadioArea;
 import com.gmail.radioserver2.R;
 import com.gmail.radioserver2.utils.FileHelper;
+import com.gmail.radioserver2.utils.SimpleAppLog;
 import com.google.gson.Gson;
 
 import org.apache.commons.io.FileUtils;
@@ -31,10 +32,11 @@ public class ServerTokenFetcher extends TokenFetcher {
         try {
             if (tmpFile.exists())
                 FileUtils.forceDelete(tmpFile);
+            SimpleAppLog.info("Get token from server");
             FileUtils.copyURLToFile(new URL("http://stest.dotohsoft.com/~duc/rad/gettoken/getkey.php"), tmpFile);
             if (tmpFile.exists()) {
                 token = FileUtils.readFileToString(tmpFile, "UTF-8");
-
+                SimpleAppLog.info("Found server token: " + token);
                 outpt =  RadioArea.AREA_ID_TOKYO;
             } else {
 
@@ -44,11 +46,14 @@ public class ServerTokenFetcher extends TokenFetcher {
             onError("Could not connect to server", e);
         }
         try {
+            SimpleAppLog.info("Start save token");
             saveToken(token, outpt);
         } catch (IOException e) {
             onError("Could not save token", e);
         }
+        onTokenFound(token, outpt);
     }
+
 
     @Override
     protected String getPrefixName() {

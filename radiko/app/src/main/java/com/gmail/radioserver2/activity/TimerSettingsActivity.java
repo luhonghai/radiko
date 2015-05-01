@@ -13,6 +13,7 @@ import android.widget.DatePicker;
 import android.widget.EditText;
 import android.widget.RelativeLayout;
 import android.widget.Spinner;
+import android.widget.TextView;
 import android.widget.Toast;
 
 import com.gmail.radioserver2.R;
@@ -108,7 +109,9 @@ public class TimerSettingsActivity extends BaseActivity implements View.OnClickL
                 }
             }
         }
-
+        if (selectedChannel != null) {
+            ((TextView) findViewById(R.id.txtChannelName)).setText(selectedChannel.getName());
+        }
         loadStartTime();
         loadFinishHour();
         loadFinishMinute(true);

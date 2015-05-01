@@ -76,14 +76,17 @@ public abstract class TokenFetcher {
     }
 
     public void fetch() {
+        SimpleAppLog.info("Start fetch token");
         File savedToken = fileHelper.getTokenFile(getPrefixName());
         String token = "";
         if (savedToken.exists()) {
+            SimpleAppLog.info("Found token cache");
             Gson gson = new Gson();
             try {
                 RadikoToken radikoToken = gson.fromJson(FileUtils.readFileToString(savedToken, "UTF-8"), RadikoToken.class);
                 if ((System.currentTimeMillis() - radikoToken.getTimestamp()) <= MAX_TOKEN_AGE) {
                     token = radikoToken.token;
+                    SimpleAppLog.info("Cached token: " + token);
                     onTokenFound(token, radikoToken.rawAreaId);
                     return;
                 }
@@ -91,16 +94,16 @@ public abstract class TokenFetcher {
                 e.printStackTrace();
             }
         }
-        if (token.length() == 0) {
-            AsyncTask<Void, Void, Void> getTokenTask = new AsyncTask<Void, Void, Void>() {
+        SimpleAppLog.info("No cached token found");
+        AsyncTask<Void, Void, Void> getTokenTask = new AsyncTask<Void, Void, Void>() {
                 @Override
                 protected Void doInBackground(Void... params) {
+                    SimpleAppLog.info("Request remote token");
                     fetchRemote();
                     return null;
                 }
             };
-            getTokenTask.execute();
-        }
+        getTokenTask.execute();
     }
 
     protected abstract void fetchRemote();

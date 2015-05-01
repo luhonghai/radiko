@@ -1829,7 +1829,7 @@ public class MediaPlaybackService extends Service {
                                 SimpleAppLog.error(error, throwable);
                             }
                         });
-                        DataPrepareService prepareService = new DataPrepareService(getApplicationContext());
+                        DataPrepareService prepareService = new DataPrepareService(getApplicationContext(), null);
                         String areaId = prepareService.findBestAreaId(rawAreaId);
                         RadioProgram radioProgram = requester.getPrograms(rChannel, RadioArea.getArea(areaId, currentChannel.getType()), AndroidUtil.getAdsId(getApplicationContext()));
                         if (radioProgram != null) {

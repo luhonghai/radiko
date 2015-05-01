@@ -9,6 +9,7 @@ import android.content.DialogInterface;
 import android.content.Intent;
 import android.content.IntentFilter;
 import android.content.ServiceConnection;
+import android.location.Location;
 import android.net.wifi.WifiManager;
 import android.os.AsyncTask;
 import android.os.Bundle;
@@ -99,11 +100,11 @@ public class MainActivity extends BaseFragmentActivity implements ServiceConnect
     }
 
     @Override
-    public void updateChannels() {
+    public void updateChannels(final Location location) {
         new AsyncTask<Void, Void, Void>() {
             @Override
             protected Void doInBackground(Void... params) {
-                DataPrepareService prepareService = new DataPrepareService(MainActivity.this);
+                DataPrepareService prepareService = new DataPrepareService(MainActivity.this, location);
                 prepareService.execute();
                 return null;
             }
@@ -311,16 +312,17 @@ public class MainActivity extends BaseFragmentActivity implements ServiceConnect
 
     @Override
     public void onBackPressed() {
-        if(mStacks.get(mCurrentTab).size() == 1){
-            // We are already showing first fragment of current tab, so when back pressed, we will finish this activity..
-            finish();
-            return;
-        }
+        finish();
+//        if(mStacks.get(mCurrentTab).size() == 1){
+//            // We are already showing first fragment of current tab, so when back pressed, we will finish this activity..
+//
+//            return;
+//        }
 
         //((FragmentTab)mStacks.get(mCurrentTab).lastElement()).onBackPressed();
 
         /* Goto previous fragment in navigation stack of this tab */
-        popFragments();
+        //popFragments();
     }
 
 

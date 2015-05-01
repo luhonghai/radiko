@@ -211,15 +211,19 @@ class AudioPlayback {
     }
 
     public void setPlaybackSpeed(float speed) {
-        if(isInitialized()) {
-            int rate = (int)(mSampleRate * speed);
-            if (rate < 1) rate = 1;
-            if (rate > AudioTrack.getNativeOutputSampleRate(AudioManager.STREAM_MUSIC) * 2) {
-                rate = AudioTrack.getNativeOutputSampleRate(AudioManager.STREAM_MUSIC) * 2;
+        try {
+            if (isInitialized()) {
+                int rate = (int) (mSampleRate * speed);
+                if (rate < 1) rate = 1;
+                if (rate > AudioTrack.getNativeOutputSampleRate(AudioManager.STREAM_MUSIC) * 2) {
+                    rate = AudioTrack.getNativeOutputSampleRate(AudioManager.STREAM_MUSIC) * 2;
+                }
+                mAudioTrack.setPlaybackRate(rate);
+            } else {
+                throw new IllegalStateException();
             }
-           mAudioTrack.setPlaybackRate(rate);
-        } else {
-            throw new IllegalStateException();
+        } catch (Exception e) {
+            SimpleAppLog.error("Could not set playback speed",e);
         }
     }
 

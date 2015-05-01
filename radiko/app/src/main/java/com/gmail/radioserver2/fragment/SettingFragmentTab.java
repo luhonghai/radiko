@@ -140,7 +140,7 @@ public class SettingFragmentTab extends FragmentTab implements View.OnClickListe
             }
         }
         if (getActivity() instanceof MainActivity) {
-            ((MainActivity) getActivity()).updateChannels();
+            ((MainActivity) getActivity()).updateChannels(null);
         }
     }
 

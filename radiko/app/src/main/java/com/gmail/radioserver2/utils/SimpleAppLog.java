@@ -15,7 +15,7 @@ public class SimpleAppLog {
     private static final String TAG = "Radio Server";
 
     public static void info(String log) {
-        Log.i(TAG, log);
+        //Log.i(TAG, log);
         if (Fabric.isInitialized())
             Crashlytics.log(Log.INFO, TAG, log);
     }

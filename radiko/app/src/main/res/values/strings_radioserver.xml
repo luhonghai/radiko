@@ -82,6 +82,7 @@
     <string name="label_mode">タイマー内容</string>
     <string name="button_timer_list">タイマー設定一覧</string>
     <string name="invalid_date_range">タイマー時刻が不正確です</string>
+    <string name="channel_info">チャンネル</string>
 
     <string-array name="timer_type">
         <item>毎日</item>
