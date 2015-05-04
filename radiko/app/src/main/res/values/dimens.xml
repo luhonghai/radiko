@@ -8,7 +8,7 @@
     <dimen name="mini_controller_icon_width">89dp</dimen>
     <dimen name="mini_controller_icon_height">50dp</dimen>
 
-    <dimen name="title_margin">8dp</dimen>
+    <dimen name="title_margin">7dp</dimen>
 
     <dimen name="default_screen_padding">5dp</dimen>
 
