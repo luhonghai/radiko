@@ -1839,13 +1839,24 @@ public class MediaPlaybackService extends Service {
                                 AndroidUtil.getAdsId(getApplicationContext())));
 
                         if (!done) {
-                            SimpleAppLog.info("Try again");
+                            SimpleAppLog.info("Try fetch program again #1");
+                            requester.resetDate();
+                            requester.addDay(-1);
+                            done = validateChannelProgram(requester.getPrograms(rChannel,
+                                    RadioArea.getArea(areaId, currentChannel.getType()),
+                                    AndroidUtil.getAdsId(getApplicationContext())));
+                        }
+
+                        if (!done) {
+                            SimpleAppLog.info("Try fetch program again #2");
+                            requester.resetDate();
                             if (rChannel.getService().equalsIgnoreCase(RadioProvider.NHK))
                                 requester.addDay(1);
                             done = validateChannelProgram(requester.getPrograms(rChannel,
                                     RadioArea.getArea(areaId, currentChannel.getType()),
                                     AndroidUtil.getAdsId(getApplicationContext())));
                         }
+
                     } catch (Exception e) {
                         SimpleAppLog.error("Could not fetch programs", e);
                     }

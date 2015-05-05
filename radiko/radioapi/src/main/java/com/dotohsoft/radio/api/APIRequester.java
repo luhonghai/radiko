@@ -49,13 +49,17 @@ public class APIRequester {
 
     public APIRequester(File cachedFolder) {
         this.cachedFolder = cachedFolder;
-        Calendar cal = Calendar.getInstance(TimeZone.getTimeZone("GMT+9"));
-        now = cal.getTime();
+        resetDate();
     }
 
     public APIRequester(File cachedFolder, Date now) {
         this.cachedFolder = cachedFolder;
         this.now = now;
+    }
+
+    public void resetDate() {
+        Calendar cal = Calendar.getInstance(TimeZone.getTimeZone("GMT+9"));
+        now = cal.getTime();
     }
 
     public void addDay(int day) {
