@@ -110,7 +110,7 @@ public class DataPrepareService {
                         .setAction(AnalyticHelper.ACTION_ERROR)
                         .build());
             }
-        });
+        }, location);
         tokenFetcher.fetch();
     }
 

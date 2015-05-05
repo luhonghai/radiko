@@ -12,8 +12,6 @@ import com.gmail.radioserver2.R;
 import com.gmail.radioserver2.data.GMapGeocodeResponse;
 import com.gmail.radioserver2.data.Setting;
 import com.google.android.gms.ads.identifier.AdvertisingIdClient;
-import com.google.android.gms.auth.GooglePlayServicesAvailabilityException;
-import com.google.android.gms.common.GooglePlayServicesNotAvailableException;
 import com.google.gson.Gson;
 import com.google.gson.GsonBuilder;
 
@@ -107,9 +105,9 @@ public class AndroidUtil {
     }
 
     public static Location filterLocation(Location location) {
-        if (DEBUG) {
-            return getFakeLocation();
-        }
+//        if (DEBUG) {
+//            return getFakeLocation();
+//        }
         return location;
     }
 
@@ -118,9 +116,9 @@ public class AndroidUtil {
      * @return the last know best location
      */
     public static Location getLastBestLocation(Context context) {
-        if (DEBUG) {
-            return getFakeLocation();
-        }
+//        if (DEBUG) {
+//            return getFakeLocation();
+//        }
         LocationManager mLocationManager = (LocationManager)
                 context.getSystemService(Context.LOCATION_SERVICE);
         try {

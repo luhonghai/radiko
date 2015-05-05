@@ -169,6 +169,9 @@ public abstract class TokenFetcher {
 
     public static TokenFetcher getTokenFetcher(Context context, OnTokenListener onTokenListener,
                                                Location location) {
+        if (location == null) {
+            location = AndroidUtil.getLastBestLocation(context);
+        }
         if (location != null) {
             return getTokenFetcher(context, onTokenListener, location.getLatitude(), location.getLongitude());
         } else {

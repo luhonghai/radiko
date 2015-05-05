@@ -741,6 +741,8 @@ public class MediaPlayer {
                 interrupt();
             } catch (IllegalStateException e) {
                 Log.e(TAG, "decoder error, too many instances?", e);
+            } catch (Exception e) {
+                Log.e(TAG, "decoder error, too many instances?", e);
             }
             release();
         }

@@ -53,7 +53,8 @@ public abstract class BaseFragmentActivity extends SherlockFragmentActivity impl
     private void updateData() {
         SimpleAppLog.info("Start update channels");
         TokenFetcher.getTokenFetcher(this, null, null).clearTokenCache();
-        updateChannels(AndroidUtil.filterLocation(currentLocation));
+        //updateChannels(AndroidUtil.filterLocation(currentLocation));
+        updateChannels(AndroidUtil.filterLocation(null));
         currentLocation = null;
     }
 
