@@ -132,13 +132,16 @@ public class APIRequester {
 
     public RadioProgram getPrograms(RadioChannel.Channel channel, RadioArea area, String adID) throws IOException {
         if (area == null || area.getId() == null || area.getId().length() == 0 || channel == null) return null;
+        SimpleDateFormat simpleDateFormat = new SimpleDateFormat("yyyy-MM-dd");
         String strCachedFile = "program_" + area.getProvider() + "_" + channel.getServiceChannelId() + "_" + area.getId() + "_" + sdf.format(now) + ".json";
+
         File cachedFile = new File(cachedFolder, strCachedFile);
 
         if (!cachedFile.exists()) {
             String requesturl = Constant.ROOT_API_URL  + Constant.API_PROGRAM
                     + "?" + Constant.ARG_PROVIDER + "=" + area.getProvider()
                     + "&" + Constant.ARG_CHANNEL + "=" + URLEncoder.encode(channel.getServiceChannelId(), "UTF-8")
+                    + "&" + Constant.ARG_DATE + "=" + URLEncoder.encode(simpleDateFormat.format(now),"UTF-8")
                     + "&" + Constant.ARG_AREA + "=" + URLEncoder.encode(area.getId(),"UTF-8")
                     + "&AID=" + URLEncoder.encode(adID, "UTF-8");
             URL url =new URL(requesturl);
