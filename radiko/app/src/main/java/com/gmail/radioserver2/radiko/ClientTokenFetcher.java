@@ -30,7 +30,7 @@ public class ClientTokenFetcher extends TokenFetcher {
             InputStream is = null;
             try {
                 //is = getContext().getResources().openRawResource(R.raw.key_bin);
-                is = getContext().getResources().openRawResource(R.raw.asmartphone4);
+                is = getContext().getResources().openRawResource(R.raw.asmartphone4bin);
                 FileUtils.copyInputStreamToFile(is, keyBin);
             } catch (Exception ex) {
                 SimpleAppLog.error("Could not get key bin", ex);
