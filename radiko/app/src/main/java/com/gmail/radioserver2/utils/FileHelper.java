@@ -17,7 +17,7 @@ import java.io.IOException;
  */
 public class FileHelper {
 
-    private static final String KEY_BIN = "key.bin";
+    private static final String KEY_BIN = "key.bin.1";
 
     private static final String RECORDED_PROGRAM_DIR = "radioserver2";
 

@@ -101,10 +101,18 @@ public class MainActivity extends BaseFragmentActivity implements ServiceConnect
 
     @Override
     public void updateChannels(final Location location) {
+        final Location clone = new Location("clone");
+        if (location != null) {
+            clone.setLatitude(location.getLatitude());
+            clone.setLongitude(location.getLongitude());
+        } else {
+            clone.setLatitude( - 1);
+            clone.setLongitude( - 1);
+        }
         new AsyncTask<Void, Void, Void>() {
             @Override
             protected Void doInBackground(Void... params) {
-                DataPrepareService prepareService = new DataPrepareService(MainActivity.this, location);
+                DataPrepareService prepareService = new DataPrepareService(MainActivity.this, clone);
                 prepareService.execute();
                 return null;
             }

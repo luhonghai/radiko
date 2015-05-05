@@ -31,6 +31,14 @@ import java.security.KeyStore;
  * Created by luhonghai on 24/02/2015.
  */
 public class TokenRequester {
+    private static final String RADIKO_APP = "aSmartPhone4";
+    private static final String RADIKO_APP_VERSION = "4.0.3";
+    private static final String RADIKO_USER = "test-stream";
+    private static final String RADIKO_DEVICE = "android";
+
+    public static interface TokenExchange {
+        public byte[] exchange(byte[] input);
+    }
 
     public static class TokenData {
         private String token;
@@ -64,9 +72,16 @@ public class TokenRequester {
 
     private final File keyBin;
 
+    private TokenExchange tokenExchange;
+
     public TokenRequester(TokenRequesterListener requesterListener, File keyBin) {
         this.requesterListener = requesterListener;
         this.keyBin = keyBin;
+    }
+
+    public TokenRequester(TokenRequesterListener requesterListener, File keyBin, TokenExchange tokenExchange) {
+        this(requesterListener, keyBin);
+        this.tokenExchange = tokenExchange;
     }
 
     private String getHeaderValue(HttpResponse response, String header) {
@@ -77,13 +92,17 @@ public class TokenRequester {
 
 
     public TokenData requestToken() throws IOException {
+        return requestToken(-1, -1);
+    }
+
+    public TokenData requestToken(double lat, double lon) throws IOException {
         HttpClient httpClient = getNewHttpClient();
         HttpPost httpPost = new HttpPost("https://radiko.jp/v2/api/auth1_fms");
         httpPost.setHeader("pragma","no-cache");
-        httpPost.setHeader("X-Radiko-App","pc_1");
-        httpPost.setHeader("X-Radiko-App-Version","2.0.1");
-        httpPost.setHeader("X-Radiko-User","test-stream");
-        httpPost.setHeader("X-Radiko-Device","pc");
+        httpPost.setHeader("X-Radiko-App", RADIKO_APP);
+        httpPost.setHeader("X-Radiko-App-Version",RADIKO_APP_VERSION);
+        httpPost.setHeader("X-Radiko-User", RADIKO_USER);
+        httpPost.setHeader("X-Radiko-Device", RADIKO_DEVICE);
         httpPost.setEntity(new StringEntity("\r\n","UTF-8"));
 
         HttpResponse response = httpClient.execute(httpPost);
@@ -105,20 +124,24 @@ public class TokenRequester {
         if (authToken.length() > 0 && keyOffset.length() > 0 && keyLength.length() > 0) {
             String partialKey = "";
             try {
-                partialKey = generatePartialKey(Integer.parseInt(keyOffset), Integer.parseInt(keyLength)).trim();
+                partialKey = generatePartialKey(Integer.parseInt(keyOffset), Integer.parseInt(keyLength), tokenExchange).trim();
             } catch (Exception ex) {
                 ex.printStackTrace();
             }
             requesterListener.onMessage("partialKey: " + partialKey);
+
             if (partialKey.length() > 0) {
                 httpPost = new HttpPost("https://radiko.jp/v2/api/auth2_fms");
                 httpPost.setHeader("pragma","no-cache");
-                httpPost.setHeader("X-Radiko-App","pc_1");
-                httpPost.setHeader("X-Radiko-App-Version","2.0.1");
-                httpPost.setHeader("X-Radiko-User","test-stream");
-                httpPost.setHeader("X-Radiko-Device","pc");
+                httpPost.setHeader("X-Radiko-App",RADIKO_APP);
+                httpPost.setHeader("X-Radiko-App-Version",RADIKO_APP_VERSION);
+                httpPost.setHeader("X-Radiko-User",RADIKO_USER);
+                httpPost.setHeader("X-Radiko-Device",RADIKO_DEVICE);
                 httpPost.setHeader("X-Radiko-Authtoken",authToken);
                 httpPost.setHeader("X-Radiko-Partialkey",partialKey);
+                if (lon != -1 && lat != -1) {
+                    httpPost.setHeader("X-Radiko-Location", lat + "," + lon + ",gps");
+                }
                 httpPost.setEntity(new StringEntity("\r\n", "UTF-8"));
 
                 httpClient = getNewHttpClient();
@@ -128,7 +151,7 @@ public class TokenRequester {
                     HttpEntity entity = response.getEntity();
                     is = entity.getContent();
                     String strRes = IOUtils.toString(is);
-                    requesterListener.onMessage("Response: " + strRes);
+                    requesterListener.onMessage("Request token response: " + strRes);
                     entity.consumeContent();
                     TokenData tokenData = new TokenData();
                     tokenData.setToken(authToken);
@@ -158,12 +181,22 @@ public class TokenRequester {
     }
 
     public String generatePartialKey(int offset, int length) {
+        return generatePartialKey(offset, length, null);
+    }
+
+    public String generatePartialKey(int offset, int length, TokenExchange tokenExchange) {
         InputStream inputStream = null;
         try {
             inputStream = new FileInputStream(keyBin);
+            byte[] data = IOUtils.toByteArray(inputStream);
+            if (tokenExchange != null) {
+                data = tokenExchange.exchange(data);
+            }
+            if (offset + length > data.length) {
+                return "";
+            }
             byte[] bytes = new byte[length];
-            inputStream.skip(offset);
-            inputStream.read(bytes, 0, length);
+            System.arraycopy(data, offset, bytes, 0, length);
             return new String(Base64.encodeBase64(bytes), "UTF-8");
         } catch (Exception ex) {
             requesterListener.onError("Could not generate partial key", ex);
@@ -204,9 +237,15 @@ public class TokenRequester {
     }
 
     public static void main(String[] args) throws IOException {
-        String keyBin = "/Volumes/DATA/Development/radiko/radiko/app/src/main/res/raw/key_bin";
-        if (args != null && args.length == 1)
+        String keyBin = "/Volumes/DATA/OSX/luhonghai/Desktop/source/assets/k20120408_155342_aSmartPhone4.jpg";
+        double lat = 32.990235;
+        double lon = 131.198730;
+        if (args != null && args.length > 0)
             keyBin = args[0];
+        if (args != null && args.length == 3) {
+            lat = Double.parseDouble(args[1]);
+            lon = Double.parseDouble(args[2]);
+        }
         TokenRequester requester = new TokenRequester(new TokenRequesterListener() {
             @Override
             public void onMessage(String message) {
@@ -218,6 +257,6 @@ public class TokenRequester {
                 e.printStackTrace();
             }
         }, new File(keyBin));
-        System.out.println(requester.requestToken());
+        System.out.println(requester.requestToken(lat, lon));
     }
 }

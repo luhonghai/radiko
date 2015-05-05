@@ -55,6 +55,7 @@ import com.dotohsoft.radio.api.APIRequester;
 import com.dotohsoft.radio.data.RadioArea;
 import com.dotohsoft.radio.data.RadioChannel;
 import com.dotohsoft.radio.data.RadioProgram;
+import com.dotohsoft.radio.data.RadioProvider;
 import com.dotohsoft.rtmpdump.RTMPSuck;
 import com.gmail.radioserver2.R;
 import com.gmail.radioserver2.data.Channel;
@@ -1818,6 +1819,7 @@ public class MediaPlaybackService extends Service {
                         rChannel.setService(currentChannel.getType());
                         rChannel.setServiceChannelId(currentChannel.getUrl());
                         rChannel.setServiceChannelId(currentChannel.getKey());
+
                         requester.setRequesterListener(new APIRequester.RequesterListener() {
                             @Override
                             public void onMessage(String message) {
@@ -1831,41 +1833,18 @@ public class MediaPlaybackService extends Service {
                         });
                         DataPrepareService prepareService = new DataPrepareService(getApplicationContext(), null);
                         String areaId = prepareService.findBestAreaId(rawAreaId);
-                        RadioProgram radioProgram = requester.getPrograms(rChannel, RadioArea.getArea(areaId, currentChannel.getType()), AndroidUtil.getAdsId(getApplicationContext()));
-                        if (radioProgram != null) {
-                            List<RadioProgram.Program> programList = radioProgram.getPrograms();
-                            SimpleDateFormat sdfT = new SimpleDateFormat("yyyy-MM-dd HH:mm:ss");
-                            if (programList != null && programList.size() > 0) {
-                                for (RadioProgram.Program program : programList) {
-                                    TimeZone tz = TimeZone.getTimeZone("GMT+09");
-                                    Calendar calNow = Calendar.getInstance(tz);
-                                    Calendar calFrom = Calendar.getInstance(tz);
-                                    calFrom.setTimeInMillis(program.getFromTime());
-                                    Calendar calTo = Calendar.getInstance(tz);
-                                    calTo.setTimeInMillis(program.getToTime());
 
-                                    SimpleAppLog.info("Found program: " + program.getTitle()
-                                            +". Start time: " + sdfT.format(calFrom.getTime())
-                                    + ". End time: " + sdfT.format(calTo.getTime())
-                                    + ". Current time: " + sdfT.format(calNow.getTime()));
+                        done = validateChannelProgram(requester.getPrograms(rChannel,
+                                RadioArea.getArea(areaId, currentChannel.getType()),
+                                AndroidUtil.getAdsId(getApplicationContext())));
 
-                                    if (calNow.getTimeInMillis() >= calFrom.getTimeInMillis()
-                                            && calNow.getTimeInMillis() <= calTo.getTimeInMillis()) {
-                                        SimpleAppLog.info("Current program is: " + program.getTitle());
-                                        currentChannel.setCurrentProgram(program);
-                                        programMap.put(currentChannel.getUrl().toLowerCase(), program);
-                                        SimpleDateFormat sdf = new SimpleDateFormat("HH:mm", Locale.JAPANESE);
-                                        final StringBuffer sb = new StringBuffer();
-                                        sb.append(program.getTitle()).append("\n");
-                                        sb.append(sdf.format(new Date(program.getFromTime())));
-                                        sb.append(" - ").append(sdf.format(new Date(program.getToTime())));
-                                        showServiceNotification(currentChannel.getName(), sb.toString());
-                                        done = true;
-                                        notifyChange(META_CHANGED);
-                                        break;
-                                    }
-                                }
-                            }
+                        if (!done) {
+                            SimpleAppLog.info("Try again");
+                            if (rChannel.getService().equalsIgnoreCase(RadioProvider.NHK))
+                                requester.addDay(1);
+                            done = validateChannelProgram(requester.getPrograms(rChannel,
+                                    RadioArea.getArea(areaId, currentChannel.getType()),
+                                    AndroidUtil.getAdsId(getApplicationContext())));
                         }
                     } catch (Exception e) {
                         SimpleAppLog.error("Could not fetch programs", e);
@@ -1887,6 +1866,44 @@ public class MediaPlaybackService extends Service {
             }
             showServiceNotification(currentChannel.getName(), sb.toString());
         }
+    }
+
+    private boolean validateChannelProgram(RadioProgram radioProgram) {
+        if (radioProgram != null) {
+            List<RadioProgram.Program> programList = radioProgram.getPrograms();
+            SimpleDateFormat sdfT = new SimpleDateFormat("yyyy-MM-dd HH:mm:ss");
+            if (programList != null && programList.size() > 0) {
+                for (RadioProgram.Program program : programList) {
+                    TimeZone tz = TimeZone.getTimeZone("GMT+09");
+                    Calendar calNow = Calendar.getInstance(tz);
+                    Calendar calFrom = Calendar.getInstance(tz);
+                    calFrom.setTimeInMillis(program.getFromTime());
+                    Calendar calTo = Calendar.getInstance(tz);
+                    calTo.setTimeInMillis(program.getToTime());
+
+                    SimpleAppLog.info("Found program: " + program.getTitle()
+                            +". Start time: " + sdfT.format(calFrom.getTime())
+                            + ". End time: " + sdfT.format(calTo.getTime())
+                            + ". Current time: " + sdfT.format(calNow.getTime()));
+
+                    if (calNow.getTimeInMillis() >= calFrom.getTimeInMillis()
+                            && calNow.getTimeInMillis() <= calTo.getTimeInMillis()) {
+                        SimpleAppLog.info("Current program is: " + program.getTitle());
+                        currentChannel.setCurrentProgram(program);
+                        programMap.put(currentChannel.getUrl().toLowerCase(), program);
+                        SimpleDateFormat sdf = new SimpleDateFormat("HH:mm", Locale.JAPANESE);
+                        final StringBuffer sb = new StringBuffer();
+                        sb.append(program.getTitle()).append("\n");
+                        sb.append(sdf.format(new Date(program.getFromTime())));
+                        sb.append(" - ").append(sdf.format(new Date(program.getToTime())));
+                        showServiceNotification(currentChannel.getName(), sb.toString());
+                        notifyChange(META_CHANGED);
+                        return true;
+                    }
+                }
+            }
+        }
+        return false;
     }
 
     private void showServiceNotification(String title, String description) {

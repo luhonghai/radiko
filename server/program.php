@@ -1,4 +1,6 @@
 <?php
+error_reporting(0);
+@ini_set('display_errors', 0);
 try {
     $timezone = "Asia/Tokyo";
     $cachedDir = sys_get_temp_dir() . "/radioservercache";
@@ -24,8 +26,8 @@ try {
             echo "Error: Invalid date format. Should be Y-m-d";
             die();
         }
-        $mDate = date($aDate["year"] . "-" . $aDate["month"] . "-" . $aDate["day"]);
-        if (strtotime($mDate) > strtotime(date("Y-m-d"))) {
+        $mDate = date($aDate["year"] . "-" . ($aDate["month"] > 9 ? $aDate["month"] : ("0".$aDate["month"])) . "-" . ($aDate["day"] > 9 ? $aDate["day"] : ("0".$aDate["day"])));
+        if (strtolower($provider) == 'radiko' && strtotime($mDate) > strtotime(date("Y-m-d"))) {
             echo "Error: Invalid date range. Should not be future date.";
             die();
         }
@@ -115,4 +117,5 @@ try {
     echo json_encode($result);
 } catch (Exception $e) {
     echo "Could not fetch remote API";
+    die();
 }

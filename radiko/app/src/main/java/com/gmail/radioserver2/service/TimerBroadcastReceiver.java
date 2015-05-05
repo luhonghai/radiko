@@ -184,7 +184,6 @@ public class TimerBroadcastReceiver extends BroadcastReceiver implements Service
                                                         sb.append(program.getTitle()).append("\n");
                                                         sb.append(sdf.format(new Date(program.getFromTime())));
                                                         sb.append(" - ").append(sdf.format(new Date(program.getToTime())));
-
                                                         break;
                                                     }
                                                 }

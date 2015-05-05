@@ -1,10 +1,12 @@
 package com.gmail.radioserver2.radiko;
 
 import android.content.Context;
+import android.location.Location;
 import android.os.AsyncTask;
 
 import com.dotohsoft.api.TokenRequester;
 import com.gmail.radioserver2.data.Setting;
+import com.gmail.radioserver2.utils.AndroidUtil;
 import com.gmail.radioserver2.utils.FileHelper;
 import com.gmail.radioserver2.utils.SimpleAppLog;
 import com.google.gson.Gson;
@@ -20,6 +22,22 @@ import java.io.IOException;
 public abstract class TokenFetcher {
 
     private static final long MAX_TOKEN_AGE = 10 * 60 * 1000;
+
+    public double getLongitude() {
+        return longitude;
+    }
+
+    public void setLongitude(double longitude) {
+        this.longitude = longitude;
+    }
+
+    public double getLatitude() {
+        return latitude;
+    }
+
+    public void setLatitude(double latitude) {
+        this.latitude = latitude;
+    }
 
     public static interface OnTokenListener {
 
@@ -65,6 +83,10 @@ public abstract class TokenFetcher {
 
     protected final FileHelper fileHelper;
 
+    private double longitude  = -1;
+
+    private double latitude = -1;
+
     public TokenFetcher(Context context, OnTokenListener onTokenListener) {
         this.onTokenListener = onTokenListener;
         this.context = context;
@@ -106,6 +128,17 @@ public abstract class TokenFetcher {
         getTokenTask.execute();
     }
 
+    public void clearTokenCache() {
+        File savedToken = fileHelper.getTokenFile(getPrefixName());
+        if (savedToken.exists()) {
+            try {
+                FileUtils.forceDelete(savedToken);
+            } catch (Exception e) {
+                SimpleAppLog.error("Could not clear token cache",e);
+            }
+        }
+    }
+
     protected abstract void fetchRemote();
 
     protected abstract String getPrefixName();
@@ -130,14 +163,33 @@ public abstract class TokenFetcher {
     }
 
     public static TokenFetcher getTokenFetcher(Context context, OnTokenListener onTokenListener) {
+        Location location = AndroidUtil.getLastBestLocation(context);
+        return getTokenFetcher(context, onTokenListener, location);
+    }
+
+    public static TokenFetcher getTokenFetcher(Context context, OnTokenListener onTokenListener,
+                                               Location location) {
+        if (location != null) {
+            return getTokenFetcher(context, onTokenListener, location.getLatitude(), location.getLongitude());
+        } else {
+            return getTokenFetcher(context, onTokenListener, -1, -1);
+        }
+    }
+
+    public static TokenFetcher getTokenFetcher(Context context, OnTokenListener onTokenListener,
+                                               double latitude, double longitude) {
         Setting setting = new Setting(context);
         setting.load();
+        TokenFetcher tokenFetcher = null;
         if (setting.getTokenType() == Setting.TOKEN_TYPE_CLIENT) {
             SimpleAppLog.info("Use client token");
-            return new ClientTokenFetcher(context,onTokenListener);
+            tokenFetcher =  new ClientTokenFetcher(context,onTokenListener);
         } else {
             SimpleAppLog.info("Use server token");
-            return new ServerTokenFetcher(context,onTokenListener);
+            tokenFetcher = new ServerTokenFetcher(context,onTokenListener);
         }
+        tokenFetcher.setLatitude(latitude);
+        tokenFetcher.setLongitude(longitude);
+        return tokenFetcher;
     }
 }

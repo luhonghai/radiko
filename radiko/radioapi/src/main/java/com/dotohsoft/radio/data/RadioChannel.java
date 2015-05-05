@@ -26,6 +26,7 @@ public class RadioChannel {
         }
 
         public String getService() {
+            if (service == null) return "";
             return service;
         }
 

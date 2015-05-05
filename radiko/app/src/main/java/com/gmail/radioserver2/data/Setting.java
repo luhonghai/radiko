@@ -17,6 +17,7 @@ public class Setting {
     private static final String KEY_BACK = "back";
     private static final String KEY_REGION = "region";
     private static final String KEY_TOKEN_TYPE = "token_type";
+    private static final String KEY_ADS_ID = "ads_id";
 
     public static final float MAX_SLOW_LEVEL = 0.3f;
 
@@ -46,6 +47,16 @@ public class Setting {
 
     private int tokenType;
 
+    public String getAdsId() {
+        return adsId;
+    }
+
+    public void setAdsId(String adsId) {
+        this.adsId = adsId;
+    }
+
+    private String adsId;
+
     public Setting(Context context) {
         this.context = context;
     }
@@ -56,6 +67,7 @@ public class Setting {
         this.fastLevel = preferences.getFloat(KEY_FAST, MIN_FAST_LEVEL);
         this.backLength = preferences.getFloat(KEY_BACK, MIN_BACK_LENGTH);
         this.isRegion = preferences.getBoolean(KEY_REGION, true);
+        this.adsId = preferences.getString(KEY_ADS_ID, "");
         this.setTokenType(preferences.getInt(KEY_TOKEN_TYPE, TOKEN_TYPE_CLIENT));
     }
 
@@ -66,6 +78,7 @@ public class Setting {
         editor.putFloat(KEY_FAST, fastLevel);
         editor.putFloat(KEY_BACK, backLength);
         editor.putBoolean(KEY_REGION, isRegion);
+        editor.putString(KEY_ADS_ID, adsId);
         editor.putInt(KEY_TOKEN_TYPE, getTokenType());
         SimpleAppLog.info("slowLevel: " + slowLevel);
         SimpleAppLog.info("fastLevel: " + fastLevel);

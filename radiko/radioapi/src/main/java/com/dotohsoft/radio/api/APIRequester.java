@@ -33,7 +33,7 @@ import java.util.TimeZone;
 
 public class APIRequester {
     private final File cachedFolder;
-    private final Date now;
+    private Date now;
     private final SimpleDateFormat sdf = new SimpleDateFormat("yyyy-MM-dd-HH", Locale.JAPAN);
 
     public static interface RequesterListener {
@@ -50,6 +50,18 @@ public class APIRequester {
     public APIRequester(File cachedFolder) {
         this.cachedFolder = cachedFolder;
         Calendar cal = Calendar.getInstance(TimeZone.getTimeZone("GMT+9"));
+        now = cal.getTime();
+    }
+
+    public APIRequester(File cachedFolder, Date now) {
+        this.cachedFolder = cachedFolder;
+        this.now = now;
+    }
+
+    public void addDay(int day) {
+        Calendar cal = Calendar.getInstance(TimeZone.getTimeZone("GMT+9"));
+        cal.setTime(now);
+        cal.add(Calendar.DATE, day);
         now = cal.getTime();
     }
 
@@ -133,7 +145,6 @@ public class APIRequester {
 
             if (requesterListener != null) requesterListener.onMessage("Request program url: " + requesturl);
                 FileUtils.copyURLToFile(url, cachedFile);
-
                 if (cachedFile.exists()) {
                     String source = FileUtils.readFileToString(cachedFile, "UTF-8");
                     if (source == null || !source.toLowerCase().contains("cachedtime")) {

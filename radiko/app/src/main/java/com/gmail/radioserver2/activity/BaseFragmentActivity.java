@@ -17,6 +17,8 @@ import com.actionbarsherlock.app.SherlockFragmentActivity;
 import com.crashlytics.android.Crashlytics;
 import com.gmail.radioserver2.R;
 import com.gmail.radioserver2.analytic.AnalyticHelper;
+import com.gmail.radioserver2.radiko.TokenFetcher;
+import com.gmail.radioserver2.utils.AndroidUtil;
 import com.gmail.radioserver2.utils.SimpleAppLog;
 import com.google.android.gms.analytics.ExceptionReporter;
 import com.google.android.gms.analytics.HitBuilders;
@@ -48,10 +50,11 @@ public abstract class BaseFragmentActivity extends SherlockFragmentActivity impl
 
     private Handler handler = new Handler();
 
-
     private void updateData() {
         SimpleAppLog.info("Start update channels");
-        updateChannels(currentLocation);
+        TokenFetcher.getTokenFetcher(this, null, null).clearTokenCache();
+        updateChannels(AndroidUtil.filterLocation(currentLocation));
+        currentLocation = null;
     }
 
     @Override
@@ -71,8 +74,7 @@ public abstract class BaseFragmentActivity extends SherlockFragmentActivity impl
         buildAlert();
         SimpleAppLog.info("Start update data after 2s");
         handler.removeCallbacks(dataPrepareRunnable);
-        handler.postDelayed(dataPrepareRunnable, UPDATE_DATA_TIMEOUT);
-
+        handler.post(dataPrepareRunnable);
         //checkWifiPolicy();
     }
 
@@ -106,6 +108,7 @@ public abstract class BaseFragmentActivity extends SherlockFragmentActivity impl
     @Override
     protected void onPause() {
         super.onPause();
+        stopRequestLocation();
         if (alertDialog != null && alertDialog.isShowing())
             alertDialog.dismiss();
     }
@@ -115,7 +118,7 @@ public abstract class BaseFragmentActivity extends SherlockFragmentActivity impl
     @Override
     public void onLocationChanged(Location location) {
         currentLocation = location;
-        SimpleAppLog.info("onLocationChanged");
+        SimpleAppLog.info("onLocationChanged " + ( (location == null) ? " null" : location.getProvider() ));
         handler.removeCallbacks(dataPrepareRunnable);
         handler.postDelayed(dataPrepareRunnable, UPDATE_DATA_TIMEOUT);
     }
@@ -126,36 +129,57 @@ public abstract class BaseFragmentActivity extends SherlockFragmentActivity impl
 
     @Override
     public void onStatusChanged(String provider, int status, Bundle extras) {
-        SimpleAppLog.info("onStatusChanged");
+        SimpleAppLog.info("onStatusChanged " + provider + " status: " + status);
+        currentLocation = null;
         handler.removeCallbacks(dataPrepareRunnable);
         handler.postDelayed(dataPrepareRunnable, UPDATE_DATA_TIMEOUT);
     }
 
     @Override
     public void onProviderEnabled(String provider) {
-        SimpleAppLog.info("onProviderEnabled");
-        handler.removeCallbacks(dataPrepareRunnable);
-        handler.postDelayed(dataPrepareRunnable, UPDATE_DATA_MAX_TIMEOUT);
-    }
-
-    @Override
-    public void onProviderDisabled(String provider) {
-        SimpleAppLog.info("onProviderDisabled");
+        currentLocation = null;
+        SimpleAppLog.info("onProviderEnabled " + provider);
         handler.removeCallbacks(dataPrepareRunnable);
         handler.postDelayed(dataPrepareRunnable, UPDATE_DATA_TIMEOUT);
     }
 
+    @Override
+    public void onProviderDisabled(String provider) {
+        currentLocation = null;
+        SimpleAppLog.info("onProviderDisabled " + provider);
+        handler.removeCallbacks(dataPrepareRunnable);
+        handler.postDelayed(dataPrepareRunnable, UPDATE_DATA_TIMEOUT);
+    }
+
+    @Override
+    protected void onDestroy() {
+        super.onDestroy();
+
+    }
+
+    protected void stopRequestLocation() {
+        SimpleAppLog.info("Request location update");
+        LocationManager lm = (LocationManager) this.getSystemService(Context.LOCATION_SERVICE);
+        try {
+            lm.removeUpdates(this);
+        } catch (Exception e) {
+            SimpleAppLog.error("Could not stop request location",e);
+        }
+    }
+
     protected void requestLocation() {
+        SimpleAppLog.info("Request location update");
         LocationManager lm = (LocationManager) this.getSystemService(Context.LOCATION_SERVICE);
         try {
             lm.requestLocationUpdates(LocationManager.GPS_PROVIDER, 5 * 60 * 1000, 1000, this);
         } catch (Exception e) {
-
+            SimpleAppLog.error("Could not request GPS provider location",e);
         }
         try {
             lm.requestLocationUpdates(LocationManager.NETWORK_PROVIDER, 5 * 60 * 1000, 1000, this);
-        } catch (Exception e) {}
-
+        } catch (Exception e) {
+            SimpleAppLog.error("Could not request Network provider location",e);
+        }
     }
 
     protected void locationCheck() {

@@ -12,6 +12,8 @@ import java.io.File;
 import java.io.IOException;
 import java.io.InputStream;
 
+import jp.radiko.k.k;
+
 /**
  * Created by luhonghai on 24/02/2015.
  */
@@ -27,7 +29,8 @@ public class ClientTokenFetcher extends TokenFetcher {
         if (!keyBin.exists()) {
             InputStream is = null;
             try {
-                is = getContext().getResources().openRawResource(R.raw.key_bin);
+                //is = getContext().getResources().openRawResource(R.raw.key_bin);
+                is = getContext().getResources().openRawResource(R.raw.asmartphone4);
                 FileUtils.copyInputStreamToFile(is, keyBin);
             } catch (Exception ex) {
                 SimpleAppLog.error("Could not get key bin", ex);
@@ -49,11 +52,16 @@ public class ClientTokenFetcher extends TokenFetcher {
             public void onError(String message, Throwable e) {
                 SimpleAppLog.error(message, e);
             }
-        },keyBin);
+        }, keyBin, new TokenRequester.TokenExchange() {
+            @Override
+            public byte[] exchange(byte[] input) {
+                return k.getKeyNative(getContext(), input);
+            }
+        });
         String token = "";
         String output = "";
         try {
-            TokenRequester.TokenData tokenData = requester.requestToken();
+            TokenRequester.TokenData tokenData = requester.requestToken(getLatitude(), getLongitude());
             if (tokenData != null) {
                 saveToken(tokenData.getToken(), tokenData.getOutput());
                 token = tokenData.getToken();
