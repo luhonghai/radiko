@@ -33,7 +33,7 @@ public class ServerTokenFetcher extends TokenFetcher {
             if (tmpFile.exists())
                 FileUtils.forceDelete(tmpFile);
             SimpleAppLog.info("Get token from server");
-            FileUtils.copyURLToFile(new URL("http://stest.dotohsoft.com/~duc/rad/gettoken/getkey.php"), tmpFile);
+            FileUtils.copyURLToFile(new URL("http://radioserver.mienamthuc.com/api/gettoken/getkey.php"), tmpFile);
             if (tmpFile.exists()) {
                 token = FileUtils.readFileToString(tmpFile, "UTF-8");
                 SimpleAppLog.info("Found server token: " + token);

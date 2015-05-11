@@ -23,7 +23,7 @@ android {
 
     defaultConfig {
         applicationId "com.gmail.radioserver2"
-        minSdkVersion 14
+        minSdkVersion 16
         targetSdkVersion 21
     }
 
