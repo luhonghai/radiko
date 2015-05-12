@@ -376,6 +376,14 @@ public class PlayerFragmentTab extends FragmentTab implements ServiceConnection,
             txtBack.setEnabled(false);
             txtTimer.setEnabled(false);
 
+            if (android.os.Build.VERSION.SDK_INT >= android.os.Build.VERSION_CODES.JELLY_BEAN) {
+                btnFast.setVisibility(View.VISIBLE);
+                btnSlow.setVisibility(View.VISIBLE);
+            } else {
+                btnFast.setVisibility(View.INVISIBLE);
+                btnSlow.setVisibility(View.INVISIBLE);
+            }
+
             btnNext.setVisibility(View.INVISIBLE);
             btnPrev.setVisibility(View.INVISIBLE);
             seekBarPlayer.setVisibility(View.GONE);

@@ -146,7 +146,7 @@ public class MediaPlaybackService extends Service {
      */
     private MultiPlayer mStreamingPlayer;
 
-    private CustomMultiPlayer mPlayer;
+    private IMultiPlayer mPlayer;
 
     private boolean isStreaming;
 
@@ -797,7 +797,12 @@ public class MediaPlaybackService extends Service {
         registerExternalStorageListener();
 
         // Needs to be done in this thread, since otherwise ApplicationContext.getPowerManager() crashes.
-        mPlayer = new CustomMultiPlayer();
+        if (android.os.Build.VERSION.SDK_INT >= android.os.Build.VERSION_CODES.JELLY_BEAN) {
+            mPlayer = new CustomMultiPlayer();
+        } else {
+            mPlayer = new DefaultMultiPlayer();
+        }
+
         mPlayer.setHandler(mMediaplayerHandler);
 
         mStreamingPlayer = new MultiPlayer();
@@ -2659,11 +2664,44 @@ public class MediaPlaybackService extends Service {
         }
     }
 
+    private interface IMultiPlayer {
+
+        public void setDataSource(String path);
+
+        public boolean isInitialized();
+
+        public void setPlaybackSpeed(float speed);
+
+        public float getPlaybackSpeed();
+
+        public void start();
+
+        public void stop();
+
+        public void release();
+
+        public void pause();
+
+        public void setHandler(Handler handler);
+
+        public long duration();
+
+        public long position();
+
+        public long seek(long whereto);
+
+        public void setVolume(float vol);
+
+        public void setAudioSessionId(int sessionId);
+
+        public int getAudioSessionId();
+    }
+
     /**
      * Provides a unified interface for dealing with midi files and
      * other media files.
      */
-    private class CustomMultiPlayer {
+    private class CustomMultiPlayer implements IMultiPlayer {
         private at.aau.itec.android.mediaplayer.MediaPlayer mCurrentMediaPlayer = new at.aau.itec.android.mediaplayer.MediaPlayer();
         private at.aau.itec.android.mediaplayer.MediaPlayer mNextMediaPlayer;
         private Handler mHandler;
@@ -2801,7 +2839,7 @@ public class MediaPlaybackService extends Service {
      * Provides a unified interface for dealing with midi files and
      * other media files.
      */
-    private class DefaultMultiPlayer {
+    private class DefaultMultiPlayer implements IMultiPlayer{
         private MediaPlayer mCurrentMediaPlayer = new MediaPlayer();
         private MediaPlayer mNextMediaPlayer;
         private Handler mHandler;
@@ -2840,6 +2878,16 @@ public class MediaPlaybackService extends Service {
 
         public boolean isInitialized() {
             return mIsInitialized;
+        }
+
+        @Override
+        public void setPlaybackSpeed(float speed) {
+
+        }
+
+        @Override
+        public float getPlaybackSpeed() {
+            return 0;
         }
 
         public void start() {
@@ -2953,7 +3001,7 @@ public class MediaPlaybackService extends Service {
      * other media files.
      */
 
-    private class MultiPlayer {
+    private class MultiPlayer implements IMultiPlayer{
 
         private static final int MIN_RECONNECT_TIMEOUT = 1000;
 
@@ -3025,6 +3073,16 @@ public class MediaPlaybackService extends Service {
 
         public boolean isInitialized() {
             return mIsInitialized;
+        }
+
+        @Override
+        public void setPlaybackSpeed(float speed) {
+
+        }
+
+        @Override
+        public float getPlaybackSpeed() {
+            return 0;
         }
 
         public void start() {
@@ -3391,10 +3449,6 @@ public class MediaPlaybackService extends Service {
         writer.println(getTrackName());
         writer.println(getPath());
         writer.println("playing: " + mIsSupposedToBePlaying);
-        if (isStreaming && mStreamingPlayer != null)
-            writer.println("actual: " + mStreamingPlayer.mCurrentMediaPlayer.isPlaying());
-        else
-            writer.println("actual: " + mPlayer.mCurrentMediaPlayer.isPlaying());
         writer.println("shuffle mode: " + mShuffleMode);
         MusicUtils.debugDump(writer);
     }

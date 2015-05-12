@@ -110,6 +110,7 @@
                         android:layout_width="0dp"
                         android:layout_height="match_parent"
                         android:layout_weight="1"
+                        android:visibility="invisible"
                         android:text="@string/button_slow"
                         android:textColor="@color/text_color"
                         android:background="@drawable/rounded_corner_button"
@@ -146,6 +147,7 @@
                     </RelativeLayout>
                     <Button
                         android:id="@+id/btnFast"
+                        android:visibility="invisible"
                         android:layout_width="0dp"
                         android:layout_height="match_parent"
                         android:layout_weight="1"

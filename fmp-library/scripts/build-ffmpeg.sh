@@ -52,23 +52,5 @@ if [ ! -d $TARGET_ARMEABI_DIR ] || [ ! -d $TARGET_ARMEABIV7A_DIR ]; then
     cp -r $SO_DIR/armeabi-v7a $TARGET_ARMEABIV7A_DIR
 fi
 
-if [ ! -d $TARGET_X86_DIR ]; then
-    # Build FFmpeg from x86 architecture and copy to the JNI folder
-    cd $FFMPEG_BUILD_DIR
-    ./x86-build.sh
-    cd $WORKING_DIR
-    echo "Copying FFmpeg .so files from $SO_DIR to $TARGET_X86_DIR"
-    cp -r $SO_DIR/x86 $TARGET_X86_DIR
-fi
-
-if [ ! -d $TARGET_MIPS_DIR ]; then
-    # Build FFmpeg from MIPS architecture and copy to the JNI folder
-    cd $FFMPEG_BUILD_DIR
-    ./mips-build.sh
-    cd $WORKING_DIR
-    echo "Copying FFmpeg .so files from $SO_DIR to $TARGET_MIPS_DIR"
-    cp -r $SO_DIR/mips $TARGET_MIPS_DIR
-fi
-
 echo Native build complete, exiting...
 exit

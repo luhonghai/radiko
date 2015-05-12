@@ -39,6 +39,7 @@ import java.util.Map;
 /**
  * Created by maguggen on 04.06.2014.
  */
+
 public class MediaPlayer {
 
     private static final String TAG = MediaPlayer.class.getSimpleName();
