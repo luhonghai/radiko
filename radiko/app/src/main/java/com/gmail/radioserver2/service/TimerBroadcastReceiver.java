@@ -139,6 +139,7 @@ public class TimerBroadcastReceiver extends BroadcastReceiver implements Service
                                     recorder.stopRecording();
                                     recorder.stop();
                                     recorder.release();
+                                    SimpleAppLog.info("Start timer schedule: stop record");
                                 }
                             } catch (Exception e) {
                                 SimpleAppLog.error("Could not stop recording", e);

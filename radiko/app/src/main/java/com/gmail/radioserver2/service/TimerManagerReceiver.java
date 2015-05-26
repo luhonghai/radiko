@@ -34,7 +34,7 @@ public class TimerManagerReceiver extends BroadcastReceiver {
     @Override
     public void onReceive(Context context, Intent intent) {
         SimpleAppLog.info("TimerManagerReceiver starting up ...");
-        this.context = context;
+        this.context = context.getApplicationContext();
         cancel();
         startTimerManager();
         reCalculateTimer();
@@ -61,11 +61,30 @@ public class TimerManagerReceiver extends BroadcastReceiver {
         PendingIntent sender = PendingIntent.getBroadcast(context, 0, intent, 0);
         AlarmManager alarmManager = (AlarmManager) context.getSystemService(Context.ALARM_SERVICE);
         alarmManager.cancel(sender);
-
-
         intent = new Intent(context, TimerBroadcastReceiver.class);
         sender = PendingIntent.getBroadcast(context, 0, intent, 0);
         alarmManager.cancel(sender);
+        sender.cancel();
+        TimerDBAdapter dbAdapter = new TimerDBAdapter(context);
+        try {
+            dbAdapter.open();
+            Collection<Timer> timers = dbAdapter.findAll();
+            if (timers != null && timers.size() > 0) {
+                Intent i = new Intent(context, TimerBroadcastReceiver.class);
+                for (Timer timer : timers) {
+                    PendingIntent p = PendingIntent.getBroadcast(context, (int) timer.getId(), i, PendingIntent.FLAG_NO_CREATE);
+                    if (p != null) {
+                        SimpleAppLog.info("Timer manager: cancel a timer");
+                        alarmManager.cancel(p);
+                        p.cancel();
+                    }
+                }
+            }
+        } catch (Exception e) {
+            SimpleAppLog.error("Could not list timer", e);
+        } finally {
+            dbAdapter.close();
+        }
     }
 
     private void reCalculateTimer() {
@@ -94,7 +113,7 @@ public class TimerManagerReceiver extends BroadcastReceiver {
     private void createAlarm(Timer timer, long onTime) {
         String timerSrc = gson.toJson(timer);
         SimpleAppLog.info("Create schedule. Time: " + sdf.format(new Date(onTime)) + "ms. Object: " + timerSrc);
-        AlarmManager am=(AlarmManager)context.getSystemService(Context.ALARM_SERVICE);
+        AlarmManager am = (AlarmManager) context.getSystemService(Context.ALARM_SERVICE);
         Intent i = new Intent(context, TimerBroadcastReceiver.class);
         Bundle bundle = i.getExtras();
         if (bundle == null) {
@@ -102,7 +121,7 @@ public class TimerManagerReceiver extends BroadcastReceiver {
         }
         bundle.putString(Constants.ARG_OBJECT, timerSrc);
         i.putExtras(bundle);
-        PendingIntent pi = PendingIntent.getBroadcast(context, 0, i, PendingIntent.FLAG_UPDATE_CURRENT);
+        PendingIntent pi = PendingIntent.getBroadcast(context, (int) timer.getId(), i, PendingIntent.FLAG_CANCEL_CURRENT);
         am.set(AlarmManager.RTC_WAKEUP, onTime, pi);
     }
 
@@ -147,7 +166,7 @@ public class TimerManagerReceiver extends BroadcastReceiver {
                 case Timer.MODE_WEEKLY:
                     // Should check again with date
                     calendar.setTime(timer.getEventDate());
-                    if (startOfToday.get(Calendar.DAY_OF_WEEK) == calendar.get(Calendar.DAY_OF_WEEK)){
+                    if (startOfToday.get(Calendar.DAY_OF_WEEK) == calendar.get(Calendar.DAY_OF_WEEK)) {
                         // Ready for launch
                         createAlarm(timer, launchTime);
                     }
