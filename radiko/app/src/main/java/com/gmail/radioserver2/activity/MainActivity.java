@@ -47,6 +47,7 @@ import com.gmail.radioserver2.view.ReclickableTabHost;
 import com.google.gson.Gson;
 
 import io.fabric.sdk.android.Fabric;
+
 import java.util.HashMap;
 import java.util.Stack;
 
@@ -82,14 +83,14 @@ public class MainActivity extends BaseFragmentActivity implements ServiceConnect
          *  Navigation stacks for each tab gets created..
          *  tab identifier is used as key_bin to get respective stack for each tab
          */
-        mStacks             =   new HashMap<String, Stack<Fragment>>();
+        mStacks = new HashMap<String, Stack<Fragment>>();
         mStacks.put(Constants.TAB_HOME, new Stack<Fragment>());
         mStacks.put(Constants.TAB_RECORDED_PROGRAM, new Stack<Fragment>());
         mStacks.put(Constants.TAB_LIBRARY, new Stack<Fragment>());
         mStacks.put(Constants.TAB_SETTING, new Stack<Fragment>());
         mStacks.put(Constants.TAB_PLAY_SCREEN, new Stack<Fragment>());
 
-        mTabHost                =   (ReclickableTabHost)findViewById(android.R.id.tabhost);
+        mTabHost = (ReclickableTabHost) findViewById(android.R.id.tabhost);
         mTabHost.setOnTabChangedListener(listener);
         mTabHost.setOnReclickTabListener(reclickTabListener);
         mTabHost.setup();
@@ -106,8 +107,8 @@ public class MainActivity extends BaseFragmentActivity implements ServiceConnect
             clone.setLatitude(location.getLatitude());
             clone.setLongitude(location.getLongitude());
         } else {
-            clone.setLatitude( - 1);
-            clone.setLongitude( - 1);
+            clone.setLatitude(-1);
+            clone.setLongitude(-1);
         }
         new AsyncTask<Void, Void, Void>() {
             @Override
@@ -128,14 +129,14 @@ public class MainActivity extends BaseFragmentActivity implements ServiceConnect
 
     private View createTabView(final int stringId) {
         View view = LayoutInflater.from(this).inflate(R.layout.tabs_main, null);
-        TextView imageView =   (TextView) view.findViewById(R.id.txtTabName);
+        TextView imageView = (TextView) view.findViewById(R.id.txtTabName);
         imageView.setText(getResources().getString(stringId));
         return view;
     }
 
-    public void initializeTabs(){
+    public void initializeTabs() {
         /* Setup your tab icons and content views.. Nothing special in this..*/
-        TabHost.TabSpec spec    =   mTabHost.newTabSpec(Constants.TAB_HOME);
+        TabHost.TabSpec spec = mTabHost.newTabSpec(Constants.TAB_HOME);
         mTabHost.setCurrentTab(-3);
         spec.setContent(new TabHost.TabContentFactory() {
             public View createTabContent(String tag) {
@@ -145,7 +146,7 @@ public class MainActivity extends BaseFragmentActivity implements ServiceConnect
         spec.setIndicator(createTabView(R.string.tab_home));
         mTabHost.addTab(spec);
 
-        spec                    =   mTabHost.newTabSpec(Constants.TAB_PLAY_SCREEN);
+        spec = mTabHost.newTabSpec(Constants.TAB_PLAY_SCREEN);
         spec.setContent(new TabHost.TabContentFactory() {
             public View createTabContent(String tag) {
                 return findViewById(R.id.realtabcontent);
@@ -155,7 +156,7 @@ public class MainActivity extends BaseFragmentActivity implements ServiceConnect
         mTabHost.addTab(spec);
 
 
-        spec                    =   mTabHost.newTabSpec(Constants.TAB_RECORDED_PROGRAM);
+        spec = mTabHost.newTabSpec(Constants.TAB_RECORDED_PROGRAM);
         spec.setContent(new TabHost.TabContentFactory() {
             public View createTabContent(String tag) {
                 return findViewById(R.id.realtabcontent);
@@ -164,7 +165,7 @@ public class MainActivity extends BaseFragmentActivity implements ServiceConnect
         spec.setIndicator(createTabView(R.string.tab_recorded_program));
         mTabHost.addTab(spec);
 
-        spec                    =   mTabHost.newTabSpec(Constants.TAB_LIBRARY);
+        spec = mTabHost.newTabSpec(Constants.TAB_LIBRARY);
         spec.setContent(new TabHost.TabContentFactory() {
             public View createTabContent(String tag) {
                 return findViewById(R.id.realtabcontent);
@@ -173,7 +174,7 @@ public class MainActivity extends BaseFragmentActivity implements ServiceConnect
         spec.setIndicator(createTabView(R.string.tab_library));
         mTabHost.addTab(spec);
 
-        spec                    =   mTabHost.newTabSpec(Constants.TAB_SETTING);
+        spec = mTabHost.newTabSpec(Constants.TAB_SETTING);
         spec.setContent(new TabHost.TabContentFactory() {
             public View createTabContent(String tag) {
                 return findViewById(R.id.realtabcontent);
@@ -188,10 +189,10 @@ public class MainActivity extends BaseFragmentActivity implements ServiceConnect
         @Override
         public void onReclick(int index) {
             if (index == Constants.TAB_HOME_ID) {
-                if (mStacks.get(Constants.TAB_HOME).size() == 0){
-                    pushFragments(Constants.TAB_HOME, new HomeFragmentTab(), false,true);
+                if (mStacks.get(Constants.TAB_HOME).size() == 0) {
+                    pushFragments(Constants.TAB_HOME, new HomeFragmentTab(), false, true);
                 } else {
-                    pushFragments(Constants.TAB_HOME, mStacks.get(Constants.TAB_HOME).lastElement(), false,false);
+                    pushFragments(Constants.TAB_HOME, mStacks.get(Constants.TAB_HOME).lastElement(), false, false);
                 }
             } else if (index == Constants.TAB_RECORDED_PROGRAM_ID) {
                 selectedLibrary = null;
@@ -203,36 +204,36 @@ public class MainActivity extends BaseFragmentActivity implements ServiceConnect
     };
 
     /*Comes here when user switch tab, or we do programmatically*/
-    TabHost.OnTabChangeListener listener    =   new TabHost.OnTabChangeListener() {
+    TabHost.OnTabChangeListener listener = new TabHost.OnTabChangeListener() {
         public void onTabChanged(String tabId) {
         /*Set current tab..*/
-            mCurrentTab                     =   tabId;
+            mCurrentTab = tabId;
             if (!tabId.equals(Constants.TAB_RECORDED_PROGRAM)) {
                 selectedLibrary = null;
             }
-            if (mStacks.get(tabId).size() == 0){
+            if (mStacks.get(tabId).size() == 0) {
           /*
            *    First time this tab is selected. So add first fragment of that tab.
            *    Dont need animation, so that argument is false.
            *    We are adding a new fragment which is not present in stack. So add to stack is true.
            */
-                if(tabId.equals(Constants.TAB_HOME)){
+                if (tabId.equals(Constants.TAB_HOME)) {
                     // clear selected library\
-                    pushFragments(tabId, new HomeFragmentTab(), false,true);
-                }else if(tabId.equals(Constants.TAB_RECORDED_PROGRAM)){
+                    pushFragments(tabId, new HomeFragmentTab(), false, true);
+                } else if (tabId.equals(Constants.TAB_RECORDED_PROGRAM)) {
                     RecordedProgramFragmentTab programFragmentTab = new RecordedProgramFragmentTab();
                     programFragmentTab.setSelectedLibrary(selectedLibrary);
                     pushFragments(tabId, programFragmentTab, false, true);
-                }else if(tabId.equals(Constants.TAB_LIBRARY)){
+                } else if (tabId.equals(Constants.TAB_LIBRARY)) {
 
-                    pushFragments(tabId, new LibraryFragmentTab(), false,true);
-                }else if(tabId.equals(Constants.TAB_SETTING)){
+                    pushFragments(tabId, new LibraryFragmentTab(), false, true);
+                } else if (tabId.equals(Constants.TAB_SETTING)) {
 
-                    pushFragments(tabId, new SettingFragmentTab(), false,true);
-                }else if(tabId.equals(Constants.TAB_PLAY_SCREEN)){
-                    pushFragments(tabId, new PlayerFragmentTab(), false,false);
+                    pushFragments(tabId, new SettingFragmentTab(), false, true);
+                } else if (tabId.equals(Constants.TAB_PLAY_SCREEN)) {
+                    pushFragments(tabId, new PlayerFragmentTab(), false, false);
                 }
-            }else {
+            } else {
               /*
                *    We are switching tabs, and target tab is already has atleast one fragment.
                *    No need of animation, no need of stack pushing. Just show the target fragment
@@ -240,7 +241,7 @@ public class MainActivity extends BaseFragmentActivity implements ServiceConnect
                 if (tabId.equals(Constants.TAB_RECORDED_PROGRAM) && selectedLibrary != null) {
                     RecordedProgramFragmentTab programFragmentTab = (RecordedProgramFragmentTab) mStacks.get(tabId).lastElement();
                     programFragmentTab.setSelectedLibrary(selectedLibrary);
-                   // programFragmentTab.loadData();
+                    // programFragmentTab.loadData();
                     pushFragments(tabId, programFragmentTab, false, false);
                 } else {
                     pushFragments(tabId, mStacks.get(tabId).lastElement(), false, false);
@@ -252,7 +253,7 @@ public class MainActivity extends BaseFragmentActivity implements ServiceConnect
 
 
     /* Might be useful if we want to switch tab programmatically, from inside any of the fragment.*/
-    public void setCurrentTab(int val){
+    public void setCurrentTab(int val) {
         mTabHost.setCurrentTab(val);
     }
 
@@ -266,7 +267,7 @@ public class MainActivity extends BaseFragmentActivity implements ServiceConnect
      *  shouldAdd       ->  Should add to fragment navigation stack (mStacks.get(tag)). false when we are switching tabs (except for the first time)
      *                      true in all other cases.
      */
-    public void pushFragments(String tag, Fragment fragment,boolean shouldAnimate, boolean shouldAdd){
+    public void pushFragments(String tag, Fragment fragment, boolean shouldAnimate, boolean shouldAdd) {
         try {
             if (shouldAdd)
                 mStacks.get(tag).push(fragment);
@@ -277,7 +278,7 @@ public class MainActivity extends BaseFragmentActivity implements ServiceConnect
             ft.replace(R.id.realtabcontent, fragment);
             ft.commitAllowingStateLoss();
         } catch (Exception ex) {
-            SimpleAppLog.error("Could not push fragment " + tag,ex);
+            SimpleAppLog.error("Could not push fragment " + tag, ex);
         }
     }
 
@@ -285,8 +286,7 @@ public class MainActivity extends BaseFragmentActivity implements ServiceConnect
          * Update Tab highlight color
          */
     private void setSelectedTabColor() {
-        for(int i=0;i<mTabHost.getTabWidget().getChildCount();i++)
-        {
+        for (int i = 0; i < mTabHost.getTabWidget().getChildCount(); i++) {
             mTabHost.getTabWidget().getChildAt(i).findViewById(R.id.txtTabName)
                     .setBackgroundColor(getResources().getColor(R.color.default_button_color));
         }
@@ -295,7 +295,7 @@ public class MainActivity extends BaseFragmentActivity implements ServiceConnect
     }
 
 
-    public void popFragments(){
+    public void popFragments() {
         try {
       /*
        *    Select the second last fragment in current tab's stack..
@@ -313,7 +313,7 @@ public class MainActivity extends BaseFragmentActivity implements ServiceConnect
             ft.replace(R.id.realtabcontent, fragment);
             ft.commit();
         } catch (Exception e) {
-            SimpleAppLog.error("could not pop fragment",e);
+            SimpleAppLog.error("could not pop fragment", e);
         }
     }
 
@@ -340,7 +340,7 @@ public class MainActivity extends BaseFragmentActivity implements ServiceConnect
      */
     @Override
     protected void onActivityResult(int requestCode, int resultCode, Intent data) {
-        if(mStacks.get(mCurrentTab).size() == 0){
+        if (mStacks.get(mCurrentTab).size() == 0) {
             return;
         }
         /*Now current fragment on screen gets onActivityResult callback..*/
@@ -351,7 +351,7 @@ public class MainActivity extends BaseFragmentActivity implements ServiceConnect
 
         @Override
         public void run() {
-            if (selectedObj == null || selectedObj.length() ==0) return;
+            if (selectedObj == null || selectedObj.length() == 0) return;
             SimpleAppLog.info("Start streaming ...");
             boolean isNew = true;
             try {
@@ -373,7 +373,7 @@ public class MainActivity extends BaseFragmentActivity implements ServiceConnect
                     mService.stop();
                 }
             } catch (RemoteException e) {
-                SimpleAppLog.error("Could not stop old stream",e);
+                SimpleAppLog.error("Could not stop old stream", e);
             }
             if (isNew) {
                 try {
@@ -397,7 +397,7 @@ public class MainActivity extends BaseFragmentActivity implements ServiceConnect
             int type = bundle.getInt(Constants.FRAGMENT_ACTION_TYPE);
             switch (type) {
                 case Constants.ACTION_CLICK_BACK_PLAYER:
-                    if(mStacks.get(mCurrentTab).size() > 1) {
+                    if (mStacks.get(mCurrentTab).size() > 1) {
                         popFragments();
                     } else {
                         pushFragments(Constants.TAB_HOME, new HomeFragmentTab(), false, false);
@@ -433,7 +433,7 @@ public class MainActivity extends BaseFragmentActivity implements ServiceConnect
     protected void onDestroy() {
         try {
             unregisterReceiver(mHandleAction);
-        } catch ( Exception ex) {
+        } catch (Exception ex) {
 
         }
         MusicUtils.unbindFromService(mServiceToken);
@@ -453,7 +453,7 @@ public class MainActivity extends BaseFragmentActivity implements ServiceConnect
                 setCurrentTab(Constants.TAB_PLAY_SCREEN_ID);
             }
         } catch (RemoteException e) {
-            SimpleAppLog.error("Could not get player status",e);
+            SimpleAppLog.error("Could not get player status", e);
         }
     }
 

@@ -1,7 +1,10 @@
 package com.gmail.radioserver2.fragment;
 
+import android.content.BroadcastReceiver;
 import android.content.ComponentName;
+import android.content.Context;
 import android.content.Intent;
+import android.content.IntentFilter;
 import android.content.ServiceConnection;
 import android.os.Bundle;
 import android.os.Handler;
@@ -32,6 +35,8 @@ import com.gmail.radioserver2.adapter.RecordedProgramAdapter;
 import com.google.android.gms.ads.AdRequest;
 import com.google.android.gms.ads.AdView;
 import com.google.gson.Gson;
+
+import junit.runner.BaseTestRunner;
 
 import org.apache.commons.io.FileUtils;
 
@@ -66,7 +71,7 @@ public class RecordedProgramFragmentTab extends FragmentTab implements OnListIte
 
     @Override
     public View onCreateView(LayoutInflater inflater, ViewGroup container, Bundle savedInstanceState) {
-        super.onCreateView(inflater,container,savedInstanceState);
+        super.onCreateView(inflater, container, savedInstanceState);
         View v = inflater.inflate(R.layout.fragment_recorded_program_tab, container, false);
 
         mAdView = (AdView) v.findViewById(R.id.adView);
@@ -101,6 +106,7 @@ public class RecordedProgramFragmentTab extends FragmentTab implements OnListIte
         btnSearch = (Button) v.findViewById(R.id.btnSearch);
         btnSearch.setOnClickListener(this);
         loadData();
+        getActivity().registerReceiver(mReceive, new IntentFilter(Constants.INTENT_FILTER_FRAGMENT_ACTION));
         return v;
     }
 
@@ -135,7 +141,7 @@ public class RecordedProgramFragmentTab extends FragmentTab implements OnListIte
                 objects = new RecordedProgram[programs.size()];
                 programs.toArray(objects);
             } else {
-                objects = new RecordedProgram[] {};
+                objects = new RecordedProgram[]{};
             }
             RecordedProgramAdapter adapter = new RecordedProgramAdapter(getActivity(), objects, this);
             listView.setAdapter(adapter);
@@ -171,6 +177,10 @@ public class RecordedProgramFragmentTab extends FragmentTab implements OnListIte
     public void onDestroy() {
         MusicUtils.unbindFromService(mServiceToken);
         mService = null;
+        try {
+            getActivity().unregisterReceiver(mReceive);
+        } catch (Exception e) {
+        }
         super.onDestroy();
     }
 
@@ -189,7 +199,7 @@ public class RecordedProgramFragmentTab extends FragmentTab implements OnListIte
             adapter.open();
             adapter.delete(obj);
         } catch (Exception ex) {
-            SimpleAppLog.error("Could not delete recorded program",ex);
+            SimpleAppLog.error("Could not delete recorded program", ex);
         } finally {
             adapter.close();
         }
@@ -208,13 +218,13 @@ public class RecordedProgramFragmentTab extends FragmentTab implements OnListIte
                 if (mService.isStreaming() && mService.isRecording())
                     mService.stopRecord();
             } catch (RemoteException e) {
-                SimpleAppLog.error("Could not stop recording",e);
+                SimpleAppLog.error("Could not stop recording", e);
             }
             try {
                 if (mService.isPlaying())
                     mService.stop();
             } catch (RemoteException e) {
-                SimpleAppLog.error("Could not stop playing",e);
+                SimpleAppLog.error("Could not stop playing", e);
             }
             if (objects != null && objects.length > 0) {
                 MusicUtils.deleteAllData(getActivity());
@@ -284,4 +294,16 @@ public class RecordedProgramFragmentTab extends FragmentTab implements OnListIte
     public void onServiceDisconnected(ComponentName name) {
 
     }
+
+    private BroadcastReceiver mReceive = new BroadcastReceiver() {
+        @Override
+        public void onReceive(Context context, Intent intent) {
+            int action = intent.getExtras().getInt(Constants.FRAGMENT_ACTION_TYPE);
+            switch (action) {
+                case Constants.ACTION_RELOAD_RECORDED_PROGRAM:
+                    loadData();
+                    break;
+            }
+        }
+    };
 }

@@ -13,10 +13,14 @@ import com.gmail.radioserver2.utils.Constants;
 import com.gmail.radioserver2.utils.SimpleAppLog;
 import com.google.gson.Gson;
 
+import java.sql.SQLException;
 import java.text.SimpleDateFormat;
+import java.util.ArrayList;
 import java.util.Calendar;
-import java.util.Collection;
+import java.util.Collections;
+import java.util.Comparator;
 import java.util.Date;
+import java.util.List;
 
 /**
  * Created by luhonghai on 3/23/15.
@@ -43,6 +47,7 @@ public class TimerManagerReceiver extends BroadcastReceiver {
     private void startTimerManager() {
         SimpleAppLog.info("TimerManagerReceiver set timer start on next day ...");
         // Start on next day
+        context.startService(new Intent(context, RecordBackgroundService.class));
         Calendar cal = Calendar.getInstance();
         cal.add(Calendar.DAY_OF_MONTH, 1);
         cal.set(Calendar.HOUR_OF_DAY, 0);
@@ -56,7 +61,6 @@ public class TimerManagerReceiver extends BroadcastReceiver {
 
     private void cancel() {
         // Cancel old schedule
-
         Intent intent = new Intent(context, TimerManagerReceiver.class);
         PendingIntent sender = PendingIntent.getBroadcast(context, 0, intent, 0);
         AlarmManager alarmManager = (AlarmManager) context.getSystemService(Context.ALARM_SERVICE);
@@ -64,55 +68,90 @@ public class TimerManagerReceiver extends BroadcastReceiver {
         intent = new Intent(context, TimerBroadcastReceiver.class);
         sender = PendingIntent.getBroadcast(context, 0, intent, 0);
         alarmManager.cancel(sender);
-        sender.cancel();
-        TimerDBAdapter dbAdapter = new TimerDBAdapter(context);
-        try {
-            dbAdapter.open();
-            Collection<Timer> timers = dbAdapter.findAll();
-            if (timers != null && timers.size() > 0) {
-                Intent i = new Intent(context, TimerBroadcastReceiver.class);
-                for (Timer timer : timers) {
-                    PendingIntent p = PendingIntent.getBroadcast(context, (int) timer.getId(), i, PendingIntent.FLAG_NO_CREATE);
-                    if (p != null) {
-                        SimpleAppLog.info("Timer manager: cancel a timer");
-                        alarmManager.cancel(p);
-                        p.cancel();
-                    }
-                }
-            }
-        } catch (Exception e) {
-            SimpleAppLog.error("Could not list timer", e);
-        } finally {
-            dbAdapter.close();
-        }
     }
 
     private void reCalculateTimer() {
-
         if (context != null) {
             SimpleAppLog.info("TimerManagerReceiver re-calculate timer ...");
-
-
             TimerDBAdapter dbAdapter = new TimerDBAdapter(context);
             try {
                 dbAdapter.open();
-                Collection<Timer> timers = dbAdapter.findAll();
-                if (timers != null && timers.size() > 0) {
-                    for (Timer timer : timers) {
-                        setAlarm(timer);
+                List<Timer> timers = (List<Timer>) dbAdapter.findAll();
+                List<Timer> todayTimerList = new ArrayList<>();
+                final Calendar currentCal = Calendar.getInstance();
+
+                if (timers != null && timers.size() != 0) {
+                    for (Timer item : timers) {
+                        Calendar calculateCal = Calendar.getInstance();
+                        calculateCal.set(Calendar.HOUR_OF_DAY, item.getStartHour());
+                        calculateCal.set(Calendar.MINUTE, item.getStartMinute());
+                        calculateCal.set(Calendar.SECOND, 0);
+                        switch (item.getMode()) {
+                            case Timer.MODE_ONE_TIME:
+                                calculateCal.setTime(item.getEventDate());
+                                calculateCal.set(Calendar.HOUR_OF_DAY, item.getStartHour());
+                                calculateCal.set(Calendar.MINUTE, item.getStartMinute());
+                                calculateCal.set(Calendar.SECOND, 0);
+                                if (calculateCal.getTimeInMillis() > currentCal.getTimeInMillis()) {
+                                    item.setNextAlarmTime(calculateCal.getTimeInMillis());
+                                    todayTimerList.add(item);
+                                    SimpleAppLog.debug("Add today timer: " + new Date(item.getNextAlarmTime()).toString());
+                                }
+                                break;
+
+                            case Timer.MODE_WEEKLY:
+                                if (calculateCal.getTimeInMillis() > currentCal.getTimeInMillis()) {
+                                    calculateCal.setTime(item.getEventDate());
+                                    if (currentCal.get(Calendar.DAY_OF_WEEK) == calculateCal.get(Calendar.DAY_OF_WEEK)) {
+                                        calculateCal.set(Calendar.HOUR_OF_DAY, item.getStartHour());
+                                        calculateCal.set(Calendar.MINUTE, item.getStartMinute());
+                                        calculateCal.set(Calendar.SECOND, 0);
+                                        item.setNextAlarmTime(calculateCal.getTimeInMillis());
+                                        todayTimerList.add(item);
+                                        SimpleAppLog.debug("Add today timer: " + new Date(item.getNextAlarmTime()).toString());
+                                    }
+                                }
+                                break;
+                            case Timer.MODE_DAILY:
+                                if (calculateCal.getTimeInMillis() > currentCal.getTimeInMillis()) {
+                                    item.setNextAlarmTime(calculateCal.getTimeInMillis());
+                                    todayTimerList.add(item);
+                                    SimpleAppLog.debug("Add today timer: " + new Date(item.getNextAlarmTime()).toString());
+                                }
+                                break;
+                        }
+                    }
+
+                    if (todayTimerList.size() != 0) {
+                        sortTimer(todayTimerList);
+                        createAlarm(todayTimerList);
                     }
                 }
+            } catch (SQLException e) {
+                e.printStackTrace();
             } catch (Exception e) {
-                SimpleAppLog.error("Could not list timer", e);
+                e.printStackTrace();
             } finally {
                 dbAdapter.close();
             }
         }
     }
 
-    private void createAlarm(Timer timer, long onTime) {
+    private void sortTimer(List<Timer> timers) {
+        Comparator<Timer> comparator = new Comparator<Timer>() {
+            @Override
+            public int compare(Timer t1, Timer t2) {
+                return (t1.getNextAlarmTime() - t2.getNextAlarmTime()) >= 0 ? 1 : -1;
+            }
+        };
+        Collections.sort(timers, comparator);
+    }
+
+    private void createAlarm(List<Timer> timers) {
+        Timer timer = timers.get(0);
+        timers.remove(0);
         String timerSrc = gson.toJson(timer);
-        SimpleAppLog.info("Create schedule. Time: " + sdf.format(new Date(onTime)) + "ms. Object: " + timerSrc);
+        String timerList = gson.toJson(timers);
         AlarmManager am = (AlarmManager) context.getSystemService(Context.ALARM_SERVICE);
         Intent i = new Intent(context, TimerBroadcastReceiver.class);
         Bundle bundle = i.getExtras();
@@ -120,58 +159,10 @@ public class TimerManagerReceiver extends BroadcastReceiver {
             bundle = new Bundle();
         }
         bundle.putString(Constants.ARG_OBJECT, timerSrc);
+        bundle.putString(Constants.ARG_TIMER_LIST, timerList);
         i.putExtras(bundle);
-        PendingIntent pi = PendingIntent.getBroadcast(context, (int) timer.getId(), i, PendingIntent.FLAG_CANCEL_CURRENT);
-        am.set(AlarmManager.RTC_WAKEUP, onTime, pi);
+        PendingIntent pi = PendingIntent.getBroadcast(context, 0, i, PendingIntent.FLAG_UPDATE_CURRENT);
+        am.set(AlarmManager.RTC_WAKEUP, timer.getNextAlarmTime(), pi);
     }
 
-    private void setAlarm(Timer timer) {
-        Calendar calendar = Calendar.getInstance();
-        calendar.set(Calendar.HOUR_OF_DAY, timer.getStartHour());
-        calendar.set(Calendar.MINUTE, timer.getStartMinute());
-
-        long launchTime = calendar.getTimeInMillis();
-        Calendar endOfToday = Calendar.getInstance();
-        endOfToday.setTimeInMillis(System.currentTimeMillis());
-        endOfToday.set(Calendar.HOUR_OF_DAY, 23);
-        endOfToday.set(Calendar.MINUTE, 59);
-        endOfToday.set(Calendar.SECOND, 59);
-
-        Calendar startOfToday = Calendar.getInstance();
-        startOfToday.setTimeInMillis(System.currentTimeMillis());
-        startOfToday.set(Calendar.HOUR_OF_DAY, 0);
-        startOfToday.set(Calendar.MINUTE, 0);
-        startOfToday.set(Calendar.SECOND, 0);
-
-        if (launchTime < endOfToday.getTimeInMillis()
-                && launchTime > System.currentTimeMillis()) {
-            // If the timer between current time and end of today
-            // Start check alarm timer
-            switch (timer.getMode()) {
-                case Timer.MODE_DAILY:
-                    // Ready for launch
-                    createAlarm(timer, launchTime);
-                    break;
-                case Timer.MODE_ONE_TIME:
-                    // Should check again with time
-                    calendar.setTime(timer.getEventDate());
-                    calendar.set(Calendar.HOUR_OF_DAY, timer.getStartHour());
-                    calendar.set(Calendar.MINUTE, timer.getStartMinute());
-                    if (startOfToday.getTimeInMillis() < calendar.getTimeInMillis()
-                            && endOfToday.getTimeInMillis() > calendar.getTimeInMillis()) {
-                        // Ready for launch
-                        createAlarm(timer, launchTime);
-                    }
-                    break;
-                case Timer.MODE_WEEKLY:
-                    // Should check again with date
-                    calendar.setTime(timer.getEventDate());
-                    if (startOfToday.get(Calendar.DAY_OF_WEEK) == calendar.get(Calendar.DAY_OF_WEEK)) {
-                        // Ready for launch
-                        createAlarm(timer, launchTime);
-                    }
-                    break;
-            }
-        }
-    }
 }

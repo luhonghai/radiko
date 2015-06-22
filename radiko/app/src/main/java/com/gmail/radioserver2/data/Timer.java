@@ -5,16 +5,16 @@ import android.content.Context;
 
 import com.gmail.radioserver2.R;
 import com.gmail.radioserver2.data.sqlite.DBAdapter;
-import com.gmail.radioserver2.data.sqlite.IDBAdapter;
 import com.gmail.radioserver2.utils.DateHelper;
 
+import java.io.Serializable;
 import java.util.Calendar;
 import java.util.Date;
 
 /**
  * Created by luhonghai on 25/02/2015.
  */
-public class Timer extends AbstractData<Timer> {
+public class Timer extends AbstractData<Timer> implements Serializable{
 
     public static final int MODE_DAILY = 0;
 
@@ -48,6 +48,16 @@ public class Timer extends AbstractData<Timer> {
 
     private boolean status;
 
+    private long nextAlarmTime;
+
+    public void setNextAlarmTime(long nextAlarmTime) {
+        this.nextAlarmTime = nextAlarmTime;
+    }
+
+    public long getNextAlarmTime() {
+        return this.nextAlarmTime;
+    }
+
     @Override
     public String toPrettyString(Context context) {
         StringBuffer sb = new StringBuffer();
@@ -61,13 +71,27 @@ public class Timer extends AbstractData<Timer> {
             int dayOfWeek = c.get(Calendar.DAY_OF_WEEK);
             int dowIndex = 0;
             switch (dayOfWeek) {
-                case Calendar.MONDAY: dowIndex = 0; break;
-                case Calendar.TUESDAY: dowIndex = 1; break;
-                case Calendar.WEDNESDAY: dowIndex = 2; break;
-                case Calendar.THURSDAY: dowIndex = 3;  break;
-                case Calendar.FRIDAY: dowIndex = 4; break;
-                case Calendar.SATURDAY: dowIndex = 5; break;
-                case Calendar.SUNDAY: dowIndex = 6; break;
+                case Calendar.MONDAY:
+                    dowIndex = 0;
+                    break;
+                case Calendar.TUESDAY:
+                    dowIndex = 1;
+                    break;
+                case Calendar.WEDNESDAY:
+                    dowIndex = 2;
+                    break;
+                case Calendar.THURSDAY:
+                    dowIndex = 3;
+                    break;
+                case Calendar.FRIDAY:
+                    dowIndex = 4;
+                    break;
+                case Calendar.SATURDAY:
+                    dowIndex = 5;
+                    break;
+                case Calendar.SUNDAY:
+                    dowIndex = 6;
+                    break;
             }
             sb.append(" ").append(context.getResources().getStringArray(R.array.day_of_week)[dowIndex]);
         }
@@ -84,7 +108,8 @@ public class Timer extends AbstractData<Timer> {
     public boolean equals(Object o) {
         if (o instanceof Timer) {
             Timer obj = (Timer) o;
-            if (this.getMode() != obj.getMode() || !this.getChannelName().equalsIgnoreCase(obj.getChannelName())) return false;
+            if (this.getMode() != obj.getMode() || !this.getChannelName().equalsIgnoreCase(obj.getChannelName()))
+                return false;
             Calendar c1 = Calendar.getInstance();
             Calendar c2 = Calendar.getInstance();
             c1.setTime(this.getEventDate());

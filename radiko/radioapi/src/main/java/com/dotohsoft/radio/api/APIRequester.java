@@ -27,6 +27,7 @@ import java.util.List;
 import java.util.Locale;
 import java.util.TimeZone;
 
+
 /**
  * Created by luhonghai on 3/10/15.
  */
@@ -38,6 +39,7 @@ public class APIRequester {
 
     public static interface RequesterListener {
         public void onMessage(String message);
+
         public void onError(String error, Throwable throwable);
     }
 
@@ -85,7 +87,8 @@ public class APIRequester {
 
         getRadikoChannels(channels, RadioArea.getArea(rawAreaId, RadioProvider.RADIKO, requesterListener));
         if (!isRegion) {
-            if (requesterListener != null) requesterListener.onMessage("Region is disabled. Try to fetch channel from JP13");
+            if (requesterListener != null)
+                requesterListener.onMessage("Region is disabled. Try to fetch channel from JP13");
             getRadikoChannels(channels, RadioArea.getArea(RadioArea.AREA_ID_TOKYO, RadioProvider.RADIKO, requesterListener));
         }
 
@@ -93,11 +96,12 @@ public class APIRequester {
         return radioChannel;
     }
 
-    public void getRadikoChannels(final List<RadioChannel.Channel> channels,final RadioArea area) throws IOException {
+    public void getRadikoChannels(final List<RadioChannel.Channel> channels, final RadioArea area) throws IOException {
         if (area != null && area.getId() != null && area.getId().length() > 0) {
             try {
                 File cachedXml = new File(cachedFolder, "channel_" + area.getProvider() + "_" + area.getId() + "_" + sdf.format(now) + ".xml");
-                if (requesterListener != null) requesterListener.onMessage("Cached file: " + cachedXml.getAbsolutePath());
+                if (requesterListener != null)
+                    requesterListener.onMessage("Cached file: " + cachedXml.getAbsolutePath());
                 if (!cachedXml.exists()) {
                     FileUtils.copyURLToFile(new URL("http://radiko.jp/v2/station/list/" + area.getId() + ".xml"), cachedXml);
                     if (cachedXml.exists() && !FileUtils.readFileToString(cachedXml, "UTF-8").toLowerCase().contains("stations")) {
@@ -108,7 +112,8 @@ public class APIRequester {
                     Document doc = Jsoup.parse(cachedXml, "UTF-8");
                     Elements root = doc.getElementsByTag("stations");
                     if (root != null && root.size() > 0) {
-                        if (requesterListener != null) requesterListener.onMessage(area.getId() + " | " + root.get(0).attr("area_name"));
+                        if (requesterListener != null)
+                            requesterListener.onMessage(area.getId() + " | " + root.get(0).attr("area_name"));
                     }
                     Elements stations = doc.getElementsByTag("station");
                     if (stations != null && stations.size() > 0) {
@@ -127,7 +132,7 @@ public class APIRequester {
                 }
             } catch (Exception e) {
                 if (requesterListener != null)
-                    requesterListener.onError("Could not fetch channels",e);
+                    requesterListener.onError("Could not fetch channels", e);
             }
         } else {
             if (requesterListener != null) requesterListener.onMessage("No area ID found!");
@@ -135,39 +140,38 @@ public class APIRequester {
     }
 
     public RadioProgram getPrograms(RadioChannel.Channel channel, RadioArea area, String adID) throws IOException {
-        if (area == null || area.getId() == null || area.getId().length() == 0 || channel == null) return null;
+        if (area == null || area.getId() == null || area.getId().length() == 0 || channel == null)
+            return null;
         SimpleDateFormat simpleDateFormat = new SimpleDateFormat("yyyy-MM-dd");
         String strCachedFile = "program_" + area.getProvider() + "_" + channel.getServiceChannelId() + "_" + area.getId() + "_" + sdf.format(now) + ".json";
 
         File cachedFile = new File(cachedFolder, strCachedFile);
-
         if (!cachedFile.exists()) {
-            String requesturl = Constant.ROOT_API_URL  + Constant.API_PROGRAM
+            String requesturl = Constant.ROOT_API_URL + Constant.API_PROGRAM
                     + "?" + Constant.ARG_PROVIDER + "=" + area.getProvider()
                     + "&" + Constant.ARG_CHANNEL + "=" + URLEncoder.encode(channel.getServiceChannelId(), "UTF-8")
-                    + "&" + Constant.ARG_DATE + "=" + URLEncoder.encode(simpleDateFormat.format(now),"UTF-8")
-                    + "&" + Constant.ARG_AREA + "=" + URLEncoder.encode(area.getId(),"UTF-8")
+                    + "&" + Constant.ARG_DATE + "=" + URLEncoder.encode(simpleDateFormat.format(now), "UTF-8")
+                    + "&" + Constant.ARG_AREA + "=" + URLEncoder.encode(area.getId(), "UTF-8")
                     + "&AID=" + URLEncoder.encode(adID, "UTF-8");
-            URL url =new URL(requesturl);
+            URL url = new URL(requesturl);
+            if (requesterListener != null)
+                requesterListener.onMessage("Request program url: " + requesturl);
+            FileUtils.copyURLToFile(url, cachedFile);
+            if (cachedFile.exists()) {
+                String source = FileUtils.readFileToString(cachedFile, "UTF-8");
+                if (source == null || !source.toLowerCase().contains("cachedtime")) {
+                    try {
+                        FileUtils.forceDelete(cachedFile);
+                    } catch (Exception e) {
 
-            if (requesterListener != null) requesterListener.onMessage("Request program url: " + requesturl);
-                FileUtils.copyURLToFile(url, cachedFile);
-                if (cachedFile.exists()) {
-                    String source = FileUtils.readFileToString(cachedFile, "UTF-8");
-                    if (source == null || !source.toLowerCase().contains("cachedtime")) {
-                        try {
-                            FileUtils.forceDelete(cachedFile);
-                        } catch (Exception e) {
-
-                        }
                     }
                 }
+            }
         }
         if (cachedFile.exists()) {
+            String source = FileUtils.readFileToString(cachedFile, "UTF-8");
             Gson gson = new Gson();
-            String rawJson = FileUtils.readFileToString(cachedFile, "UTF-8");
-            RadioProgram program = gson.fromJson(rawJson, RadioProgram.class);
-
+            RadioProgram program = gson.fromJson(source, RadioProgram.class);
             return program;
         } else {
             return null;

@@ -52,7 +52,7 @@ public class Mp3Encoder {
     private Lame lame;
 
     public boolean isInit() {
-        return  isInit;
+        return isInit;
     }
 
     public Mp3Encoder(int sampleRate, int channels, File out) {
@@ -64,11 +64,9 @@ public class Mp3Encoder {
     }
 
     public void initialize() throws FileNotFoundException, IOException {
-        out = new BufferedOutputStream(new FileOutputStream(outFile),
-                OUTPUT_STREAM_BUFFER);
+        out = new BufferedOutputStream(new FileOutputStream(outFile), OUTPUT_STREAM_BUFFER);
         flag = false;
-        lame.initializeEncoder(sampleRate,
-                channels);
+        lame.initializeEncoder(sampleRate, channels);
         isInit = true;
     }
 
@@ -81,8 +79,8 @@ public class Mp3Encoder {
 
         if (channels == 2) {
             int index = 0;
-            for (int i = 0; i < length; i+=2) {
-                short val = byteToShortLE(buffer[0], buffer[i+1]);
+            for (int i = 0; i < length; i += 2) {
+                short val = byteToShortLE(buffer[0], buffer[i + 1]);
                 if (i % 4 == 0) {
                     left[index] = val;
                 } else {
@@ -97,8 +95,7 @@ public class Mp3Encoder {
                     flag = true;
                 }
                 if (!isInit) return;
-                bytesEncoded = lame.encode(left, right,
-                        samplesRead, mp3Buf, OUTPUT_STREAM_BUFFER);
+                bytesEncoded = lame.encode(left, right, samplesRead, mp3Buf, OUTPUT_STREAM_BUFFER);
                 if (bytesEncoded > 0 && mp3Buf.length > 0)
                     out.write(mp3Buf, 0, bytesEncoded);
                 else
@@ -106,8 +103,8 @@ public class Mp3Encoder {
             }
         } else {
             int index = 0;
-            for (int i = 0; i < length; i+=2) {
-                left[index] = byteToShortLE(buffer[i], buffer[i+1]);
+            for (int i = 0; i < length; i += 2) {
+                left[index] = byteToShortLE(buffer[i], buffer[i + 1]);
                 index++;
             }
             samplesRead = index;
@@ -116,10 +113,8 @@ public class Mp3Encoder {
                     flag = true;
                 }
                 if (!isInit) return;
-                bytesEncoded = lame.encode(left, left,
-                        samplesRead, mp3Buf, OUTPUT_STREAM_BUFFER);
-                if (bytesEncoded > 0 && mp3Buf.length > 0)
-                    out.write(mp3Buf, 0, bytesEncoded);
+                bytesEncoded = lame.encode(left, left, samplesRead, mp3Buf, OUTPUT_STREAM_BUFFER);
+                if (bytesEncoded > 0 && mp3Buf.length > 0) out.write(mp3Buf, 0, bytesEncoded);
                 else
                     SimpleAppLog.error("bytesEncoded: " + bytesEncoded);
             }
@@ -149,7 +144,7 @@ public class Mp3Encoder {
                 out.close();
             }
         } catch (IOException e) {
-            SimpleAppLog.error("Could not close output stream",e);
+            SimpleAppLog.error("Could not close output stream", e);
         }
         if (doClose) {
             SimpleAppLog.info("Call Lame.closeEncoder");

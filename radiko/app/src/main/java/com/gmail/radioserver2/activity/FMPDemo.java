@@ -27,6 +27,7 @@ import com.gmail.radioserver2.R;
 import com.gmail.radioserver2.service.IMediaPlaybackService;
 import com.gmail.radioserver2.service.MusicUtils;
 import com.gmail.radioserver2.service.MusicUtils.ServiceToken;
+
 import android.content.ComponentName;
 import android.content.Context;
 import android.content.ServiceConnection;
@@ -52,7 +53,7 @@ public class FMPDemo extends FragmentActivity implements ServiceConnection, View
 
     private IMediaPlaybackService mService = null;
 
-	private ServiceToken mToken;
+    private ServiceToken mToken;
 
     private static final long MAX_WAIT_TIME = 30000;
 
@@ -77,7 +78,6 @@ public class FMPDemo extends FragmentActivity implements ServiceConnection, View
     private static final String TMP_RECORD = "recorded.flv";
 
     private final WeakHashMap<String, RTMP> mRTMP = new WeakHashMap<String, RTMP>();
-
 
 
     private boolean isRecording = false;
@@ -167,7 +167,7 @@ public class FMPDemo extends FragmentActivity implements ServiceConnection, View
             try {
                 rtmp.stop();
                 mRTMP.remove(W_REF);
-            }  catch (Exception ex) {
+            } catch (Exception ex) {
 
             }
         }
@@ -210,9 +210,7 @@ public class FMPDemo extends FragmentActivity implements ServiceConnection, View
                         // Clear the error message
                         uriText.setError(null);
                         // Hide the keyboard
-                        InputMethodManager imm = (InputMethodManager)
-                                FMPDemo.this.getSystemService(
-                                        Context.INPUT_METHOD_SERVICE);
+                        InputMethodManager imm = (InputMethodManager) FMPDemo.this.getSystemService(Context.INPUT_METHOD_SERVICE);
                         imm.hideSoftInputFromWindow(uriText.getWindowToken(), 0);
                         String uri = uriText.getText().toString();
                         if (uri.equals("")) {
@@ -320,6 +318,7 @@ public class FMPDemo extends FragmentActivity implements ServiceConnection, View
     private class RTMPRunnable implements Runnable {
         private final String mToken;
         private final File mTmpFile;
+
         private RTMPRunnable(String mToken, File mTmpFile) {
             this.mToken = mToken;
             this.mTmpFile = mTmpFile;
@@ -335,7 +334,7 @@ public class FMPDemo extends FragmentActivity implements ServiceConnection, View
                     e.printStackTrace();
                 }
             }
-            RTMP rtmp =  new RTMP();
+            RTMP rtmp = new RTMP();
             mRTMP.put(W_REF, rtmp);
             rtmp.init(mToken, mTmpFile.getAbsolutePath());
         }
@@ -345,24 +344,24 @@ public class FMPDemo extends FragmentActivity implements ServiceConnection, View
 
     private FileHelper fileHelper;
 
-	@Override
-	protected void onCreate(Bundle savedInstanceState) {
-		super.onCreate(savedInstanceState);
+    @Override
+    protected void onCreate(Bundle savedInstanceState) {
+        super.onCreate(savedInstanceState);
         fileHelper = new FileHelper(this.getApplicationContext());
-		setContentView(R.layout.activity_fmpdemo);
+        setContentView(R.layout.activity_fmpdemo);
 
         recordedFile = fileHelper.getTempFile(TMP_RECORD);
-		
-		uriText = (EditText) findViewById(R.id.txtToken);
+
+        uriText = (EditText) findViewById(R.id.txtToken);
         uriText.setText(fileHelper.getTokenString());
 
         btnStop = (Button) findViewById(R.id.btnStop);
         btnStop.setOnClickListener(this);
 
-		btnToken = (Button) findViewById(R.id.btnGetToken);
+        btnToken = (Button) findViewById(R.id.btnGetToken);
         btnToken.setOnClickListener(this);
 
-    	btnStart = (Button) findViewById(R.id.btnStart);
+        btnStart = (Button) findViewById(R.id.btnStart);
         btnStart.setOnClickListener(this);
 
         btnPlay = (Button) findViewById(R.id.btnPlayRecord);
@@ -377,19 +376,19 @@ public class FMPDemo extends FragmentActivity implements ServiceConnection, View
         switchButtonStage(ButtonStage.DISABLED);
 
         mToken = MusicUtils.bindToService(this, this);
-	}
-	
-	@Override
-	public void onDestroy() {
+    }
+
+    @Override
+    public void onDestroy() {
         MusicUtils.unbindFromService(mToken);
         mService = null;
         stopRecording();
         super.onDestroy();
-	}
+    }
 
-	@Override
-	public void onServiceConnected(ComponentName name, IBinder service) {
-		mService = IMediaPlaybackService.Stub.asInterface(service);
+    @Override
+    public void onServiceConnected(ComponentName name, IBinder service) {
+        mService = IMediaPlaybackService.Stub.asInterface(service);
         try {
             if (mService.isPlaying()) {
                 switchButtonStage(ButtonStage.STREAMING);
@@ -401,8 +400,8 @@ public class FMPDemo extends FragmentActivity implements ServiceConnection, View
         }
     }
 
-	@Override
-	public void onServiceDisconnected(ComponentName name) {
-		finish();
-	}
+    @Override
+    public void onServiceDisconnected(ComponentName name) {
+        finish();
+    }
 }
