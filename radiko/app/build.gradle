@@ -25,8 +25,8 @@ android {
         applicationId "com.gmail.radioserver2"
         minSdkVersion 16
         targetSdkVersion 21
-        versionCode 109
-        versionName "1.0.9"
+        versionCode 1010
+        versionName "1.0.10"
     }
 
     buildTypes {
@@ -45,7 +45,7 @@ dependencies {
     compile 'com.google.code.gson:gson:2.3'
     compile 'com.nineoldandroids:library:2.4.0'
     compile 'com.google.android.gms:play-services:7.0.0'
-    compile('com.crashlytics.sdk.android:crashlytics:2.2.2@aar') {
+    compile('com.crashlytics.sdk.android:crashlytics:2.4.0@aar') {
         transitive = true;
     }
 }

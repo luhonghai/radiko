@@ -259,6 +259,7 @@ RTMP_Pass_Arg(STREAMING_SERVER *server, int includeRs) {
         RTMP_LogPrintf("Use app: %s <\n", currentApp);
         AVal tavApp;
         STR2AVAL(tavApp, currentApp);
+		RTMP_LogPrintf("Use app passed");
         server->rc.Link.app = tavApp;
         if (server->auth && server->auth->av_len)
          {
@@ -1715,8 +1716,7 @@ JNIEXPORT void JNICALL Java_com_dotohsoft_rtmpdump_RTMPSuck_init(JNIEnv * env, j
         RTMP_ctrlC = FALSE;
         const char *nativeToken = (*env)->GetStringUTFChars(env, token, 0);
         int port = (int) rPort;
-        RTMP_LogPrintf("Start rtmp server. Token: %s. Port %d\n", nativeToken,
-                port);
+        RTMP_LogPrintf("Start rtmp server. Token: %s. Port %d\n", nativeToken,port);
         char *v[] = {
                 "-v",
                 "-l", "2",

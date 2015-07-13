@@ -2,10 +2,10 @@ package com.gmail.radioserver2.service;
 
 import android.content.Context;
 import android.content.Intent;
+import android.os.AsyncTask;
 import android.os.Handler;
-import android.os.Message;
-import android.os.PowerManager;
 import android.os.RemoteException;
+import android.support.annotation.Nullable;
 
 import com.dotohsoft.radio.api.APIRequester;
 import com.dotohsoft.radio.data.RadioArea;
@@ -22,67 +22,65 @@ import com.gmail.radioserver2.utils.FileHelper;
 import com.gmail.radioserver2.utils.SimpleAppLog;
 import com.google.gson.Gson;
 
+import org.apache.commons.io.FileUtils;
+
 import java.io.File;
 import java.io.IOException;
 import java.sql.SQLException;
-import java.text.SimpleDateFormat;
 import java.util.Calendar;
 import java.util.Date;
 import java.util.List;
-import java.util.Locale;
 
 import wseemann.media.FFmpegMediaPlayer;
 
 /**
  * Created by Trinh Quan on 016 16/6/2015.
  */
-public class MediaRecord extends Thread {
-    private static final long MIN_RECORDING_LENGTH = 5000;
+public class MediaRecord {
+    private static final long MIN_RECORDING_LENGTH = 5 * 1000;
     private Context mContext;
     private Timer selectedTimer;
     private Channel channel;
     private Gson gson = new Gson();
     private FFmpegMediaPlayer recorder;
-    private long keyToken;
-    private Handler mHandler;
+    private Handler timeOutHandler = new Handler();
+    private Handler completeSaveHandler = new Handler();
+    private Handler retryHandler = new Handler();
+    private final int MAX_TIMEOUT = 30 * 1000;
+    private int currentTimeout = 1000;
+
     private IMediaPlaybackService mService;
     private OnRecordStateChangeListenner mStateChangeListenner;
+    private String[] link;
+    private String currentLink;
+    private int currentRetry;
+    private int currentLinkPos = 0;
+    private int retryCount = 0;
+    private int numLink = 0;
+    private RadioProgram radioProgram;
 
-    MediaRecord(Context context, IMediaPlaybackService mService, Timer timer, long keyToken, OnRecordStateChangeListenner mStateChangeListenner) {
+    public MediaRecord(Context context, IMediaPlaybackService mService, Timer timer, final OnRecordStateChangeListenner mStateChangeListenner) {
         mContext = context;
         selectedTimer = timer;
-        this.keyToken = keyToken;
         this.mStateChangeListenner = mStateChangeListenner;
-        mHandler = new Handler() {
-            @Override
-            public void handleMessage(Message msg) {
-                super.handleMessage(msg);
-                switch (msg.arg1) {
-                    case RecordBackgroundService.RECORD:
-                        SimpleAppLog.debug("RECORD show notification");
-                        MediaRecord.this.mStateChangeListenner.showNotification((Channel) msg.obj);
-                        break;
-                    case RecordBackgroundService.REFRESH:
-                        SimpleAppLog.debug("RECORD end");
-                        MediaRecord.this.mStateChangeListenner.refresh(MediaRecord.this.keyToken);
-                        break;
-                    case 2:
-                        notifyPlayerStateChanged();
-                        break;
-
-                }
-            }
-        };
         this.mService = mService;
     }
 
-    @Override
-    public void run() {
-        super.run();
-        execute();
+
+    public void stopRecord() {
+        try {
+            if (recorder != null) {
+                recorder.stopRecording();
+                recorder.stop();
+                recorder.release();
+            }
+        } catch (Exception e) {
+            SimpleAppLog.error("Could not stop recording", e);
+        }
     }
 
     public void execute() {
+        SimpleAppLog.debug("RECORD: start excute");
         if (selectedTimer != null) {
             final String channelSrc = selectedTimer.getChannelKey();
 
@@ -93,7 +91,6 @@ public class MediaRecord extends Thread {
                     SimpleAppLog.error("Could not parse channel source", ex);
                 }
             }
-
             switch (selectedTimer.getType()) {
                 case Timer.TYPE_ALARM:
                     performAlarm(channelSrc);
@@ -105,12 +102,23 @@ public class MediaRecord extends Thread {
                     performRecord();
                     break;
             }
-            Message msg = mHandler.obtainMessage();
-            msg.arg1 = 2;
-            mHandler.sendMessage(msg);
+            notifyPlayerStateChanged();
         } else {
             notifyChange(null);
             SimpleAppLog.error("No selected timer");
+        }
+    }
+
+    private void performSleep() {
+        try {
+            if (mService.isPlaying()) {
+                mService.stop();
+
+            }
+        } catch (RemoteException e) {
+            SimpleAppLog.error("Could not stop playing", e);
+        } finally {
+            notifyChange(null);
         }
     }
 
@@ -121,21 +129,10 @@ public class MediaRecord extends Thread {
                     mService.stop();
                 }
                 mService.openStream("", channelSrc);
+
             }
         } catch (RemoteException e) {
             SimpleAppLog.error("Could not open stream", e);
-        } finally {
-            notifyChange(null);
-        }
-    }
-
-    private void performSleep() {
-        try {
-            if (mService.isPlaying()) {
-                mService.stop();
-            }
-        } catch (RemoteException e) {
-            SimpleAppLog.error("Could not stop playing", e);
         } finally {
             notifyChange(null);
         }
@@ -150,34 +147,58 @@ public class MediaRecord extends Thread {
         calFinish.set(Calendar.HOUR_OF_DAY, selectedTimer.getFinishHour());
         calFinish.set(Calendar.MINUTE, selectedTimer.getFinishMinute());
         calFinish.set(Calendar.SECOND, 0);
+        if (selectedTimer.getFinishHour() < selectedTimer.getStartHour()) {
+            calFinish.add(Calendar.DAY_OF_MONTH, 1);
+        }
+        SimpleAppLog.debug("TIMER TIME: start: " + calStart.toString() + " - " + calFinish.toString());
         long recordingLength = calFinish.getTimeInMillis() - calStart.getTimeInMillis();
         if (recordingLength <= MIN_RECORDING_LENGTH) {
             SimpleAppLog.error("Too small recording length: " + recordingLength);
             return;
         }
-        Thread timeOut = new Thread() {
-            @Override
-            public void run() {
-                while (System.currentTimeMillis() < calFinish.getTime().getTime()) {
-                    synchronized (this) {
-                        try {
-                            wait(1000 * 5);
-                        } catch (InterruptedException e) {
-                            this.notifyAll();
-                            e.printStackTrace();
-                        }
-                    }
-                }
-                stopRecord();
-            }
-        };
-        timeOut.start();
+        timeOutHandler.postDelayed(timeoutRunable, calFinish.getTimeInMillis() - System.currentTimeMillis());
         TokenFetcher.getTokenFetcher(mContext, tokenListener).fetch();
     }
 
+    private Runnable timeoutRunable = new Runnable() {
+        @Override
+        public void run() {
+            SimpleAppLog.debug("Record: out of timer");
+            new AsyncTask<Void, Void, Void>() {
+                @Override
+                protected Void doInBackground(Void... voids) {
+                    stopRecord();
+                    return null;
+                }
+            }.execute();
+        }
+    };
+
+    Runnable retryRunable = new Runnable() {
+        @Override
+        public void run() {
+            SimpleAppLog.debug("Record: retry occur");
+            new AsyncTask<Void, Void, Void>() {
+                @Override
+                protected Void doInBackground(Void... voids) {
+                    stopRecord();
+                    retryHandler.removeCallbacks(retryRunable);
+                    Calendar calFinish = Calendar.getInstance();
+                    calFinish.set(Calendar.HOUR_OF_DAY, selectedTimer.getFinishHour());
+                    calFinish.set(Calendar.MINUTE, selectedTimer.getFinishMinute());
+                    if (System.currentTimeMillis() < calFinish.getTimeInMillis()) {
+                        retryCount++;
+                        startRecording(currentLink);
+                    }
+                    return null;
+                }
+            }.execute();
+        }
+    };
+
     private TokenFetcher.OnTokenListener tokenListener = new TokenFetcher.OnTokenListener() {
         @Override
-        public void onTokenFound(final String token, final String rawAreaId) {
+        public void onTokenFound(String token, final String rawAreaId) {
             String url = channel.getUrl();
             if (mService != null) {
                 try {
@@ -189,37 +210,47 @@ public class MediaRecord extends Thread {
                 }
             }
             final String streamUrl = url;
-            try {
-                APIRequester requester = new APIRequester(new FileHelper(mContext).getApiCachedFolder());
-                RadioChannel.Channel rChannel = new RadioChannel.Channel();
-                rChannel.setName(channel.getName());
-                rChannel.setService(channel.getType());
-                rChannel.setServiceChannelId(channel.getUrl());
-                rChannel.setServiceChannelId(channel.getKey());
-                RadioProgram radioProgram;
-                radioProgram = requester.getPrograms(rChannel, RadioArea.getArea(rawAreaId, channel.getType()), AndroidUtil.getAdsId(mContext));
+            new AsyncTask<Void, Void, Void>() {
 
-                if (radioProgram != null) {
-                    List<RadioProgram.Program> programList = radioProgram.getPrograms();
-                    if (programList != null && programList.size() > 0) {
-                        for (RadioProgram.Program program : programList) {
-                            long now = System.currentTimeMillis();
-                            if (now > program.getFromTime() && now < program.getToTime()) {
-                                channel.setCurrentProgram(program);
-                                SimpleDateFormat sdf = new SimpleDateFormat("HH:mm", Locale.JAPANESE);
-                                final StringBuffer sb = new StringBuffer();
-                                sb.append(program.getTitle()).append("\n");
-                                sb.append(sdf.format(new Date(program.getFromTime())));
-                                sb.append(" - ").append(sdf.format(new Date(program.getToTime())));
-                                break;
+                @Override
+                protected Void doInBackground(Void... voids) {
+                    APIRequester requester = new APIRequester(new FileHelper(mContext).getApiCachedFolder());
+                    RadioChannel.Channel rChannel = new RadioChannel.Channel();
+                    rChannel.setName(channel.getName());
+                    rChannel.setService(channel.getType());
+                    rChannel.setServiceChannelId(channel.getUrl());
+                    rChannel.setServiceChannelId(channel.getKey());
+                    RadioProgram radioProgram = null;
+                    for (int i = 0; i < 3; i++) {
+                        try {
+                            radioProgram = requester.getPrograms(rChannel, RadioArea.getArea(rawAreaId, channel.getType()), AndroidUtil.getAdsId(mContext));
+                        } catch (IOException e) {
+                            SimpleAppLog.error("Could not fetch programs", e);
+                            e.printStackTrace();
+                        }
+
+                        if (validateChannelProgram(radioProgram)) {
+                            break;
+                        } else {
+                            switch (i) {
+                                case 0:
+                                    requester.addDay(-1);
+                                    break;
+                                case 1:
+                                    requester.resetDate();
+                                    requester.addDay(1);
+                                    break;
                             }
                         }
                     }
+                    link = streamUrl.split("\\|{4}");
+                    numLink = link.length;
+                    currentLinkPos = 0;
+                    currentLink = link[currentLinkPos];
+                    startRecording(currentLink);
+                    return null;
                 }
-            } catch (Exception e) {
-                SimpleAppLog.error("Could not fetch programs", e);
-            }
-            startRecording(streamUrl);
+            }.execute();
         }
 
         @Override
@@ -228,133 +259,162 @@ public class MediaRecord extends Thread {
         }
     };
 
-    public void stopRecord() {
-        SimpleAppLog.debug("Stop recording");
-        try {
-            if (recorder != null) {
-                recorder.stopRecording();
-                recorder.stop();
-                recorder.release();
+    FFmpegMediaPlayer.OnRecordingListener recordingListener = new FFmpegMediaPlayer.OnRecordingListener() {
+
+        @Override
+        public void onCompleted(Channel selectedChannel, int recordedSampleRate, int recordedChannel, int recordedAudioEncoding, int recordedBufferSize, String filePath, long recordedID, boolean forceStop) {
+            if (filePath == null || filePath.length() == 0) {
+                SimpleAppLog.error("Recoding could not be completed");
+                return;
             }
-        } catch (Exception e) {
-            SimpleAppLog.error("Could not stop recording", e);
-        }
-    }
+            if (selectedChannel == null) return;
 
-    private void notifyChange(Channel channel) {
-        Message msg = mHandler.obtainMessage();
-        if (channel != null) {
-            msg.arg1 = RecordBackgroundService.RECORD;
-            msg.obj = channel;
-        } else {
-            msg.arg1 = RecordBackgroundService.REFRESH;
-        }
-        mHandler.sendMessage(msg);
-    }
-
-    private void startRecording(final String url) {
-        if (channel != null && selectedTimer != null) {
-            try {
-                final long startTime = System.currentTimeMillis();
-                recorder = new FFmpegMediaPlayer();
-//                recorder.setWakeMode(mContext, PowerManager.PARTIAL_WAKE_LOCK);
-                recorder.setRecordingOnly(true);
-                notifyChange(channel);
-                recorder.setOnRecordingListener(new FFmpegMediaPlayer.OnRecordingListener() {
-                    @Override
-                    public void onCompleted(Channel selectedChannel, int recordedSampleRate, int recordedChannel, int recordedAudioEncoding, int recordedBufferSize, String filePath, final long recordedID) {
-                        if (filePath == null || filePath.length() == 0) {
-                            SimpleAppLog.error("Recoding could not be completed");
-                            return;
-                        }
-                        if (selectedChannel == null) return;
-                        final File mp3File = new File(filePath);
-                        if (mp3File.exists()) {
-                            Gson gson = new Gson();
-                            RecordedProgramDBAdapter adapter = new RecordedProgramDBAdapter(mContext);
-                            RecordedProgram recordedProgram = new RecordedProgram();
-                            recordedProgram.setChannelName(selectedChannel.getName() == null ? "" : selectedChannel.getName());
-                            recordedProgram.setChannelKey(gson.toJson(selectedChannel));
-                            if (selectedChannel.getCurrentProgram() != null) {
-                                recordedProgram.setName(selectedChannel.getCurrentProgram().getTitle());
+            final File mp3File = new File(filePath);
+            if (mp3File.exists()) {
+                if (mp3File.length() == 0) {
+                    SimpleAppLog.debug("RECORD : Delete invalid file");
+                    deleteRecordedProgram(recordedID);
+                    try {
+                        FileUtils.forceDelete(mp3File);
+                    } catch (IOException e) {
+                        e.printStackTrace();
+                    }
+                } else {
+                    RecordedProgramDBAdapter adapter = new RecordedProgramDBAdapter(mContext);
+                    try {
+                        adapter.open();
+                        RecordedProgram recordedProgram = adapter.toObject(adapter.get(recordedID));
+                        if (recordedProgram != null) {
+                            long endTime = System.currentTimeMillis();
+                            if (radioProgram != null) {
+                                channel.setCurrentProgram(AndroidUtil.getMaxTimedProgram(recordedProgram.getStartTime().getTime(), endTime, MediaRecord.this.radioProgram.getPrograms()));
                             }
-                            if (recordedProgram.getName() == null) {
+                            if (channel.getCurrentProgram() != null) {
+                                recordedProgram.setName(channel.getCurrentProgram().getTitle());
+                            } else {
                                 recordedProgram.setName("");
                             }
-                            recordedProgram.setStartTime(new Date(startTime));
-                            long endTime = System.currentTimeMillis();
+                            File newFile = new File(mp3File.getParent(), channel.getRecordedName() + "-" + recordedProgram.getStartTime().getTime() + ".mp3");
+                            if (mp3File.renameTo(newFile)) {
+                                recordedProgram.setFilePath(newFile.getAbsolutePath());
+                            }
                             recordedProgram.setEndTime(new Date(endTime));
-                            recordedProgram.setFilePath(mp3File.getPath());
-                            recordedProgram.setId(recordedID);
-                            try {
-                                adapter.open();
-                                adapter.update(recordedProgram);
-                                SimpleAppLog.debug("Save recording complete");
-                            } catch (Exception e) {
-                                SimpleAppLog.error("Could not insert recorded program", e);
-                            } finally {
-                                adapter.close();
-                            }
+                            adapter.update(recordedProgram);
                         }
-
-                        Calendar calFinish = Calendar.getInstance();
-                        calFinish.set(Calendar.HOUR_OF_DAY, selectedTimer.getFinishHour());
-                        calFinish.set(Calendar.MINUTE, selectedTimer.getFinishMinute());
-                        if (System.currentTimeMillis() >= calFinish.getTime().getTime()) {
-                            notifyChange(null);
-                        }
-
-                        mHandler.post(new Runnable() {
-                            @Override
-                            public void run() {
-                                Intent intent = new Intent(Constants.INTENT_FILTER_FRAGMENT_ACTION);
-                                intent.putExtra(Constants.FRAGMENT_ACTION_TYPE, Constants.ACTION_RELOAD_RECORDED_PROGRAM);
-                                mContext.sendBroadcast(intent);
-                            }
-                        });
+                    } catch (SQLException e) {
+                        e.printStackTrace();
+                    } catch (Exception e) {
+                        e.printStackTrace();
+                    } finally {
+                        adapter.close();
                     }
-
-                    @Override
-                    public void onError(String message, Throwable e, long recordedID) {
-                        deleteRecordedProgram(recordedID);
-                        notifyChange(null);
-                    }
-
-                    @Override
-                    public void onRetry() {
-                        stopRecord();
-                        Calendar calFinish = Calendar.getInstance();
-                        calFinish.set(Calendar.HOUR_OF_DAY, selectedTimer.getFinishHour());
-                        calFinish.set(Calendar.MINUTE, selectedTimer.getFinishMinute());
-                        if (System.currentTimeMillis() < calFinish.getTimeInMillis()) {
-                            startRecording(url);
-                        } else {
-                            notifyChange(null);
-                        }
-                    }
-                });
-                final FileHelper fileHelper = new FileHelper(mContext);
-                recorder.setDataSource(url);
-                final File saveFile = new File(fileHelper.getRecordedProgramFolder(), channel.getRecordedName() + "-" + startTime + ".mp3");
-                final long recordedID = saveRecordedProgram(channel, new Date(startTime), saveFile.getAbsolutePath());
-                if (recordedID != -1) {
-                    recorder.setOnPreparedListener(new FFmpegMediaPlayer.OnPreparedListener() {
-                        @Override
-                        public void onPrepared(FFmpegMediaPlayer mp) {
-                            SimpleAppLog.info("Start recorder");
-                            recorder.start();
-                            recorder.startRecording(channel, saveFile.getAbsolutePath(), recordedID);
-                        }
-                    });
-                    SimpleAppLog.info("Prepare recorder");
-                    recorder.prepare();
                 }
-            } catch (Exception e) {
-                SimpleAppLog.error("Could not start recording", e);
+            } else {
+                SimpleAppLog.debug("RECORD : Delete invalid file");
+                deleteRecordedProgram(recordedID);
+            }
+
+            Calendar calFinish = Calendar.getInstance();
+            calFinish.set(Calendar.HOUR_OF_DAY, selectedTimer.getFinishHour());
+            calFinish.set(Calendar.MINUTE, selectedTimer.getFinishMinute());
+            calFinish.set(Calendar.SECOND, 0);
+            if (System.currentTimeMillis() >= calFinish.getTimeInMillis() || forceStop) {
                 notifyChange(null);
             }
-        } else {
+            completeSaveHandler.post(new Runnable() {
+                @Override
+                public void run() {
+                    Intent intent = new Intent(Constants.INTENT_FILTER_FRAGMENT_ACTION);
+                    intent.putExtra(Constants.FRAGMENT_ACTION_TYPE, Constants.ACTION_RELOAD_RECORDED_PROGRAM);
+                    mContext.sendBroadcast(intent);
+                }
+            });
+        }
+
+        @Override
+        public void onError(String message, Throwable e, long recordedID) {
+            deleteRecordedProgram(recordedID);
             notifyChange(null);
+        }
+
+        @Override
+        public void onRetry(FFmpegMediaPlayer mp) {
+            currentLinkPos++;
+            if (currentLinkPos >= numLink) {
+                currentLinkPos = 0;
+                currentRetry++;
+                currentTimeout = currentTimeout * 2 > MAX_TIMEOUT ? MAX_TIMEOUT : currentTimeout * 2;
+            }
+            currentLink = link[currentLinkPos];
+            FFmpegMediaPlayer.retry = currentRetry;
+
+            String path = mp.getRecordingPath();
+            if (path == null || path.length() == 0 || !(new File(path).exists())) {
+                deleteRecordedProgram(mp.getRecordedID());
+                SimpleAppLog.debug("RECORD : Delete invalid file " + mp.getRecordedID());
+            } else {
+                currentRetry = 1;
+                currentTimeout = 1000;
+            }
+            SimpleAppLog.debug("RECORD " + currentTimeout);
+            if (currentRetry <= 10) {
+                retryHandler.postDelayed(retryRunable, currentTimeout);
+            }
+        }
+    };
+
+    private boolean validateChannelProgram(RadioProgram radioProgram) {
+        if (radioProgram != null) {
+            List<RadioProgram.Program> programList = radioProgram.getPrograms();
+            if (programList != null && programList.size() > 0) {
+                for (RadioProgram.Program program : programList) {
+                    Calendar calNow = Calendar.getInstance();
+                    Calendar calFrom = Calendar.getInstance();
+                    calFrom.setTimeInMillis(program.getFromTime());
+                    Calendar calTo = Calendar.getInstance();
+                    calTo.setTimeInMillis(program.getToTime());
+                    if (calNow.getTimeInMillis() >= calFrom.getTimeInMillis() && calNow.getTimeInMillis() <= calTo.getTimeInMillis()) {
+                        this.radioProgram = radioProgram;
+                        channel.setCurrentProgram(program);
+                        return true;
+                    }
+                }
+            }
+        }
+        return false;
+    }
+
+    private void startRecording(String url) {
+        if (channel != null && selectedTimer != null) {
+            long startTime = System.currentTimeMillis();
+            recorder = new FFmpegMediaPlayer();
+            recorder.setRecordingOnly(true);
+            notifyChange(channel);
+            try {
+                recorder.setDataSource(url);
+            } catch (IOException e) {
+                e.printStackTrace();
+            }
+            FileHelper fileHelper = new FileHelper(mContext);
+            File saveFile = new File(fileHelper.getRecordedProgramFolder(), channel.getRecordedName() + "-" + startTime + ".mp3");
+            long recordedID = saveRecordedProgram(channel, new Date(startTime), saveFile.getAbsolutePath());
+            if (recordedID != -1) {
+                recorder.setOnRecordingListener(recordingListener);
+                recorder.startRecording(channel, saveFile.getAbsolutePath(), recordedID);
+                recorder.setOnPreparedListener(new FFmpegMediaPlayer.OnPreparedListener() {
+                    @Override
+                    public void onPrepared(FFmpegMediaPlayer mp) {
+                        SimpleAppLog.info("Start recorder");
+                        mp.start();
+                    }
+                });
+                SimpleAppLog.info("Prepare recorder");
+                try {
+                    recorder.prepare();
+                } catch (IOException e) {
+                    e.printStackTrace();
+                }
+            }
         }
     }
 
@@ -400,6 +460,27 @@ public class MediaRecord extends Thread {
             dbAdapter.close();
         }
         return recordedID;
+    }
+
+    private void notifyChange(@Nullable Channel channel) {
+        SimpleAppLog.debug("Record: Notification changed");
+        if (mStateChangeListenner != null) {
+            if (channel != null) {
+                mStateChangeListenner.showNotification(channel);
+            } else {
+                mStateChangeListenner.refresh();
+                try {
+                    timeOutHandler.removeCallbacks(timeoutRunable);
+                } catch (Exception e) {
+                    e.printStackTrace();
+                }
+                try {
+                    retryHandler.removeCallbacks(retryRunable);
+                } catch (Exception e) {
+                    e.printStackTrace();
+                }
+            }
+        }
     }
 
     private void notifyPlayerStateChanged() {

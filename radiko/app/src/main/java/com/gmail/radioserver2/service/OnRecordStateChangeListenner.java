@@ -7,5 +7,5 @@ import com.gmail.radioserver2.data.Channel;
  */
 public interface OnRecordStateChangeListenner {
     void showNotification(Channel channel);
-    void refresh(long token);
+    void refresh();
 }

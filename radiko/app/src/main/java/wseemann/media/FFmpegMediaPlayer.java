@@ -43,7 +43,6 @@ import com.gmail.radioserver2.utils.SimpleAppLog;
 import java.io.File;
 import java.io.FileDescriptor;
 import java.io.FileInputStream;
-import java.io.FileNotFoundException;
 import java.io.IOException;
 import java.lang.ref.WeakReference;
 import java.lang.reflect.Constructor;
@@ -514,6 +513,7 @@ public class FFmpegMediaPlayer {
     private byte[] mBuffer = null;
 
     private boolean isRecordingOnly = false;
+
     /**
      * Constant to retrieve only the new metadata since the last
      * call.
@@ -1043,12 +1043,19 @@ public class FFmpegMediaPlayer {
      *
      * @throws IllegalStateException if it is called in an invalid state
      */
+//    public void start(Context context) throws IllegalStateException {
+//        stayAwake(context, true);
+//        if (mAudioTrack != null) {
+//            mAudioTrack.play();
+//        }
+//        _start();
+//    }
     public void start() throws IllegalStateException {
         stayAwake(true);
         if (mAudioTrack != null) {
             mAudioTrack.play();
         }
-        _start(); //start init
+        _start();
     }
 
     private native void _start() throws IllegalStateException;
@@ -1068,6 +1075,7 @@ public class FFmpegMediaPlayer {
         recordedAudioEncoding = 0;
         recordedBufferSize = 0;
         recordedChannel = 0;
+
         stopRecording();
         _stop();
     }
@@ -1144,6 +1152,25 @@ public class FFmpegMediaPlayer {
             updateSurfaceScreenOn();
         }
     }
+
+//    private void stayAwake(Context context, boolean awake) {
+//        if (mWakeLock != null) {
+//            if (awake && !mWakeLock.isHeld()) {
+//                mWakeLock.acquire();
+//            } else if (!awake && mWakeLock.isHeld()) {
+//                mWakeLock.release();
+//            }
+//        } else {
+//            if (awake) {
+//                PowerManager pm = (PowerManager) context.getSystemService(Context.POWER_SERVICE);
+//                mWakeLock = pm.newWakeLock(PowerManager.PARTIAL_WAKE_LOCK | PowerManager.ON_AFTER_RELEASE, FFmpegMediaPlayer.class.getName());
+//                mWakeLock.setReferenceCounted(false);
+//                mWakeLock.acquire();
+//            }
+//        }
+//        mStayAwake = awake;
+//        updateSurfaceScreenOn();
+//    }
 
     private void stayAwake(boolean awake) {
         if (mWakeLock != null) {
@@ -1363,7 +1390,9 @@ public class FFmpegMediaPlayer {
      *                     metadata. Valid only if the call was successful.
      * @return The status code.
      */
-    private native final HashMap<String, String> native_getMetadata(boolean update_only, boolean apply_filter, HashMap<String, String> reply);
+    private native final HashMap<String, String> native_getMetadata(boolean update_only,
+                                                                    boolean apply_filter,
+                                                                    HashMap<String, String> reply);
 
     private native void _reset();
 
@@ -1682,6 +1711,8 @@ public class FFmpegMediaPlayer {
         this.isRecordingOnly = isRecordingOnly;
     }
 
+    public static int retry = 0;
+
     private class EventHandler extends Handler {
         private FFmpegMediaPlayer mMediaPlayer;
 
@@ -1694,7 +1725,12 @@ public class FFmpegMediaPlayer {
         public void handleMessage(Message msg) {
             if (mMediaPlayer.mNativeContext == 0) {
                 Log.w(TAG, "mediaplayer went away with unhandled events");
-                recordingListener.onCompleted(selectedChannel, recordedSampleRate, recordedChannel, recordedAudioEncoding, recordedBufferSize, recordingPath, recordedID);
+                if (retry <= 10) {
+                    recordingListener.onRetry(mMediaPlayer);
+                } else {
+                    stayAwake(false);
+                    recordingListener.onCompleted(selectedChannel, recordedSampleRate, recordedChannel, recordedAudioEncoding, recordedBufferSize, recordingPath, recordedID, true);
+                }
                 return;
             }
             switch (msg.what) {
@@ -1704,10 +1740,11 @@ public class FFmpegMediaPlayer {
                     return;
 
                 case MEDIA_PLAYBACK_COMPLETE:
-                    if (mOnCompletionListener != null)
+                    if (mOnCompletionListener != null) {
                         mOnCompletionListener.onCompletion(mMediaPlayer);
+                    }
                     if (isRecordingOnly()) {
-                        recordingListener.onRetry();
+                        recordingListener.onRetry(mMediaPlayer);
                     } else {
                         stayAwake(false);
                     }
@@ -1739,7 +1776,16 @@ public class FFmpegMediaPlayer {
                     if (mOnCompletionListener != null && !error_was_handled) {
                         mOnCompletionListener.onCompletion(mMediaPlayer);
                     }
-                    stayAwake(false);
+                    if (isRecordingOnly()) {
+                        if (retry <= 10) {
+                            recordingListener.onRetry(mMediaPlayer);
+                        } else {
+                            stayAwake(false);
+                            recordingListener.onCompleted(selectedChannel, recordedSampleRate, recordedChannel, recordedAudioEncoding, recordedBufferSize, recordingPath, recordedID, true);
+                        }
+                    } else {
+                        stayAwake(false);
+                    }
                     return;
 
                 case MEDIA_INFO:
@@ -1765,7 +1811,6 @@ public class FFmpegMediaPlayer {
                     return;
 
                 case MEDIA_NOP: // interface test message - ignore
-                    Log.e(TAG, "nope");
                     break;
 
                 default:
@@ -2125,14 +2170,10 @@ public class FFmpegMediaPlayer {
 
     private static void initializeStaticCompatMethods() {
         try {
-            sMethodRegisterAttachAuxEffect = AudioTrack.class.getMethod(
-                    "attachAuxEffect", int.class);
-            sConstructorRegisterSetAudioSessionId = AudioTrack.class.getConstructor(
-                    int.class, int.class, int.class, int.class, int.class, int.class, int.class);
-            sMethodRegisterGetAudioSessionId = AudioTrack.class.getMethod(
-                    "getAudioSessionId");
-            sMethodRegisterSetAuxEffectSendLevel = AudioTrack.class.getMethod(
-                    "setAuxEffectSendLevel", float.class);
+            sMethodRegisterAttachAuxEffect = AudioTrack.class.getMethod("attachAuxEffect", int.class);
+            sConstructorRegisterSetAudioSessionId = AudioTrack.class.getConstructor(int.class, int.class, int.class, int.class, int.class, int.class, int.class);
+            sMethodRegisterGetAudioSessionId = AudioTrack.class.getMethod("getAudioSessionId");
+            sMethodRegisterSetAuxEffectSendLevel = AudioTrack.class.getMethod("setAuxEffectSendLevel", float.class);
         } catch (NoSuchMethodException e) {
             e.printStackTrace();
             // Silently fail when running on an OS before API level 9.
@@ -2169,8 +2210,7 @@ public class FFmpegMediaPlayer {
 
     private AudioTrack setAudioSessionIdCompat(int streamType, int sampleRateInHz, int channelConfig, int audioFormat, int bufferSizeInBytes, int mode, int sessionId) {
         if (sConstructorRegisterSetAudioSessionId == null) {
-            return new AudioTrack(streamType, sampleRateInHz, channelConfig,
-                    audioFormat, bufferSizeInBytes, mode);
+            return new AudioTrack(streamType, sampleRateInHz, channelConfig, audioFormat, bufferSizeInBytes, mode);
         }
 
         try {
@@ -2194,8 +2234,7 @@ public class FFmpegMediaPlayer {
             e.printStackTrace();
         }
 
-        return new AudioTrack(streamType, sampleRateInHz, channelConfig,
-                audioFormat, bufferSizeInBytes, mode);
+        return new AudioTrack(streamType, sampleRateInHz, channelConfig, audioFormat, bufferSizeInBytes, mode);
     }
 
     private int getAudioSessionIdCompat(AudioTrack audioTrack) {
@@ -2256,8 +2295,8 @@ public class FFmpegMediaPlayer {
 
     private int initAudioTrack(int streamType, int sampleRateInHz, int channelConfig, int sessionId) {
         channelConfig = (channelConfig == 1) ? AudioFormat.CHANNEL_OUT_MONO : AudioFormat.CHANNEL_OUT_STEREO;
-        int minBufferSize = AudioTrack.getMinBufferSize(sampleRateInHz, channelConfig, AudioFormat.ENCODING_PCM_16BIT) * 2;
-        //int minBufferSize = AudioTrack.getMinBufferSize(sampleRateInHz, channelConfig, AudioFormat.ENCODING_PCM_16BIT) * 4;
+//        int minBufferSize = AudioTrack.getMinBufferSize(sampleRateInHz, channelConfig, AudioFormat.ENCODING_PCM_16BIT) * 2;
+        int minBufferSize = AudioTrack.getMinBufferSize(sampleRateInHz, channelConfig, AudioFormat.ENCODING_PCM_16BIT) * 4;
         //int minBufferSize = AVCODEC_MAX_AUDIO_FRAME_SIZE;
         recordedSampleRate = sampleRateInHz;
         recordedBufferSize = minBufferSize;
@@ -2286,29 +2325,25 @@ public class FFmpegMediaPlayer {
         return minBufferSize;
     }
 
-    private long index = 0;
-
     private void writeAudio(int frame_size_ptr) {
-        try {
-            Log.d("frame receive", "" + frame_size_ptr);
-            if (mBuffer != null && mBuffer.length > 0) {
-                if (mAudioTrack != null)
-                    mAudioTrack.write(mBuffer, 0, frame_size_ptr);
-                if (isRecording && frame_size_ptr > 0) {
-                    try {
-                        synchronized (lookRecording) {
-                            doInitRecording();
-                            if (mp3Encoder != null && mp3Encoder.isInit())
-                                mp3Encoder.encode(mBuffer, 0, frame_size_ptr);
+        if (mBuffer != null && mBuffer.length > 0) {
+            if (mAudioTrack != null)
+                mAudioTrack.write(mBuffer, 0, frame_size_ptr);
+            if (isRecording && frame_size_ptr > 0) {
+                try {
+                    synchronized (lookRecording) {
+                        if (retry > 0) {
+                            retry = 0;
                         }
-                    } catch (Exception e) {
-                        e.printStackTrace();
+                        doInitRecording();
+                        if (mp3Encoder != null && mp3Encoder.isInit())
+                            mp3Encoder.encode(mBuffer, 0, frame_size_ptr);
                     }
-
+                } catch (Exception e) {
+                    e.printStackTrace();
                 }
+
             }
-        } catch (Exception e) {
-            e.printStackTrace();
         }
     }
 
@@ -2321,20 +2356,29 @@ public class FFmpegMediaPlayer {
         return ret;
     }
 
-    public static interface OnRecordingListener {
-        public void onCompleted(Channel selectedChannel, int recordedSampleRate, int recordedChannel, int recordedAudioEncoding, int recordedBufferSize, String filePath, long recordedID);
+    public interface OnRecordingListener {
+        void onCompleted(Channel selectedChannel, int recordedSampleRate,
+                         int recordedChannel,
+                         int recordedAudioEncoding,
+                         int recordedBufferSize,
+                         String filePath,
+                         long recordedID, boolean forceStop);
 
-        public void onError(String message, Throwable e, long recordedID);
+        void onError(String message, Throwable e, long recordedID);
 
-        public void onRetry();
+        void onRetry(FFmpegMediaPlayer mp);
+    }
 
+    public String getRecordingPath() {
+        return recordingPath;
+    }
+
+    public long getRecordedID() {
+        return recordedID;
     }
 
     private Mp3Encoder mp3Encoder;
 
-    private String recordingPath;
-
-    private long recordedID;
 
     private boolean isRecording;
 
@@ -2342,6 +2386,7 @@ public class FFmpegMediaPlayer {
 
     private OnRecordingListener recordingListener;
 
+    private String recordingPath;
     private int recordedSampleRate;
     private int recordedChannel;
     private int recordedAudioEncoding;
@@ -2350,6 +2395,8 @@ public class FFmpegMediaPlayer {
     private final Object lookRecording = new Object();
 
     private Channel selectedChannel;
+
+    private long recordedID;
 
     private void doInitRecording() {
         if (!isInitRecording) {
@@ -2360,18 +2407,20 @@ public class FFmpegMediaPlayer {
                     mp3Encoder.cleanup();
                     mp3Encoder = null;
                 }
-                mp3Encoder = new Mp3Encoder(recordedSampleRate, (recordedChannel == 1) ? 1 : 2, new File(recordingPath));
+
+                mp3Encoder = new Mp3Encoder(recordedSampleRate, (recordedChannel <= 6) ? 1 : 2, new File(recordingPath));
                 mp3Encoder.initialize();
-            } catch (FileNotFoundException e) {
+            } catch (Exception e) {
                 e.printStackTrace();
                 isRecording = false;
-                if (recordingListener != null)
+                if (isRecordingOnly) {
+                    if (mWakeLock != null) {
+                        mWakeLock.release();
+                    }
+                }
+                if (recordingListener != null) {
                     recordingListener.onError("Could not init mp3 encoder", e, recordedID);
-            } catch (IOException e){
-                e.printStackTrace();
-                isRecording = false;
-                if (recordingListener != null)
-                    recordingListener.onError("Could not init mp3 encoder", e, recordedID);
+                }
             }
         }
     }
@@ -2400,23 +2449,32 @@ public class FFmpegMediaPlayer {
                 if (saveFile) {
                     if (recordedFile.exists()) {
                         if (recordingListener != null)
-                            recordingListener.onCompleted(selectedChannel, recordedSampleRate, recordedChannel, recordedAudioEncoding, recordedBufferSize, recordingPath, recordedID);
+                            recordingListener.onCompleted(selectedChannel, recordedSampleRate,
+                                    recordedChannel,
+                                    recordedAudioEncoding,
+                                    recordedBufferSize, recordingPath, recordedID, false);
                     } else {
                         if (recordingListener != null)
-                            recordingListener.onCompleted(null, -1, -1, -1, -1, "", -1);
+                            recordingListener.onCompleted(null, -1, -1, -1, -1, "", -1, false);
                     }
                 }
             } catch (Exception ex) {
                 ex.printStackTrace();
                 if (recordingListener != null)
-                    recordingListener.onCompleted(null, -1, -1, -1, -1, "", -1);
+                    recordingListener.onCompleted(null, -1, -1, -1, -1, "", -1, false);
             }
         }
     }
 
     public void stopRecording() {
+        if (isRecordingOnly) {
+            if (mWakeLock != null) {
+                mWakeLock.release();
+            }
+        }
         stopRecording(true);
     }
+
 
     public boolean isRecording() {
         return isRecording;

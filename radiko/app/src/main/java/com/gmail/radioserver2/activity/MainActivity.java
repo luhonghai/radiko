@@ -72,6 +72,7 @@ public class MainActivity extends BaseFragmentActivity implements ServiceConnect
 
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
+        Fabric.with(this, new Crashlytics());
 
         // Start timer
         Intent intent = new Intent(TimerManagerReceiver.ACTION_START_TIMER);

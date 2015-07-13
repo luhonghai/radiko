@@ -25,13 +25,10 @@ import com.gmail.radioserver2.utils.SimpleAppLog;
 
 import java.text.SimpleDateFormat;
 import java.util.Date;
-import java.util.HashMap;
 import java.util.Locale;
 
-/**
- * Created by Trinh Quan on 016 16/6/2015.
- */
 public class RecordBackgroundService extends Service implements OnRecordStateChangeListenner, ServiceConnection {
+
     public static final int PLAYBACKSERVICE_STATUS = 1;
     public static final String PARAM_TIMER = "param_timer";
     public static final int RECORD = 0;
@@ -40,8 +37,7 @@ public class RecordBackgroundService extends Service implements OnRecordStateCha
     private IMediaPlaybackService mService;
     private MusicUtils.ServiceToken mServiceToken;
     private Timer selectedTimer;
-    private HashMap<Long, Long> hashMap = new HashMap<>();
-
+    private int numRecordProcess = 0;
     private WifiManager.WifiLock wifiLock;
 
     @Override
@@ -53,6 +49,25 @@ public class RecordBackgroundService extends Service implements OnRecordStateCha
     public RecordBackgroundService() {
         super();
     }
+
+    @Override
+    public int onStartCommand(Intent intent, int flags, int startId) {
+        SimpleAppLog.debug("RECORD: start command");
+        if (isConnectInternet()) {
+            if (intent != null) {
+                Bundle bd = intent.getExtras();
+                if (bd != null) {
+                    selectedTimer = (Timer) bd.getSerializable(PARAM_TIMER);
+                    if (selectedTimer != null) {
+                        acquireLock();
+                        startRecord(selectedTimer);
+                    }
+                }
+            }
+        }
+        return START_STICKY;
+    }
+
 
     private void acquireLock() {
         PowerManager manager = (PowerManager) getSystemService(Context.POWER_SERVICE);
@@ -80,23 +95,13 @@ public class RecordBackgroundService extends Service implements OnRecordStateCha
         return netInfo != null && netInfo.isConnectedOrConnecting();
     }
 
-    @Override
-    public int onStartCommand(Intent intent, int flags, int startId) {
-        if (isConnectInternet()) {
-            if (intent != null) {
-                Bundle bd = intent.getExtras();
-                if (bd != null) {
-                    selectedTimer = (Timer) bd.getSerializable(PARAM_TIMER);
-                    if (selectedTimer != null) {
-                        acquireLock();
-                        startRecord(selectedTimer);
-                    }
-                }
-            }
-        } else {
-            SimpleAppLog.debug("SERVICE: no connection");
+    private void releaseWakeLock() {
+        if (mWakeLock != null && mWakeLock.isHeld()) {
+            mWakeLock.release();
         }
-        return START_STICKY;
+        if (wifiLock != null && wifiLock.isHeld()) {
+            wifiLock.release();
+        }
     }
 
     @Override
@@ -106,26 +111,17 @@ public class RecordBackgroundService extends Service implements OnRecordStateCha
 
     @Override
     public void onDestroy() {
-        SimpleAppLog.debug("RECORD: kill service");
-        stopForeground(true);
+        numRecordProcess = 0;
         unboundService();
-        releaseWakelock();
-        hashMap.clear();
+        releaseWakeLock();
+        stopForeground(true);
         super.onDestroy();
     }
 
-    private void releaseWakelock() {
-        if (mWakeLock != null && mWakeLock.isHeld()) {
-            mWakeLock.release();
-        }
-        if (wifiLock != null && wifiLock.isHeld()) {
-            wifiLock.release();
-        }
-    }
-
     private void startRecord(Timer timer) {
-        new MediaRecord(this, mService, timer, timer.getId(), this).start();
-        hashMap.put(timer.getId(), timer.getId());
+        numRecordProcess++;
+        MediaRecord md = new MediaRecord(this, mService, timer, this);
+        md.execute();
     }
 
     private void showServiceNotification(String title, String description) {
@@ -151,11 +147,15 @@ public class RecordBackgroundService extends Service implements OnRecordStateCha
                     RadioProgram.Program program = channel.getCurrentProgram();
                     if (program != null) {
                         SimpleDateFormat sdf = new SimpleDateFormat("HH:mm", Locale.JAPANESE);
-                        final StringBuffer sb = new StringBuffer();
-                        sb.append(program.getTitle()).append("\n");
-                        sb.append(sdf.format(new Date(program.getFromTime())));
-                        sb.append(" - ").append(sdf.format(new Date(program.getToTime())));
-                        showServiceNotification(channel.getName(), sb.toString());
+                        StringBuilder sb = new StringBuilder();
+                        String des = "";
+                        if (program != null) {
+                            sb.append(program.getTitle());
+                            sb.append("\n");
+                            sb.append(sdf.format(new Date(program.getFromTime())));
+                            sb.append(" - ").append(sdf.format(new Date(program.getToTime())));
+                        }
+                        showServiceNotification(channel.getName(),sb.toString());
                     } else {
                         showServiceNotification(channel.getName(), "");
                     }
@@ -167,16 +167,12 @@ public class RecordBackgroundService extends Service implements OnRecordStateCha
     }
 
     @Override
-    public void refresh(long keyToken) {
+    public void refresh() {
         SimpleAppLog.debug("SERVICE: refresh");
-        try {
-            hashMap.remove(keyToken);
-        } catch (Exception e) {
-            SimpleAppLog.debug("SERVICE: record has been removed");
-        }
-        if (hashMap.size() == 0) {
+        numRecordProcess--;
+        if (numRecordProcess <= 0) {
+            releaseWakeLock();
             stopForeground(true);
-            releaseWakelock();
         }
     }
 

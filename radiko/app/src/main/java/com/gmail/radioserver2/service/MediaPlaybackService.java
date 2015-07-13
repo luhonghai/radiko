@@ -213,7 +213,7 @@ public class MediaPlaybackService extends Service {
         public void onCompleted(Channel channel, final int recordedSampleRate,
                                 final int recordedChannel,
                                 final int recordedAudioEncoding,
-                                final int recordedBufferSize, String filePath, long recordedID) {
+                                final int recordedBufferSize, String filePath, long recordedID, boolean forceStop) {
             if (filePath == null || filePath.length() == 0) {
                 SimpleAppLog.error("Recoding could not be completed");
                 return;
@@ -272,7 +272,7 @@ public class MediaPlaybackService extends Service {
         }
 
         @Override
-        public void onRetry() {
+        public void onRetry(FFmpegMediaPlayer mp) {
 
         }
     };

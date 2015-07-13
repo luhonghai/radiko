@@ -8,6 +8,7 @@ import android.location.Location;
 import android.location.LocationManager;
 import android.support.annotation.Nullable;
 
+import com.dotohsoft.radio.data.RadioProgram;
 import com.gmail.radioserver2.R;
 import com.gmail.radioserver2.data.GMapGeocodeResponse;
 import com.gmail.radioserver2.data.Setting;
@@ -57,6 +58,77 @@ public class AndroidUtil {
         }
         setting.save();
     }
+
+
+    public static RadioProgram.Program getMaxTimedProgram(long startTime, long stopTime, List<RadioProgram.Program> listProgram) {
+        if (listProgram == null || listProgram.size() == 0) {
+            return null;
+        } else {
+            RadioProgram.Program insectStartProgram = null;
+            RadioProgram.Program insectStopProgram = null;
+            boolean changed = false;
+            List<RadioProgram.Program> boundedProgramList = new ArrayList<>();
+            for (RadioProgram.Program item : listProgram) {
+                if (startTime >= item.getFromTime() && stopTime <= item.getToTime()) {
+                    return item;
+                } else {
+                    if (startTime < item.getFromTime() && stopTime > item.getToTime()) {
+                        boundedProgramList.add(item);
+                    } else if (item.getFromTime() <= startTime && startTime <= item.getToTime() && item.getToTime() <= stopTime) {
+                        insectStartProgram = item;
+                    } else if (startTime <= item.getFromTime() && item.getFromTime() <= stopTime && stopTime <= item.getToTime()) {
+                        insectStopProgram = item;
+                    }
+                }
+            }
+
+            RadioProgram.Program maxBoundedProgram = null;
+            if (boundedProgramList.size() != 0) {
+                maxBoundedProgram = boundedProgramList.get(0);
+                for (RadioProgram.Program item : boundedProgramList) {
+                    if ((item.getToTime() - item.getFromTime()) > (maxBoundedProgram.getToTime() - maxBoundedProgram.getFromTime())) {
+                        maxBoundedProgram = item;
+                    }
+                }
+            }
+            if (maxBoundedProgram != null) {
+                if (insectStartProgram != null) {
+                    if ((insectStartProgram.getToTime() - startTime) > (maxBoundedProgram.getToTime() - maxBoundedProgram.getFromTime())) {
+                        changed = true;
+                        maxBoundedProgram = insectStartProgram;
+                    }
+                }
+
+                if (insectStopProgram != null) {
+                    if (changed) {
+                        if ((stopTime - insectStopProgram.getFromTime()) > (insectStartProgram.getToTime() - startTime)) {
+                            maxBoundedProgram = insectStopProgram;
+                        }
+                    } else {
+                        if ((stopTime - insectStopProgram.getFromTime()) > (maxBoundedProgram.getToTime() - maxBoundedProgram.getFromTime())) {
+                            maxBoundedProgram = insectStopProgram;
+                        }
+                    }
+                }
+                return maxBoundedProgram;
+            } else {
+                if (insectStartProgram == null && insectStopProgram == null) {
+                    return null;
+                } else if (insectStartProgram != null && insectStopProgram != null) {
+                    if ((insectStartProgram.getToTime() - startTime) > (stopTime - insectStopProgram.getFromTime())) {
+                        return insectStartProgram;
+                    } else {
+                        return insectStopProgram;
+                    }
+                } else if (insectStartProgram != null && insectStopProgram == null) {
+                    return insectStartProgram;
+                } else {
+                    return insectStopProgram;
+                }
+            }
+        }
+    }
+
 
     public static void updateLanguage(final Context context, String locate) {
         Configuration c = new Configuration(context.getResources().getConfiguration());
