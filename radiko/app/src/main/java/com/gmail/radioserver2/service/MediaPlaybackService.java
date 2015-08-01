@@ -213,7 +213,7 @@ public class MediaPlaybackService extends Service {
         public void onCompleted(Channel channel, final int recordedSampleRate,
                                 final int recordedChannel,
                                 final int recordedAudioEncoding,
-                                final int recordedBufferSize, String filePath, long recordedID, boolean forceStop) {
+                                final int recordedBufferSize, String filePath, long recordedID) {
             if (filePath == null || filePath.length() == 0) {
                 SimpleAppLog.error("Recoding could not be completed");
                 return;
@@ -272,7 +272,7 @@ public class MediaPlaybackService extends Service {
         }
 
         @Override
-        public void onRetry(FFmpegMediaPlayer mp) {
+        public void onRetry(FFmpegMediaPlayer mp, String cause) {
 
         }
     };
@@ -3166,10 +3166,12 @@ public class MediaPlaybackService extends Service {
         }
 
         public void start() {
-
             MusicUtils.debugLog(new Exception("MultiPlayer.start called"));
-            mCurrentMediaPlayer.start();
-
+            try {
+                mCurrentMediaPlayer.start();
+            } catch (IllegalStateException e){
+                e.printStackTrace();
+            }
         }
 
         public void stop() {

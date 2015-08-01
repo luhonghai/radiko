@@ -89,7 +89,6 @@ public class Mp3Encoder {
                 }
             }
             samplesRead = index;
-
             if (samplesRead > 0) {
                 if (!flag) {
                     flag = true;

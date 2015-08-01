@@ -1711,7 +1711,7 @@ public class FFmpegMediaPlayer {
         this.isRecordingOnly = isRecordingOnly;
     }
 
-    public static int retry = 0;
+    public static int mRetryPivot = 0;
 
     private class EventHandler extends Handler {
         private FFmpegMediaPlayer mMediaPlayer;
@@ -1725,12 +1725,7 @@ public class FFmpegMediaPlayer {
         public void handleMessage(Message msg) {
             if (mMediaPlayer.mNativeContext == 0) {
                 Log.w(TAG, "mediaplayer went away with unhandled events");
-                if (retry <= 10) {
-                    recordingListener.onRetry(mMediaPlayer);
-                } else {
-                    stayAwake(false);
-                    recordingListener.onCompleted(selectedChannel, recordedSampleRate, recordedChannel, recordedAudioEncoding, recordedBufferSize, recordingPath, recordedID, true);
-                }
+                recordingListener.onRetry(mMediaPlayer, "mediaplayer went away with unhandled events");
                 return;
             }
             switch (msg.what) {
@@ -1744,7 +1739,7 @@ public class FFmpegMediaPlayer {
                         mOnCompletionListener.onCompletion(mMediaPlayer);
                     }
                     if (isRecordingOnly()) {
-                        recordingListener.onRetry(mMediaPlayer);
+                        recordingListener.onRetry(mMediaPlayer, "server closed connection");
                     } else {
                         stayAwake(false);
                     }
@@ -1777,12 +1772,7 @@ public class FFmpegMediaPlayer {
                         mOnCompletionListener.onCompletion(mMediaPlayer);
                     }
                     if (isRecordingOnly()) {
-                        if (retry <= 10) {
-                            recordingListener.onRetry(mMediaPlayer);
-                        } else {
-                            stayAwake(false);
-                            recordingListener.onCompleted(selectedChannel, recordedSampleRate, recordedChannel, recordedAudioEncoding, recordedBufferSize, recordingPath, recordedID, true);
-                        }
+                        recordingListener.onRetry(mMediaPlayer, "media error " + msg.arg1 + ", " + msg.arg2);
                     } else {
                         stayAwake(false);
                     }
@@ -2296,7 +2286,7 @@ public class FFmpegMediaPlayer {
     private int initAudioTrack(int streamType, int sampleRateInHz, int channelConfig, int sessionId) {
         channelConfig = (channelConfig == 1) ? AudioFormat.CHANNEL_OUT_MONO : AudioFormat.CHANNEL_OUT_STEREO;
 //        int minBufferSize = AudioTrack.getMinBufferSize(sampleRateInHz, channelConfig, AudioFormat.ENCODING_PCM_16BIT) * 2;
-        int minBufferSize = AudioTrack.getMinBufferSize(sampleRateInHz, channelConfig, AudioFormat.ENCODING_PCM_16BIT) * 4;
+        int minBufferSize = AudioTrack.getMinBufferSize(sampleRateInHz, channelConfig, AudioFormat.ENCODING_PCM_16BIT) * 8;
         //int minBufferSize = AVCODEC_MAX_AUDIO_FRAME_SIZE;
         recordedSampleRate = sampleRateInHz;
         recordedBufferSize = minBufferSize;
@@ -2332,8 +2322,8 @@ public class FFmpegMediaPlayer {
             if (isRecording && frame_size_ptr > 0) {
                 try {
                     synchronized (lookRecording) {
-                        if (retry > 0) {
-                            retry = 0;
+                        if (mRetryPivot > 0) {
+                            mRetryPivot = 0;
                         }
                         doInitRecording();
                         if (mp3Encoder != null && mp3Encoder.isInit())
@@ -2362,11 +2352,12 @@ public class FFmpegMediaPlayer {
                          int recordedAudioEncoding,
                          int recordedBufferSize,
                          String filePath,
-                         long recordedID, boolean forceStop);
+                         long recordedID);
 
         void onError(String message, Throwable e, long recordedID);
 
-        void onRetry(FFmpegMediaPlayer mp);
+        void onRetry(FFmpegMediaPlayer mp, String pivot);
+
     }
 
     public String getRecordingPath() {
@@ -2378,7 +2369,6 @@ public class FFmpegMediaPlayer {
     }
 
     private Mp3Encoder mp3Encoder;
-
 
     private boolean isRecording;
 
@@ -2401,15 +2391,17 @@ public class FFmpegMediaPlayer {
     private void doInitRecording() {
         if (!isInitRecording) {
             if (recordedSampleRate <= 0 && recordedChannel <= 0) return;
-            isInitRecording = true;
             try {
                 if (mp3Encoder != null) {
                     mp3Encoder.cleanup();
                     mp3Encoder = null;
+                    SimpleAppLog.debug("Cleanup mp3Encode");
                 }
-
+                SimpleAppLog.debug("mp3Encode is null = " + (mp3Encoder == null));
                 mp3Encoder = new Mp3Encoder(recordedSampleRate, (recordedChannel <= 6) ? 1 : 2, new File(recordingPath));
                 mp3Encoder.initialize();
+                SimpleAppLog.debug("Create mp3Encode");
+                isInitRecording = true;
             } catch (Exception e) {
                 e.printStackTrace();
                 isRecording = false;
@@ -2452,16 +2444,16 @@ public class FFmpegMediaPlayer {
                             recordingListener.onCompleted(selectedChannel, recordedSampleRate,
                                     recordedChannel,
                                     recordedAudioEncoding,
-                                    recordedBufferSize, recordingPath, recordedID, false);
+                                    recordedBufferSize, recordingPath, recordedID);
                     } else {
                         if (recordingListener != null)
-                            recordingListener.onCompleted(null, -1, -1, -1, -1, "", -1, false);
+                            recordingListener.onCompleted(null, -1, -1, -1, -1, "", -1);
                     }
                 }
             } catch (Exception ex) {
                 ex.printStackTrace();
                 if (recordingListener != null)
-                    recordingListener.onCompleted(null, -1, -1, -1, -1, "", -1, false);
+                    recordingListener.onCompleted(null, -1, -1, -1, -1, "", -1);
             }
         }
     }

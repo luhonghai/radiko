@@ -14,7 +14,6 @@ import android.widget.EditText;
 import android.widget.RelativeLayout;
 import android.widget.Spinner;
 import android.widget.TextView;
-import android.widget.Toast;
 
 import com.gmail.radioserver2.R;
 import com.gmail.radioserver2.data.Channel;
@@ -34,7 +33,7 @@ import java.util.Date;
 /**
  * Created by luhonghai on 2/20/15.
  */
-public class TimerSettingsActivity extends BaseActivity implements View.OnClickListener, AdapterView.OnItemSelectedListener, DatePickerDialog.OnDateSetListener{
+public class TimerSettingsActivity extends BaseActivity implements View.OnClickListener, AdapterView.OnItemSelectedListener, DatePickerDialog.OnDateSetListener {
 
     private static final String CUSTOM_DATE_PICKER_TAG = "custom_date_picker";
 
@@ -94,6 +93,34 @@ public class TimerSettingsActivity extends BaseActivity implements View.OnClickL
         spinnerTimePicker = (Spinner) findViewById(R.id.spinnerTimePicker);
         relativeLayoutTimePicker = (RelativeLayout) findViewById(R.id.relativeLayoutTimePicker);
 
+        spinnerStartHour.setOnItemSelectedListener(new AdapterView.OnItemSelectedListener() {
+            @Override
+            public void onItemSelected(AdapterView<?> adapterView, View view, int i, long l) {
+                if (spinnerFinishHour.getSelectedItemPosition() < i) {
+                    spinnerFinishHour.setSelection(i);
+                }
+            }
+
+            @Override
+            public void onNothingSelected(AdapterView<?> adapterView) {
+
+            }
+        });
+        spinnerStartMinute = (Spinner) findViewById(R.id.spinnerStartMinute);
+        spinnerStartMinute.setOnItemSelectedListener(new AdapterView.OnItemSelectedListener() {
+            @Override
+            public void onItemSelected(AdapterView<?> adapterView, View view, int i, long l) {
+                if (spinnerFinishMinute.getSelectedItemPosition() < i && spinnerFinishHour.getSelectedItemPosition() <= spinnerStartHour.getSelectedItemPosition()) {
+                    spinnerFinishMinute.setSelection(i);
+                }
+            }
+
+            @Override
+            public void onNothingSelected(AdapterView<?> adapterView) {
+
+            }
+        });
+
         Gson gson = new Gson();
         Intent intent = getIntent();
         if (intent != null) {
@@ -104,7 +131,7 @@ public class TimerSettingsActivity extends BaseActivity implements View.OnClickL
                     try {
                         selectedChannel = gson.fromJson(channelSrc, Channel.class);
                     } catch (Exception e) {
-                        SimpleAppLog.error("Could not parse selected channel",e);
+                        SimpleAppLog.error("Could not parse selected channel", e);
                     }
                 }
             }
@@ -113,8 +140,7 @@ public class TimerSettingsActivity extends BaseActivity implements View.OnClickL
             ((TextView) findViewById(R.id.txtChannelName)).setText(selectedChannel.getName());
         }
         loadStartTime();
-        loadFinishHour();
-        loadFinishMinute(true);
+        loadFinishTime();
         showDate();
         showTimePicker();
     }
@@ -142,33 +168,13 @@ public class TimerSettingsActivity extends BaseActivity implements View.OnClickL
         adapterM.notifyDataSetChanged();
     }
 
-    private void loadFinishHour() {
-        int startHour = Integer.parseInt(spinnerStartHour.getSelectedItem().toString());
-        loadFinishHour(startHour);
-    }
-
-    private void loadFinishHour(int startHour) {
-        ArrayAdapter<CharSequence> adapter =new ArrayAdapter<CharSequence>(this, R.layout.textview_spinner, DateHelper.getTimeList(startHour, 23));
-        spinnerFinishHour.setAdapter(adapter);
-        adapter.notifyDataSetChanged();
-    }
-
-    private void loadFinishMinute(boolean doInit) {
-        int startMinute = Integer.parseInt(spinnerStartMinute.getSelectedItem().toString());
-        int startHour = Integer.parseInt(spinnerStartHour.getSelectedItem().toString());
-        int finishHour = Integer.parseInt(spinnerFinishHour.getSelectedItem().toString());
-
-        if (finishHour <= startHour) {
-            ArrayAdapter<CharSequence>  adapter = new ArrayAdapter<CharSequence>(this, R.layout.textview_spinner, DateHelper.getTimeList(0, 59));
-            spinnerFinishMinute.setAdapter(adapter);
-            adapter.notifyDataSetChanged();
-        } else if (doInit) {
-            ArrayAdapter<CharSequence>  adapter = new ArrayAdapter<CharSequence>(this, R.layout.textview_spinner, DateHelper.getTimeList(0, 59));
-            spinnerFinishMinute.setAdapter(adapter);
-            adapter.notifyDataSetChanged();
-
-        }
-
+    private void loadFinishTime() {
+        ArrayAdapter<CharSequence> adapterH = new ArrayAdapter<CharSequence>(this, R.layout.textview_spinner, DateHelper.getTimeList(0, 23));
+        spinnerFinishHour.setAdapter(adapterH);
+        adapterH.notifyDataSetChanged();
+        ArrayAdapter<CharSequence> adapterM = new ArrayAdapter<CharSequence>(this, R.layout.textview_spinner, DateHelper.getTimeList(0, 59));
+        spinnerFinishMinute.setAdapter(adapterM);
+        adapterM.notifyDataSetChanged();
     }
 
     @Override
@@ -176,7 +182,7 @@ public class TimerSettingsActivity extends BaseActivity implements View.OnClickL
         switch (v.getId()) {
             case R.id.btnTimerList:
                 Intent intent = new Intent();
-                intent.setClass(this,TimerListActivity.class);
+                intent.setClass(this, TimerListActivity.class);
                 startActivity(intent);
                 break;
             case R.id.txtTimePicker:
@@ -217,10 +223,10 @@ public class TimerSettingsActivity extends BaseActivity implements View.OnClickL
             });
             return;
         }
+        enableForm(false);
         new Thread(new Runnable() {
             @Override
             public void run() {
-                enableForm(false);
                 TimerDBAdapter dbAdapter = new TimerDBAdapter(TimerSettingsActivity.this);
                 try {
                     dbAdapter.open();
@@ -235,14 +241,28 @@ public class TimerSettingsActivity extends BaseActivity implements View.OnClickL
                         Calendar c = Calendar.getInstance();
                         int dayOfWeek;
                         switch (spinnerTimePicker.getSelectedItemPosition()) {
-                            case 0: dayOfWeek = Calendar.MONDAY; break;
-                            case 1:dayOfWeek = Calendar.TUESDAY; break;
-                            case 2: dayOfWeek = Calendar.WEDNESDAY; break;
-                            case 3: dayOfWeek = Calendar.THURSDAY; break;
-                            case 4: dayOfWeek = Calendar.FRIDAY; break;
-                            case 5:dayOfWeek = Calendar.SATURDAY; break;
+                            case 0:
+                                dayOfWeek = Calendar.MONDAY;
+                                break;
+                            case 1:
+                                dayOfWeek = Calendar.TUESDAY;
+                                break;
+                            case 2:
+                                dayOfWeek = Calendar.WEDNESDAY;
+                                break;
+                            case 3:
+                                dayOfWeek = Calendar.THURSDAY;
+                                break;
+                            case 4:
+                                dayOfWeek = Calendar.FRIDAY;
+                                break;
+                            case 5:
+                                dayOfWeek = Calendar.SATURDAY;
+                                break;
                             case 6:
-                            default:dayOfWeek = Calendar.SUNDAY; break;
+                            default:
+                                dayOfWeek = Calendar.SUNDAY;
+                                break;
                         }
                         c.set(Calendar.DAY_OF_WEEK, dayOfWeek);
                         timer.setEventDate(c.getTime());
@@ -258,29 +278,29 @@ public class TimerSettingsActivity extends BaseActivity implements View.OnClickL
                     timer.setFinishMinute(Integer.parseInt(spinnerFinishMinute.getSelectedItem().toString()));
 
                     if (timer.getStartHour() == timer.getFinishHour() && timer.getStartMinute() == timer.getFinishMinute()
-                        && timer.getStartHour() == 0 && timer.getStartMinute() == 0) {
-//                        runOnUiThread(new Runnable() {
-//                            @Override
-//                            public void run() {
-//                                new AlertDialog.Builder(TimerSettingsActivity.this)
-//                                        .setTitle("")
-//                                        .setMessage(getString(R.string.invalid_date_range))
-//                                        .setPositiveButton(android.R.string.ok, new DialogInterface.OnClickListener() {
-//                                            public void onClick(DialogInterface dialog, int which) {
-//                                                enableForm(true);
-//                                                dialog.cancel();
-//                                            }
-//                                        })
-//                                        .setIcon(android.R.drawable.ic_dialog_alert)
-//                                        .show();
-//                            }
-//                        });
+                            && timer.getStartHour() == 0 && timer.getStartMinute() == 0) {
                         runOnUiThread(new Runnable() {
                             @Override
                             public void run() {
-                                onBackPressed();
+                                new AlertDialog.Builder(TimerSettingsActivity.this)
+                                        .setTitle("")
+                                        .setMessage(getString(R.string.invalid_date_range))
+                                        .setPositiveButton(android.R.string.ok, new DialogInterface.OnClickListener() {
+                                            public void onClick(DialogInterface dialog, int which) {
+                                                enableForm(true);
+                                                dialog.cancel();
+                                            }
+                                        })
+                                        .setIcon(android.R.drawable.ic_dialog_alert)
+                                        .show();
                             }
                         });
+//                        runOnUiThread(new Runnable() {
+//                            @Override
+//                            public void run() {
+//                                onBackPressed();
+//                            }
+//                        });
                         return;
                     }
 
@@ -316,7 +336,7 @@ public class TimerSettingsActivity extends BaseActivity implements View.OnClickL
                     }
 
                 } catch (Exception ex) {
-                    SimpleAppLog.error("Could not save timer",ex);
+                    SimpleAppLog.error("Could not save timer", ex);
                 } finally {
                     dbAdapter.close();
                 }
@@ -329,22 +349,6 @@ public class TimerSettingsActivity extends BaseActivity implements View.OnClickL
     public void onItemSelected(AdapterView<?> parent, View view, int position, long id) {
         if (parent == null) return;
         switch (parent.getId()) {
-            case R.id.spinnerFinishHour: {
-                loadFinishMinute(false);
-                break;
-            }
-            case R.id.spinnerFinishMinute: {
-                break;
-            }
-            case R.id.spinnerStartHour: {
-                loadFinishHour();
-                loadFinishMinute(false);
-                break;
-            }
-            case R.id.spinnerStartMinute: {
-                loadFinishMinute(false);
-                break;
-            }
             case R.id.spinnerModeType: {
                 break;
             }

@@ -21,18 +21,22 @@ import com.gmail.radioserver2.R;
 import com.gmail.radioserver2.data.Channel;
 import com.gmail.radioserver2.data.Timer;
 import com.gmail.radioserver2.utils.Constants;
+import com.gmail.radioserver2.utils.FileHelper;
 import com.gmail.radioserver2.utils.SimpleAppLog;
 
+import org.apache.commons.io.FileUtils;
+
+import java.io.File;
+import java.io.IOException;
+import java.nio.charset.Charset;
 import java.text.SimpleDateFormat;
 import java.util.Date;
 import java.util.Locale;
 
 public class RecordBackgroundService extends Service implements OnRecordStateChangeListenner, ServiceConnection {
-
+    private final int MAX_FILE_SIZE = 2 * 1024 * 1024;
     public static final int PLAYBACKSERVICE_STATUS = 1;
     public static final String PARAM_TIMER = "param_timer";
-    public static final int RECORD = 0;
-    public static final int REFRESH = 1;
     public static PowerManager.WakeLock mWakeLock;
     private IMediaPlaybackService mService;
     private MusicUtils.ServiceToken mServiceToken;
@@ -64,6 +68,32 @@ public class RecordBackgroundService extends Service implements OnRecordStateCha
                     }
                 }
             }
+        } else {
+            File mLogFile;
+            SimpleDateFormat dateFormat = new SimpleDateFormat("dd/MM/yyyy - HH:mm:ss");
+            FileHelper fileHelper = new FileHelper(this);
+            mLogFile = new File(fileHelper.getRecordedProgramFolder(), "record_log.txt");
+            if (mLogFile.exists() && FileUtils.sizeOf(mLogFile) > MAX_FILE_SIZE) {
+                File tempLogFile = new File(fileHelper.getRecordedProgramFolder(), "record_log_1.txt");
+                if (tempLogFile.exists()) {
+                    try {
+                        FileUtils.forceDelete(tempLogFile);
+                        mLogFile.renameTo(tempLogFile);
+                    } catch (IOException e) {
+                        e.printStackTrace();
+                    }
+                } else {
+                    mLogFile.renameTo(tempLogFile);
+                }
+            }
+            try {
+                FileUtils.writeStringToFile(mLogFile, "____________________\n"
+                                + dateFormat.format(new Date(System.currentTimeMillis()))
+                                + " - No internet connection to do timer task\n",
+                        Charset.forName("US-ASCII"), true);
+            } catch (IOException e) {
+                e.printStackTrace();
+            }
         }
         return START_STICKY;
     }
@@ -82,6 +112,7 @@ public class RecordBackgroundService extends Service implements OnRecordStateCha
                 || wManager.getWifiState() == WifiManager.WIFI_STATE_ENABLING) {
             wifiLock = wManager.createWifiLock(WifiManager.WIFI_MODE_FULL_HIGH_PERF, "record service");
             wifiLock.setReferenceCounted(true);
+
             if (!wifiLock.isHeld()) {
                 wifiLock.acquire();
             }
@@ -155,7 +186,7 @@ public class RecordBackgroundService extends Service implements OnRecordStateCha
                             sb.append(sdf.format(new Date(program.getFromTime())));
                             sb.append(" - ").append(sdf.format(new Date(program.getToTime())));
                         }
-                        showServiceNotification(channel.getName(),sb.toString());
+                        showServiceNotification(channel.getName(), sb.toString());
                     } else {
                         showServiceNotification(channel.getName(), "");
                     }

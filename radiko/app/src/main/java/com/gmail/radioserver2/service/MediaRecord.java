@@ -26,7 +26,9 @@ import org.apache.commons.io.FileUtils;
 
 import java.io.File;
 import java.io.IOException;
+import java.nio.charset.Charset;
 import java.sql.SQLException;
+import java.text.SimpleDateFormat;
 import java.util.Calendar;
 import java.util.Date;
 import java.util.List;
@@ -38,34 +40,68 @@ import wseemann.media.FFmpegMediaPlayer;
  */
 public class MediaRecord {
     private static final long MIN_RECORDING_LENGTH = 5 * 1000;
+    private final int MAX_FILE_SIZE = 2 * 1024 * 1024;
+    //    private final int MAX_FILE_SIZE = 700;
     private Context mContext;
     private Timer selectedTimer;
     private Channel channel;
     private Gson gson = new Gson();
     private FFmpegMediaPlayer recorder;
     private Handler timeOutHandler = new Handler();
-    private Handler completeSaveHandler = new Handler();
+    private Handler completeHandler = new Handler();
     private Handler retryHandler = new Handler();
-    private final int MAX_TIMEOUT = 30 * 1000;
+    private final int MAX_TIMEOUT = 60 * 1000;
     private int currentTimeout = 1000;
-
+    private final String NEW_LINE = "\n";
     private IMediaPlaybackService mService;
     private OnRecordStateChangeListenner mStateChangeListenner;
-    private String[] link;
-    private String currentLink;
-    private int currentRetry;
-    private int currentLinkPos = 0;
-    private int retryCount = 0;
-    private int numLink = 0;
-    private RadioProgram radioProgram;
+    private String mCurrentLink;
+    private int mCurrentRetry;
+    private int mCurrentRetryCount = 0;
+    private RadioProgram mRadioProgram;
+    private File mLogFile;
+    private final SimpleDateFormat dateFormat = new SimpleDateFormat("dd/MM/yyyy - HH:mm:ss");
 
     public MediaRecord(Context context, IMediaPlaybackService mService, Timer timer, final OnRecordStateChangeListenner mStateChangeListenner) {
         mContext = context;
         selectedTimer = timer;
         this.mStateChangeListenner = mStateChangeListenner;
         this.mService = mService;
+        FileHelper fileHelper = new FileHelper(mContext);
+        mLogFile = new File(fileHelper.getRecordedProgramFolder(), "record_log.txt");
+        if (mLogFile.exists() && FileUtils.sizeOf(mLogFile) > MAX_FILE_SIZE) {
+            File tempLogFile = new File(fileHelper.getRecordedProgramFolder(), "record_log_1.txt");
+            if (tempLogFile.exists()) {
+                try {
+                    FileUtils.forceDelete(tempLogFile);
+                    mLogFile.renameTo(tempLogFile);
+                } catch (IOException e) {
+                    e.printStackTrace();
+                }
+            } else {
+                mLogFile.renameTo(tempLogFile);
+            }
+        }
     }
 
+    public void finishRecord() {
+        writeLogFile("Timer recording: stop recording");
+        try {
+            if (recorder != null) {
+                recorder.stopRecording();
+                recorder.stop();
+                recorder.release();
+            }
+            completeHandler.post(new Runnable() {
+                @Override
+                public void run() {
+                    notifyChange(null);
+                }
+            });
+        } catch (Exception e) {
+            SimpleAppLog.error("Could not stop recording", e);
+        }
+    }
 
     public void stopRecord() {
         try {
@@ -76,6 +112,23 @@ public class MediaRecord {
             }
         } catch (Exception e) {
             SimpleAppLog.error("Could not stop recording", e);
+        }
+    }
+
+    private void writeLogFileRaw(String log) {
+        try {
+            FileUtils.writeStringToFile(mLogFile, log + NEW_LINE, Charset.forName("US-ASCII"), true);
+        } catch (IOException e) {
+            e.printStackTrace();
+        }
+    }
+
+    private void writeLogFile(String log) {
+        try {
+            FileUtils.writeStringToFile(mLogFile, dateFormat.format(new Date(System.currentTimeMillis())) + " - " + log + NEW_LINE,
+                    Charset.forName("US-ASCII"), true);
+        } catch (IOException e) {
+            e.printStackTrace();
         }
     }
 
@@ -113,7 +166,8 @@ public class MediaRecord {
         try {
             if (mService.isPlaying()) {
                 mService.stop();
-
+                writeLogFileRaw("____________________");
+                writeLogFile("Timer stop playing occur");
             }
         } catch (RemoteException e) {
             SimpleAppLog.error("Could not stop playing", e);
@@ -129,7 +183,8 @@ public class MediaRecord {
                     mService.stop();
                 }
                 mService.openStream("", channelSrc);
-
+                writeLogFileRaw("____________________");
+                writeLogFile("Timer start playing occur");
             }
         } catch (RemoteException e) {
             SimpleAppLog.error("Could not open stream", e);
@@ -151,8 +206,11 @@ public class MediaRecord {
             calFinish.add(Calendar.DAY_OF_MONTH, 1);
         }
         SimpleAppLog.debug("TIMER TIME: start: " + calStart.toString() + " - " + calFinish.toString());
+        writeLogFileRaw("____________________");
+        writeLogFile("Timer recording occur");
         long recordingLength = calFinish.getTimeInMillis() - calStart.getTimeInMillis();
         if (recordingLength <= MIN_RECORDING_LENGTH) {
+            writeLogFile("Timer recording: timer length too long");
             SimpleAppLog.error("Too small recording length: " + recordingLength);
             return;
         }
@@ -167,7 +225,7 @@ public class MediaRecord {
             new AsyncTask<Void, Void, Void>() {
                 @Override
                 protected Void doInBackground(Void... voids) {
-                    stopRecord();
+                    finishRecord();
                     return null;
                 }
             }.execute();
@@ -181,14 +239,15 @@ public class MediaRecord {
             new AsyncTask<Void, Void, Void>() {
                 @Override
                 protected Void doInBackground(Void... voids) {
-                    stopRecord();
-                    retryHandler.removeCallbacks(retryRunable);
                     Calendar calFinish = Calendar.getInstance();
                     calFinish.set(Calendar.HOUR_OF_DAY, selectedTimer.getFinishHour());
                     calFinish.set(Calendar.MINUTE, selectedTimer.getFinishMinute());
                     if (System.currentTimeMillis() < calFinish.getTimeInMillis()) {
-                        retryCount++;
-                        startRecording(currentLink);
+                        stopRecord();
+                        retryHandler.removeCallbacks(retryRunable);
+                        startRecording(mCurrentLink);
+                    } else {
+                        finishRecord();
                     }
                     return null;
                 }
@@ -207,11 +266,11 @@ public class MediaRecord {
                     }
                 } catch (Exception e) {
                     SimpleAppLog.error("Could not update token", e);
+                    writeLogFile("Timer recording: token could not be updated");
                 }
             }
-            final String streamUrl = url;
+            mCurrentLink = url;
             new AsyncTask<Void, Void, Void>() {
-
                 @Override
                 protected Void doInBackground(Void... voids) {
                     APIRequester requester = new APIRequester(new FileHelper(mContext).getApiCachedFolder());
@@ -222,13 +281,13 @@ public class MediaRecord {
                     rChannel.setServiceChannelId(channel.getKey());
                     RadioProgram radioProgram = null;
                     for (int i = 0; i < 3; i++) {
+                        writeLogFile("Timer recording: try to fetch program #" + (i + 1));
                         try {
                             radioProgram = requester.getPrograms(rChannel, RadioArea.getArea(rawAreaId, channel.getType()), AndroidUtil.getAdsId(mContext));
                         } catch (IOException e) {
                             SimpleAppLog.error("Could not fetch programs", e);
                             e.printStackTrace();
                         }
-
                         if (validateChannelProgram(radioProgram)) {
                             break;
                         } else {
@@ -243,11 +302,7 @@ public class MediaRecord {
                             }
                         }
                     }
-                    link = streamUrl.split("\\|{4}");
-                    numLink = link.length;
-                    currentLinkPos = 0;
-                    currentLink = link[currentLinkPos];
-                    startRecording(currentLink);
+                    startRecording(mCurrentLink);
                     return null;
                 }
             }.execute();
@@ -255,6 +310,8 @@ public class MediaRecord {
 
         @Override
         public void onError(String message, Throwable throwable) {
+            writeLogFile("Timer recording: token could not be fetched - end recording");
+            finishRecord();
             notifyChange(null);
         }
     };
@@ -262,7 +319,7 @@ public class MediaRecord {
     FFmpegMediaPlayer.OnRecordingListener recordingListener = new FFmpegMediaPlayer.OnRecordingListener() {
 
         @Override
-        public void onCompleted(Channel selectedChannel, int recordedSampleRate, int recordedChannel, int recordedAudioEncoding, int recordedBufferSize, String filePath, long recordedID, boolean forceStop) {
+        public void onCompleted(Channel selectedChannel, int recordedSampleRate, int recordedChannel, int recordedAudioEncoding, int recordedBufferSize, String filePath, long recordedID) {
             if (filePath == null || filePath.length() == 0) {
                 SimpleAppLog.error("Recoding could not be completed");
                 return;
@@ -286,8 +343,8 @@ public class MediaRecord {
                         RecordedProgram recordedProgram = adapter.toObject(adapter.get(recordedID));
                         if (recordedProgram != null) {
                             long endTime = System.currentTimeMillis();
-                            if (radioProgram != null) {
-                                channel.setCurrentProgram(AndroidUtil.getMaxTimedProgram(recordedProgram.getStartTime().getTime(), endTime, MediaRecord.this.radioProgram.getPrograms()));
+                            if (mRadioProgram != null) {
+                                channel.setCurrentProgram(AndroidUtil.getMaxTimedProgram(recordedProgram.getStartTime().getTime(), endTime, MediaRecord.this.mRadioProgram.getPrograms()));
                             }
                             if (channel.getCurrentProgram() != null) {
                                 recordedProgram.setName(channel.getCurrentProgram().getTitle());
@@ -299,7 +356,17 @@ public class MediaRecord {
                                 recordedProgram.setFilePath(newFile.getAbsolutePath());
                             }
                             recordedProgram.setEndTime(new Date(endTime));
-                            adapter.update(recordedProgram);
+                            if (mCurrentRetryCount > 1 && !(endTime - recordedProgram.getStartTime().getTime() > 60000)) {
+                                writeLogFile("Timer Recording: file recorded too small, file length: " + (endTime - recordedProgram.getStartTime().getTime()));
+                                adapter.delete(recordedID);
+                                try {
+                                    FileUtils.forceDelete(mp3File);
+                                } catch (IOException e) {
+                                    e.printStackTrace();
+                                }
+                            } else {
+                                adapter.update(recordedProgram);
+                            }
                         }
                     } catch (SQLException e) {
                         e.printStackTrace();
@@ -318,10 +385,7 @@ public class MediaRecord {
             calFinish.set(Calendar.HOUR_OF_DAY, selectedTimer.getFinishHour());
             calFinish.set(Calendar.MINUTE, selectedTimer.getFinishMinute());
             calFinish.set(Calendar.SECOND, 0);
-            if (System.currentTimeMillis() >= calFinish.getTimeInMillis() || forceStop) {
-                notifyChange(null);
-            }
-            completeSaveHandler.post(new Runnable() {
+            completeHandler.post(new Runnable() {
                 @Override
                 public void run() {
                     Intent intent = new Intent(Constants.INTENT_FILTER_FRAGMENT_ACTION);
@@ -334,31 +398,48 @@ public class MediaRecord {
         @Override
         public void onError(String message, Throwable e, long recordedID) {
             deleteRecordedProgram(recordedID);
+            finishRecord();
             notifyChange(null);
         }
 
         @Override
-        public void onRetry(FFmpegMediaPlayer mp) {
-            currentLinkPos++;
-            if (currentLinkPos >= numLink) {
-                currentLinkPos = 0;
-                currentRetry++;
-                currentTimeout = currentTimeout * 2 > MAX_TIMEOUT ? MAX_TIMEOUT : currentTimeout * 2;
-            }
-            currentLink = link[currentLinkPos];
-            FFmpegMediaPlayer.retry = currentRetry;
-
+        public void onRetry(FFmpegMediaPlayer mp, String cause) {
+            mCurrentRetryCount++;
+            mCurrentRetry++;
+            writeLogFile("Timer recording: retry #" + mCurrentRetryCount + " cause " + cause + " - prepare to retry recording");
+            currentTimeout = currentTimeout * 4 > MAX_TIMEOUT ? MAX_TIMEOUT : currentTimeout * 4;
             String path = mp.getRecordingPath();
             if (path == null || path.length() == 0 || !(new File(path).exists())) {
                 deleteRecordedProgram(mp.getRecordedID());
                 SimpleAppLog.debug("RECORD : Delete invalid file " + mp.getRecordedID());
+                writeLogFile("Timer recording: delete null file");
             } else {
-                currentRetry = 1;
-                currentTimeout = 1000;
+                if (FFmpegMediaPlayer.mRetryPivot != 0 && new File(path).length() == 0) {
+                    writeLogFile("Timer recording: delete zero byte file");
+                    SimpleAppLog.debug("RECORD : Delete invalid file " + mp.getRecordedID());
+                    deleteRecordedProgram(mp.getRecordedID());
+                    try {
+                        FileUtils.forceDelete(new File(path));
+                    } catch (IOException e) {
+                        e.printStackTrace();
+                    }
+                } else {
+                    mCurrentRetry = 1;
+                    currentTimeout = 1000;
+                }
             }
+            FFmpegMediaPlayer.mRetryPivot = mCurrentRetry;
             SimpleAppLog.debug("RECORD " + currentTimeout);
-            if (currentRetry <= 10) {
+            if (mCurrentRetry <= 5) {
                 retryHandler.postDelayed(retryRunable, currentTimeout);
+            } else {
+                new AsyncTask<Void, Void, Void>() {
+                    @Override
+                    protected Void doInBackground(Void... voids) {
+                        finishRecord();
+                        return null;
+                    }
+                }.execute();
             }
         }
     };
@@ -374,7 +455,7 @@ public class MediaRecord {
                     Calendar calTo = Calendar.getInstance();
                     calTo.setTimeInMillis(program.getToTime());
                     if (calNow.getTimeInMillis() >= calFrom.getTimeInMillis() && calNow.getTimeInMillis() <= calTo.getTimeInMillis()) {
-                        this.radioProgram = radioProgram;
+                        this.mRadioProgram = radioProgram;
                         channel.setCurrentProgram(program);
                         return true;
                     }
@@ -405,13 +486,17 @@ public class MediaRecord {
                     @Override
                     public void onPrepared(FFmpegMediaPlayer mp) {
                         SimpleAppLog.info("Start recorder");
+                        writeLogFile("Timer recording: prepare successful, start record");
                         mp.start();
                     }
                 });
+                writeLogFile("Timer recording: prepare to record");
                 SimpleAppLog.info("Prepare recorder");
                 try {
                     recorder.prepare();
                 } catch (IOException e) {
+                    e.printStackTrace();
+                } catch (IllegalStateException e) {
                     e.printStackTrace();
                 }
             }

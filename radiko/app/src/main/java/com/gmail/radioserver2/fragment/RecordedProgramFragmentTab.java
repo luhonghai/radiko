@@ -41,6 +41,7 @@ import junit.runner.BaseTestRunner;
 import org.apache.commons.io.FileUtils;
 
 import java.io.File;
+import java.util.ArrayList;
 import java.util.Collection;
 
 /**
@@ -133,10 +134,14 @@ public class RecordedProgramFragmentTab extends FragmentTab implements OnListIte
                 programs = dbAdapter.findByLibrary(selectedLibrary, s);
             } else {
                 txtPageTitle.setText(getString(R.string.label_recorded_programs));
-                programs = dbAdapter.search(s);
+                Collection<RecordedProgram> tempPrograms = dbAdapter.search(s);
+                programs = new ArrayList<>();
+                for (RecordedProgram item : tempPrograms) {
+                    if (item.getFilePath() != null && (new File(item.getFilePath())).exists() && (new File(item.getFilePath())).length() != 0) {
+                        programs.add(item);
+                    }
+                }
             }
-
-
             if (programs != null && programs.size() > 0) {
                 objects = new RecordedProgram[programs.size()];
                 programs.toArray(objects);

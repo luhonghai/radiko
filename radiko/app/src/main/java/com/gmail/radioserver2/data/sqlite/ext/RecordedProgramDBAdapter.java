@@ -15,7 +15,7 @@ import java.util.Date;
 /**
  * Created by luhonghai on 25/02/2015.
  */
-public class RecordedProgramDBAdapter extends DBAdapter<RecordedProgram>  {
+public class RecordedProgramDBAdapter extends DBAdapter<RecordedProgram> {
 
     private static final String QUERY_SELECT_RECORDED_PROGRAM_BY_LIBRARY = "select rp." + KEY_ROW_ID
             + ", rp." + KEY_NAME
@@ -67,13 +67,13 @@ public class RecordedProgramDBAdapter extends DBAdapter<RecordedProgram>  {
         String[] args;
         if (search != null && search.length() > 0) {
             query += " and (rp." + KEY_NAME + " like ? or rp." + KEY_CHANNEL_NAME + " like ?)";
-            args = new String[] {
+            args = new String[]{
                     Long.toString(library.getId()),
                     "%" + search + "%",
                     "%" + search + "%"
             };
         } else {
-            args = new String[] {
+            args = new String[]{
                     Long.toString(library.getId())
             };
         }
@@ -86,7 +86,7 @@ public class RecordedProgramDBAdapter extends DBAdapter<RecordedProgram>  {
     public void deleteAllMapping(RecordedProgram program) throws Exception {
         getDB().delete(TABLE_RECORDED_PROGRAM_LIBRARY,
                 KEY_PRIMARY_MAPPING + "=?",
-                new String[] {
+                new String[]{
                         Long.toString(program.getId())
                 });
     }
@@ -120,7 +120,7 @@ public class RecordedProgramDBAdapter extends DBAdapter<RecordedProgram>  {
         if (s == null || s.length() == 0) return findAll();
         return toCollection(getDB().query(getTableName(), getAllColumns(),
                 KEY_NAME + " like ? or " + KEY_CHANNEL_NAME + " like ?",
-                new String[] {
+                new String[]{
                         "%" + s + "%",
                         "%" + s + "%"
                 },
@@ -133,7 +133,7 @@ public class RecordedProgramDBAdapter extends DBAdapter<RecordedProgram>  {
         Cursor mCursor =
                 getDB().query(true, getTableName(), getAllColumns(),
                         KEY_FILE_PATH + "=?",
-                        new String[] { filePath },
+                        new String[]{filePath},
                         null,
                         null,
                         null,
