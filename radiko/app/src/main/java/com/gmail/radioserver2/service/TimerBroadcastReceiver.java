@@ -75,9 +75,7 @@ public class TimerBroadcastReceiver extends BroadcastReceiver {
                 Type mapType = new TypeToken<List<Timer>>() {
                 }.getType();
                 listTimer = gson.fromJson(timerList, mapType);
-                if (listTimer.size() == 0) {
-                    mContext.sendBroadcast(new Intent(TimerManagerReceiver.ACTION_START_TIMER));
-                } else {
+                if (listTimer.size() != 0) {
                     createAlarm(listTimer);
                 }
             } catch (Exception e) {

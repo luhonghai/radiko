@@ -85,13 +85,21 @@ public class TimerManagerReceiver extends BroadcastReceiver {
                         Calendar calculateCal = Calendar.getInstance();
                         calculateCal.set(Calendar.HOUR_OF_DAY, item.getStartHour());
                         calculateCal.set(Calendar.MINUTE, item.getStartMinute());
-                        calculateCal.set(Calendar.SECOND, 0);
+                        if (item.getStartHour() == 0 && item.getStartMinute() == 0) {
+                            calculateCal.set(Calendar.SECOND, 10);
+                        } else {
+                            calculateCal.set(Calendar.SECOND, 0);
+                        }
                         switch (item.getMode()) {
                             case Timer.MODE_ONE_TIME:
                                 calculateCal.setTime(item.getEventDate());
                                 calculateCal.set(Calendar.HOUR_OF_DAY, item.getStartHour());
                                 calculateCal.set(Calendar.MINUTE, item.getStartMinute());
-                                calculateCal.set(Calendar.SECOND, 0);
+                                if (item.getStartHour() == 0 && item.getStartMinute() == 0) {
+                                    calculateCal.set(Calendar.SECOND, 10);
+                                } else {
+                                    calculateCal.set(Calendar.SECOND, 0);
+                                }
                                 if (calculateCal.getTimeInMillis() > currentCal.getTimeInMillis()) {
                                     item.setNextAlarmTime(calculateCal.getTimeInMillis());
                                     todayTimerList.add(item);
@@ -106,6 +114,11 @@ public class TimerManagerReceiver extends BroadcastReceiver {
                                         calculateCal.set(Calendar.HOUR_OF_DAY, item.getStartHour());
                                         calculateCal.set(Calendar.MINUTE, item.getStartMinute());
                                         calculateCal.set(Calendar.SECOND, 0);
+                                        if (item.getStartHour() == 0 && item.getStartMinute() == 0) {
+                                            calculateCal.set(Calendar.SECOND, 10);
+                                        } else {
+                                            calculateCal.set(Calendar.SECOND, 0);
+                                        }
                                         item.setNextAlarmTime(calculateCal.getTimeInMillis());
                                         todayTimerList.add(item);
                                         SimpleAppLog.debug("Add today timer: " + new Date(item.getNextAlarmTime()).toString());
