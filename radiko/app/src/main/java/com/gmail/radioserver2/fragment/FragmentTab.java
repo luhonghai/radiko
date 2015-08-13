@@ -12,7 +12,7 @@ import com.google.android.gms.analytics.Tracker;
 
 /**
  * Created by luhonghai on 2/17/15.
- *
+ * <p/>
  * Base fragment tab
  */
 public class FragmentTab extends SherlockFragment {

@@ -49,7 +49,7 @@ public class CustomSeekBar extends SeekBar {
         paint.setTypeface(Typeface.DEFAULT_BOLD);
 
         paint.setColor(getContext().getResources().getColor(R.color.default_button_color));
-        Drawable thumbDrawable =  getContext().getResources().getDrawable(R.drawable.apptheme_scrubber_control_normal_holo);
+        Drawable thumbDrawable = getContext().getResources().getDrawable(R.drawable.apptheme_scrubber_control_normal_holo);
         if (thumbDrawable != null) {
             thumbWidth = thumbDrawable.getIntrinsicHeight();
             thumbHeight = thumbDrawable.getIntrinsicWidth();

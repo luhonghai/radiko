@@ -21,7 +21,7 @@ public class SimpleAppLog {
     }
 
     public static void debug(String log) {
-        Log.d(TAG,log);
+        Log.d(TAG, log);
     }
 
     public static void error(String log) {

@@ -487,7 +487,7 @@ public class SSRC {
             } else {
                 throw new IllegalArgumentException(
                         String.format("Resampling from %dHz to %dHz is not supported.\n" +
-                                "%d/gcd(%d,%d)=%d must be divided by 2 or 3.\n",
+                                        "%d/gcd(%d,%d)=%d must be divided by 2 or 3.\n",
                                 sfrq, dfrq, sfrq, sfrq, dfrq, fs1 / dfrq));
             }
 
@@ -1069,7 +1069,7 @@ public class SSRC {
             } else {
                 throw new IllegalArgumentException(
                         String.format("Resampling from %dHz to %dHz is not supported.\n" +
-                                "%d/gcd(%d,%d)=%d must be divided by 2 or 3.",
+                                        "%d/gcd(%d,%d)=%d must be divided by 2 or 3.",
                                 sfrq, dfrq, dfrq, sfrq, dfrq, dfrq / frqgcd));
             }
 
@@ -1771,7 +1771,8 @@ public class SSRC {
             0.7, 0.9, 0.18
     };
 
-    public SSRC(){}
+    public SSRC() {
+    }
 
     /** */
     SSRC(String[] argv) throws IOException {

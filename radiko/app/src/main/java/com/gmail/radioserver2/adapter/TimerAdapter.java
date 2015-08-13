@@ -52,7 +52,7 @@ public class TimerAdapter extends DefaultAdapter<Timer> {
             holder = (ViewHolder) convertView.getTag();
         }
         if (parent instanceof SwipeListView) {
-            ((SwipeListView)parent).recycle(convertView, position);
+            ((SwipeListView) parent).recycle(convertView, position);
         }
         Timer timer = getObjects()[position];
         holder.txtTitle.setText(timer.toPrettyString(getContext()));

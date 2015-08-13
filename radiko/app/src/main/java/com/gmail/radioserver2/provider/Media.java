@@ -31,21 +31,23 @@ public final class Media {
      * The string that is used when a media attribute is not known.
      */
     public static final String UNKNOWN_STRING = "";
-    
+
     /**
      * The integer that is used when a media attribute is not known.
      */
     public static final int UNKNOWN_INTEGER = -1;
-    
+
     // This class cannot be instantiated
-    private Media() {}
-    
+    private Media() {
+    }
+
     /**
      * Media table
      */
     public static final class MediaColumns implements BaseColumns {
         // This class cannot be instantiated
-        private MediaColumns() {}
+        private MediaColumns() {
+        }
 
         /**
          * The content:// style URL for this table
@@ -66,33 +68,33 @@ public final class Media {
          * The default sort order for this table
          */
         public static final String DEFAULT_SORT_ORDER = "_id DESC";
-        
+
         /**
          * The URI of a media file
          * <P>Type: TEXT</P>
          */
         public static final String URI = "uri";
-        
+
         /**
-         * The title of the content 
+         * The title of the content
          * <P>Type: TEXT</P>
          */
         public static final String TITLE = "title";
-        
+
         /**
-         * The album an audio file is from, if any 
+         * The album an audio file is from, if any
          * <P>Type: TEXT</P>
          */
         public static final String ALBUM = "album";
 
         /**
-         * The artist who created an audio file, if any 
+         * The artist who created an audio file, if any
          * <P>Type: TEXT</P>
          */
         public static final String ARTIST = "artist";
 
         /**
-         * The duration of the media file, in ms 
+         * The duration of the media file, in ms
          * <P>Type: INTEGER (long)</P>
          */
         public static final String DURATION = "duration";
@@ -104,13 +106,13 @@ public final class Media {
         public static final String TRACK = "track";
 
         /**
-         * The year a media file was created, if any 
+         * The year a media file was created, if any
          * <P>Type: INTEGER</P>
          */
         public static final String YEAR = "year";
-        
+
         /**
-         * The artwork associated with the media file, if any 
+         * The artwork associated with the media file, if any
          * <P>Type: BLOB</P>
          */
         public static final String ARTWORK = "artwork";

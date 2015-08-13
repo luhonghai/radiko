@@ -23,6 +23,7 @@ import com.gmail.radioserver2.service.IMediaPlaybackService;
 import com.gmail.radioserver2.service.MediaPlaybackService;
 import com.gmail.radioserver2.service.MusicUtils;
 import com.gmail.radioserver2.service.MusicUtils.ServiceToken;
+
 import android.content.BroadcastReceiver;
 import android.content.ComponentName;
 import android.content.Context;
@@ -42,136 +43,136 @@ import android.widget.ImageView;
 import android.widget.TextView;
 
 public class MiniControllerFragment extends Fragment implements ServiceConnection {
-	
-	private View mNowPlayingView;
-	private TextView mTitle;
-	private TextView mArtist;
-	private ImageView mPauseButton;
-	
+
+    private View mNowPlayingView;
+    private TextView mTitle;
+    private TextView mArtist;
+    private ImageView mPauseButton;
+
     private IMediaPlaybackService mService = null;
-    
+
     private ServiceToken mToken;
-	
-	@Override
+
+    @Override
     public void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
-		
-		mToken = MusicUtils.bindToService(getActivity(), this);
+
+        mToken = MusicUtils.bindToService(getActivity(), this);
     }
-	
-	@Override
-	public View onCreateView(LayoutInflater inflater, ViewGroup container,
-			Bundle savedInstanceState) {
-		View view = inflater.inflate(R.layout.fragment_mini_controller, container, false);
-		mNowPlayingView = view.findViewById(R.id.bigContainer);
-		mTitle = (TextView) view.findViewById(R.id.titleView);
-		mArtist = (TextView) view.findViewById(R.id.subTitleView);
-		mPauseButton = (ImageView) view.findViewById(R.id.playPauseView);
-		
-		return view;
-	}
-	
-	@Override
-	public void onActivityCreated (Bundle savedInstanceState) {
-		super.onActivityCreated(savedInstanceState);
-		updateNowPlaying();
-	}
- 
+
     @Override
-	public void onResume() {
-		super.onResume();
-		
+    public View onCreateView(LayoutInflater inflater, ViewGroup container,
+                             Bundle savedInstanceState) {
+        View view = inflater.inflate(R.layout.fragment_mini_controller, container, false);
+        mNowPlayingView = view.findViewById(R.id.bigContainer);
+        mTitle = (TextView) view.findViewById(R.id.titleView);
+        mArtist = (TextView) view.findViewById(R.id.subTitleView);
+        mPauseButton = (ImageView) view.findViewById(R.id.playPauseView);
+
+        return view;
+    }
+
+    @Override
+    public void onActivityCreated(Bundle savedInstanceState) {
+        super.onActivityCreated(savedInstanceState);
+        updateNowPlaying();
+    }
+
+    @Override
+    public void onResume() {
+        super.onResume();
+
         IntentFilter f = new IntentFilter();
         f.addAction(MediaPlaybackService.PLAYSTATE_CHANGED);
         f.addAction(MediaPlaybackService.META_CHANGED);
         f.addAction(MediaPlaybackService.QUEUE_CHANGED);
         getActivity().registerReceiver(mTrackListListener, f);
-	}
+    }
 
-	@Override
-	public void onPause() {
-		super.onPause();
-		
+    @Override
+    public void onPause() {
+        super.onPause();
+
         getActivity().unregisterReceiver(mTrackListListener);
-	}
-	
-	@Override
-	public void onDestroy() {
-		MusicUtils.unbindFromService(mToken);
-		mService = null;
-		
-		super.onDestroy();
-	}
+    }
+
+    @Override
+    public void onDestroy() {
+        MusicUtils.unbindFromService(mToken);
+        mService = null;
+
+        super.onDestroy();
+    }
 
     private BroadcastReceiver mTrackListListener = new BroadcastReceiver() {
         @Override
         public void onReceive(Context context, Intent intent) {
-        	updateNowPlaying();
+            updateNowPlaying();
         }
     };
-	
-	@Override
-	public void onServiceConnected(ComponentName name, IBinder service) {
-		mService = IMediaPlaybackService.Stub.asInterface(service);
-		updateNowPlaying();
-	}
 
-	@Override
-	public void onServiceDisconnected(ComponentName name) {
-		Animation fade_out = AnimationUtils.loadAnimation(getActivity(), R.anim.player_out);
-		mNowPlayingView.startAnimation(fade_out);
-		mNowPlayingView.setVisibility(View.GONE);
-	}
-	
-	private void updateNowPlaying() {
-		if (mNowPlayingView == null) {
-			return;
-		}
-		try {
-			if (true && mService != null && mService.getAudioId() != -1) {
-				mTitle.setSelected(true);
-				mArtist.setSelected(true);
+    @Override
+    public void onServiceConnected(ComponentName name, IBinder service) {
+        mService = IMediaPlaybackService.Stub.asInterface(service);
+        updateNowPlaying();
+    }
 
-				CharSequence trackName = mService.getTrackName();
-				CharSequence artistName = mService.getArtistName();                
+    @Override
+    public void onServiceDisconnected(ComponentName name) {
+        Animation fade_out = AnimationUtils.loadAnimation(getActivity(), R.anim.player_out);
+        mNowPlayingView.startAnimation(fade_out);
+        mNowPlayingView.setVisibility(View.GONE);
+    }
 
-				String UNKNOWN_STRING = "Unknown";
-				
-				if (trackName == null || trackName.equals(UNKNOWN_STRING)) {
-					mTitle.setText(R.string.widget_one_track_info_unavailable);
-					
-				} else {
-					mTitle.setText(trackName);
-				}
+    private void updateNowPlaying() {
+        if (mNowPlayingView == null) {
+            return;
+        }
+        try {
+            if (true && mService != null && mService.getAudioId() != -1) {
+                mTitle.setSelected(true);
+                mArtist.setSelected(true);
 
-				if (artistName == null || artistName.equals(UNKNOWN_STRING)) {
-					artistName = mService.getMediaUri();
-				}
+                CharSequence trackName = mService.getTrackName();
+                CharSequence artistName = mService.getArtistName();
 
-				mArtist.setText(artistName);
+                String UNKNOWN_STRING = "Unknown";
 
-				mPauseButton.setVisibility(View.VISIBLE);
+                if (trackName == null || trackName.equals(UNKNOWN_STRING)) {
+                    mTitle.setText(R.string.widget_one_track_info_unavailable);
 
-				if (mService.isPlaying()) {
-					mPauseButton.setImageResource(R.drawable.ic_av_pause_light);
-				} else {
-					mPauseButton.setImageResource(R.drawable.ic_av_play_light);
-				}
+                } else {
+                    mTitle.setText(trackName);
+                }
 
-				mPauseButton.setOnClickListener(new View.OnClickListener() {
+                if (artistName == null || artistName.equals(UNKNOWN_STRING)) {
+                    artistName = mService.getMediaUri();
+                }
 
-					@Override
-					public void onClick(View v) {
-						try {
-							if (mService.isPlaying()) {
-								mService.pause();
-							} else {
-								mService.play();
-							}
-						} catch (RemoteException e) {
-						}
-					}
-				});
+                mArtist.setText(artistName);
+
+                mPauseButton.setVisibility(View.VISIBLE);
+
+                if (mService.isPlaying()) {
+                    mPauseButton.setImageResource(R.drawable.ic_av_pause_light);
+                } else {
+                    mPauseButton.setImageResource(R.drawable.ic_av_play_light);
+                }
+
+                mPauseButton.setOnClickListener(new View.OnClickListener() {
+
+                    @Override
+                    public void onClick(View v) {
+                        try {
+                            if (mService.isPlaying()) {
+                                mService.pause();
+                            } else {
+                                mService.play();
+                            }
+                        } catch (RemoteException e) {
+                        }
+                    }
+                });
 
 //				if (mNowPlayingView.getVisibility() != View.VISIBLE) {
 //					Animation fade_in = AnimationUtils.loadAnimation(getActivity(), R.anim.player_in);
@@ -188,12 +189,12 @@ public class MiniControllerFragment extends Fragment implements ServiceConnectio
 //					}
 //				});
 
-				return;
-			}
-		} catch (RemoteException ex) {
-		}
-		Animation fade_out = AnimationUtils.loadAnimation(getActivity(), R.anim.player_out);
-		mNowPlayingView.startAnimation(fade_out);
-		mNowPlayingView.setVisibility(View.GONE);
-	}
+                return;
+            }
+        } catch (RemoteException ex) {
+        }
+        Animation fade_out = AnimationUtils.loadAnimation(getActivity(), R.anim.player_out);
+        mNowPlayingView.startAnimation(fade_out);
+        mNowPlayingView.setVisibility(View.GONE);
+    }
 }

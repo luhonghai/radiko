@@ -41,7 +41,7 @@ public class LibraryDBAdapter extends DBAdapter<Library> {
 
     @Override
     public String[] getAllColumns() {
-        return new String[] {
+        return new String[]{
                 KEY_ROW_ID,
                 KEY_NAME,
                 KEY_CREATED_DATE
@@ -50,7 +50,7 @@ public class LibraryDBAdapter extends DBAdapter<Library> {
 
     public Collection<Library> findByRecordedProgram(RecordedProgram program) {
         return toCollection(getDB().rawQuery(QUERY_SELECT_LIBRARY_BY_RECORDED_PROGRAM,
-                new String[] {
+                new String[]{
                         Long.toString(program.getId())
                 }));
     }
@@ -69,7 +69,7 @@ public class LibraryDBAdapter extends DBAdapter<Library> {
         if (s == null || s.length() == 0) return findAll();
         return toCollection(getDB().query(getTableName(), getAllColumns(),
                 KEY_NAME + " like ?",
-                new String[] {
+                new String[]{
                         "%" + s + "%"
                 },
                 null,
@@ -88,7 +88,7 @@ public class LibraryDBAdapter extends DBAdapter<Library> {
                 null,
                 null);
         if (cursor.getCount() > 0) {
-            long oldId =cursor.getLong(cursor.getColumnIndex(KEY_ROW_ID));
+            long oldId = cursor.getLong(cursor.getColumnIndex(KEY_ROW_ID));
             Library oldObject = find(oldId);
             obj.setId(oldId);
             obj.setCreatedDate(oldObject.getCreatedDate());

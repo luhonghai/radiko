@@ -108,7 +108,7 @@ public class LibraryPickerActivity extends BaseActivity implements View.OnClickL
                     }
                 }
             } else {
-                items = new Library[] {};
+                items = new Library[]{};
             }
             adapter = new LibraryPickerAdapter(this, items, selectedItems, this);
             listView.setAdapter(adapter);
@@ -138,7 +138,7 @@ public class LibraryPickerActivity extends BaseActivity implements View.OnClickL
                 long id = adapter.insert(library);
                 library = adapter.find(id);
             } catch (Exception e) {
-                SimpleAppLog.error("Could not insert new library",e);
+                SimpleAppLog.error("Could not insert new library", e);
             } finally {
                 adapter.close();
             }
@@ -190,7 +190,7 @@ public class LibraryPickerActivity extends BaseActivity implements View.OnClickL
             adapter.open();
             adapter.delete(obj);
         } catch (Exception ex) {
-            SimpleAppLog.error("Could not delete library",ex);
+            SimpleAppLog.error("Could not delete library", ex);
         } finally {
             adapter.close();
         }
@@ -200,7 +200,7 @@ public class LibraryPickerActivity extends BaseActivity implements View.OnClickL
             public void run() {
                 loadData();
             }
-        },100);
+        }, 100);
     }
 
     @Override

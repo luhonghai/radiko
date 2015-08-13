@@ -3,13 +3,16 @@ package com.gmail.radioserver2.service;
 import android.app.Notification;
 import android.app.PendingIntent;
 import android.app.Service;
+import android.content.BroadcastReceiver;
 import android.content.ComponentName;
 import android.content.Context;
 import android.content.Intent;
+import android.content.IntentFilter;
 import android.content.ServiceConnection;
 import android.net.ConnectivityManager;
 import android.net.NetworkInfo;
 import android.net.wifi.WifiManager;
+import android.os.Binder;
 import android.os.Bundle;
 import android.os.IBinder;
 import android.os.PowerManager;
@@ -23,6 +26,7 @@ import com.gmail.radioserver2.data.Timer;
 import com.gmail.radioserver2.utils.Constants;
 import com.gmail.radioserver2.utils.FileHelper;
 import com.gmail.radioserver2.utils.SimpleAppLog;
+import com.google.gson.Gson;
 
 import org.apache.commons.io.FileUtils;
 
@@ -30,19 +34,26 @@ import java.io.File;
 import java.io.IOException;
 import java.nio.charset.Charset;
 import java.text.SimpleDateFormat;
+import java.util.Calendar;
 import java.util.Date;
 import java.util.Locale;
+import java.util.Objects;
+import java.util.concurrent.LinkedBlockingQueue;
+
+import wseemann.media.FFmpegMediaPlayer;
 
 public class RecordBackgroundService extends Service implements OnRecordStateChangeListenner, ServiceConnection {
+    private boolean isRecording = false;
     private final int MAX_FILE_SIZE = 2 * 1024 * 1024;
     public static final int PLAYBACKSERVICE_STATUS = 1;
+    public static final String ACTION_TAKE_NEXT_TIMER = "com.gmail.radioserver2.service.action.take.next.timer";
     public static final String PARAM_TIMER = "param_timer";
     public static PowerManager.WakeLock mWakeLock;
     private IMediaPlaybackService mService;
     private MusicUtils.ServiceToken mServiceToken;
-    private Timer selectedTimer;
-    private int numRecordProcess = 0;
     private WifiManager.WifiLock wifiLock;
+    private MediaRecord mMediaRecord;
+    private static final LinkedBlockingQueue<Timer> timerLinkedBlockingQueque = new LinkedBlockingQueue<>();
 
     @Override
     public void onCreate() {
@@ -61,16 +72,17 @@ public class RecordBackgroundService extends Service implements OnRecordStateCha
             if (intent != null) {
                 Bundle bd = intent.getExtras();
                 if (bd != null) {
-                    selectedTimer = (Timer) bd.getSerializable(PARAM_TIMER);
+                    String strTimer = bd.getString(PARAM_TIMER);
+                    Timer selectedTimer = new Gson().fromJson(strTimer, Timer.class);
                     if (selectedTimer != null) {
                         acquireLock();
-                        startRecord(selectedTimer);
+                        prepareRecord(selectedTimer);
                     }
                 }
             }
         } else {
             File mLogFile;
-            SimpleDateFormat dateFormat = new SimpleDateFormat("dd/MM/yyyy - HH:mm:ss");
+            SimpleDateFormat dateFormat = new SimpleDateFormat("yyyy/MM/dd - HH:mm:ss");
             FileHelper fileHelper = new FileHelper(this);
             mLogFile = new File(fileHelper.getRecordedProgramFolder(), "record_log.txt");
             if (mLogFile.exists() && FileUtils.sizeOf(mLogFile) > MAX_FILE_SIZE) {
@@ -137,22 +149,40 @@ public class RecordBackgroundService extends Service implements OnRecordStateCha
 
     @Override
     public IBinder onBind(Intent intent) {
-        return null;
+        return new RecordServiceBinder();
     }
 
     @Override
     public void onDestroy() {
-        numRecordProcess = 0;
         unboundService();
+        timerLinkedBlockingQueque.clear();
         releaseWakeLock();
         stopForeground(true);
         super.onDestroy();
+        mMediaRecord = null;
     }
 
-    private void startRecord(Timer timer) {
-        numRecordProcess++;
-        MediaRecord md = new MediaRecord(this, mService, timer, this);
-        md.execute();
+    private void prepareRecord(Timer timer) {
+        if (timer.getType() == Timer.TYPE_RECORDING) {
+            synchronized (timerLinkedBlockingQueque) {
+                if (!isRecording) {
+                    startTimer(timer);
+                } else {
+                    SimpleAppLog.debug("add timer to queue");
+                    timerLinkedBlockingQueque.add(timer);
+                }
+            }
+        } else {
+            MediaRecord mMediaRecord = new MediaRecord(this, mService, timer, this);
+            mMediaRecord.execute();
+        }
+    }
+
+    private void startTimer(Timer timer) {
+        isRecording = true;
+        mMediaRecord = null;
+        mMediaRecord = new MediaRecord(this, mService, timer, this);
+        mMediaRecord.execute();
     }
 
     private void showServiceNotification(String title, String description) {
@@ -179,13 +209,10 @@ public class RecordBackgroundService extends Service implements OnRecordStateCha
                     if (program != null) {
                         SimpleDateFormat sdf = new SimpleDateFormat("HH:mm", Locale.JAPANESE);
                         StringBuilder sb = new StringBuilder();
-                        String des = "";
-                        if (program != null) {
-                            sb.append(program.getTitle());
-                            sb.append("\n");
-                            sb.append(sdf.format(new Date(program.getFromTime())));
-                            sb.append(" - ").append(sdf.format(new Date(program.getToTime())));
-                        }
+                        sb.append(program.getTitle());
+                        sb.append("\n");
+                        sb.append(sdf.format(new Date(program.getFromTime())));
+                        sb.append(" - ").append(sdf.format(new Date(program.getToTime())));
                         showServiceNotification(channel.getName(), sb.toString());
                     } else {
                         showServiceNotification(channel.getName(), "");
@@ -198,10 +225,40 @@ public class RecordBackgroundService extends Service implements OnRecordStateCha
     }
 
     @Override
-    public void refresh() {
+    public void refresh(boolean isRecord) {
         SimpleAppLog.debug("SERVICE: refresh");
-        numRecordProcess--;
-        if (numRecordProcess <= 0) {
+        if (isRecord) {
+            synchronized (timerLinkedBlockingQueque) {
+                isRecording = false;
+                if (timerLinkedBlockingQueque.size() != 0) {
+                    try {
+                        Timer timer;
+                        timer = timerLinkedBlockingQueque.take();
+                        if (timer != null) {
+                            Calendar cal = Calendar.getInstance();
+                            cal.set(Calendar.HOUR_OF_DAY, timer.getFinishHour());
+                            cal.set(Calendar.MINUTE, timer.getFinishMinute());
+                            cal.set(Calendar.SECOND, 0);
+                            if (System.currentTimeMillis() < cal.getTimeInMillis()) {
+                                SimpleAppLog.debug("SERVICE: START queue timer - Queue size: " + timerLinkedBlockingQueque.size());
+                                startTimer(timer);
+                            } else if (timerLinkedBlockingQueque.size() != 0) {
+                                SimpleAppLog.debug("SERVICE: START queue timer - Queue size: " + timerLinkedBlockingQueque.size());
+                                refresh(true);
+                            } else {
+                                SimpleAppLog.debug("SERVICE: START queue timer - Queue size: " + timerLinkedBlockingQueque.size());
+                            }
+                        } else if (timerLinkedBlockingQueque.size() != 0) {
+                            SimpleAppLog.debug("SERVICE: START queue timer - Queue size: " + timerLinkedBlockingQueque.size());
+                            refresh(true);
+                        }
+                    } catch (InterruptedException e) {
+                        e.printStackTrace();
+                    }
+                }
+            }
+        }
+        if (!isRecording) {
             releaseWakeLock();
             stopForeground(true);
         }
@@ -221,5 +278,11 @@ public class RecordBackgroundService extends Service implements OnRecordStateCha
     private void unboundService() {
         MusicUtils.unbindFromService(mServiceToken);
         mService = null;
+    }
+
+    public class RecordServiceBinder extends Binder {
+        public RecordBackgroundService getService() {
+            return RecordBackgroundService.this;
+        }
     }
 }

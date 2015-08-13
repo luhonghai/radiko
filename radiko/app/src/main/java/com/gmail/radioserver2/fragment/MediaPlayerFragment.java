@@ -25,6 +25,7 @@ import com.gmail.radioserver2.service.MusicUtils;
 import com.gmail.radioserver2.service.MusicUtils.ServiceToken;
 import com.gmail.radioserver2.view.CoverView;
 import com.gmail.radioserver2.view.CoverView.CoverViewListener;
+
 import android.content.BroadcastReceiver;
 import android.content.ComponentName;
 import android.content.Context;
@@ -44,24 +45,24 @@ import android.view.ViewGroup;
 import android.widget.TextView;
 
 public class MediaPlayerFragment extends Fragment implements CoverViewListener {
-	
+
     private Worker mAlbumArtWorker;
     private AlbumArtHandler mAlbumArtHandler;
     private IMediaPlaybackService mService = null;
-    
+
     private ServiceToken mToken;
 
     private TextView mTrackNumber;
-    
-	@Override
-	public View onCreateView(LayoutInflater inflater, ViewGroup container,
-			Bundle savedInstanceState) {
+
+    @Override
+    public View onCreateView(LayoutInflater inflater, ViewGroup container,
+                             Bundle savedInstanceState) {
         //super.onCreateView(inflater,container,savedInstanceState);
-		View view = inflater.inflate(R.layout.fragment_media_player, container, false);
-		
-		mAlbumArtWorker = new Worker("album art worker");
+        View view = inflater.inflate(R.layout.fragment_media_player, container, false);
+
+        mAlbumArtWorker = new Worker("album art worker");
         mAlbumArtHandler = new AlbumArtHandler(mAlbumArtWorker.getLooper());
-        
+
         mAlbum = (CoverView) view.findViewById(R.id.album_art);
         mAlbum.setup(mAlbumArtWorker.getLooper(), this);
         mTrackName = (TextView) view.findViewById(R.id.trackname);
@@ -69,26 +70,26 @@ public class MediaPlayerFragment extends Fragment implements CoverViewListener {
         mArtistAndAlbumName = (TextView) view.findViewById(R.id.artist_and_album);
         mArtistAndAlbumName.setSelected(true);
         mTrackNumber = (TextView) view.findViewById(R.id.track_number_text);
-		
-		return view;
-	}
-    
+
+        return view;
+    }
+
     @Override
     public void onStart() {
         super.onStart();
-        
+
         mToken = MusicUtils.bindToService(getActivity(), osc);
         if (mToken == null) {
             // something went wrong
             //mHandler.sendEmptyMessage(QUIT);
         }
-        
+
         IntentFilter f = new IntentFilter();
         f.addAction(MediaPlaybackService.META_CHANGED);
         getActivity().registerReceiver(mStatusListener, new IntentFilter(f));
         updateTrackInfo();
     }
-    
+
     @Override
     public void onResume() {
         super.onResume();
@@ -102,13 +103,13 @@ public class MediaPlayerFragment extends Fragment implements CoverViewListener {
         mService = null;
         super.onStop();
     }
-    
+
     @Override
     public void onDestroy() {
         mAlbumArtWorker.quit();
         super.onDestroy();
     }
-    
+
     private ServiceConnection osc = new ServiceConnection() {
         public void onServiceConnected(ComponentName classname, IBinder obj) {
             mService = IMediaPlaybackService.Stub.asInterface(obj);
@@ -126,11 +127,12 @@ public class MediaPlayerFragment extends Fragment implements CoverViewListener {
             // activity.
             getActivity().finish();
         }
+
         public void onServiceDisconnected(ComponentName classname) {
             mService = null;
         }
     };
-    
+
     private CoverView mAlbum;
     private TextView mArtistAndAlbumName;
     private TextView mTrackName;
@@ -149,14 +151,15 @@ public class MediaPlayerFragment extends Fragment implements CoverViewListener {
             }
         }
     };
-    
+
     private static class IdWrapper {
         public long id;
-		IdWrapper(long id) {
+
+        IdWrapper(long id) {
             this.id = id;
         }
     }
-    
+
     private void updateTrackInfo() {
         if (mService == null) {
             return;
@@ -167,68 +170,68 @@ public class MediaPlayerFragment extends Fragment implements CoverViewListener {
                 getActivity().finish();
                 return;
             }
-            
+
             //mTrackNumber.setText(mService.getTrackNumber());
-            
+
             String trackName = mService.getTrackName();
             String UNKNOWN_STRING = "Unknown";
             if (trackName == null || trackName.equals(UNKNOWN_STRING)) {
-            	trackName = mService.getMediaUri();
+                trackName = mService.getMediaUri();
             }
-            
+
             mTrackName.setText(trackName);
-            
+
             String artistName = mService.getArtistName();
             String albumName = mService.getAlbumName();
             String artistAndAlbumName = "";
-            
+
             if (artistName != null && !artistName.equals(UNKNOWN_STRING)) {
-            	artistAndAlbumName = artistName;
+                artistAndAlbumName = artistName;
             }
-            
+
             if (albumName != null && !albumName.equals(UNKNOWN_STRING)) {
-            	if (artistAndAlbumName.equals("")) {
-            		artistAndAlbumName = albumName;
-            	} else {
-            		artistAndAlbumName = artistAndAlbumName + " - " + albumName;
-            	}
+                if (artistAndAlbumName.equals("")) {
+                    artistAndAlbumName = albumName;
+                } else {
+                    artistAndAlbumName = artistAndAlbumName + " - " + albumName;
+                }
             }
-            
+
             mArtistAndAlbumName.setText(artistAndAlbumName);
             mAlbumArtHandler.obtainMessage(GET_ALBUM_ART, new IdWrapper(10)).sendToTarget();
         } catch (RemoteException ex) {
         }
     }
-    
+
     public class AlbumArtHandler extends Handler {
         private long mId = -1;
-        
+
         public AlbumArtHandler(Looper looper) {
             super(looper);
         }
-        
+
         @Override
-        public void handleMessage(Message msg)
-        {
+        public void handleMessage(Message msg) {
             long id = ((IdWrapper) msg.obj).id;
-            
+
             if (((msg.what == GET_ALBUM_ART && mId != id)
-            		|| msg.what == REFRESH_ALBUM_ART)
-            		&& id >= 0) {
-            	if (mAlbum.generateBitmap(id)) {
-            		mId = id;
-            	}
+                    || msg.what == REFRESH_ALBUM_ART)
+                    && id >= 0) {
+                if (mAlbum.generateBitmap(id)) {
+                    mId = id;
+                }
             }
         }
     }
-    
+
     private static class Worker implements Runnable {
         private final Object mLock = new Object();
         private Looper mLooper;
-        
+
         /**
          * Creates a worker thread with the given name. The thread
          * then runs a {@link android.os.Looper}.
+         *
          * @param name A name for the new thread
          */
         Worker(String name) {
@@ -244,11 +247,11 @@ public class MediaPlayerFragment extends Fragment implements CoverViewListener {
                 }
             }
         }
-        
+
         public Looper getLooper() {
             return mLooper;
         }
-        
+
         public void run() {
             synchronized (mLock) {
                 Looper.prepare();
@@ -257,19 +260,19 @@ public class MediaPlayerFragment extends Fragment implements CoverViewListener {
             }
             Looper.loop();
         }
-        
+
         public void quit() {
             mLooper.quit();
         }
     }
 
-	@Override
-	public void onCoverViewInitialized() {
+    @Override
+    public void onCoverViewInitialized() {
         if (mService == null) {
             return;
         }
-        
+
         mAlbumArtHandler.removeMessages(GET_ALBUM_ART);
-		mAlbumArtHandler.obtainMessage(GET_ALBUM_ART, new IdWrapper(10)).sendToTarget();
-	}
+        mAlbumArtHandler.obtainMessage(GET_ALBUM_ART, new IdWrapper(10)).sendToTarget();
+    }
 }

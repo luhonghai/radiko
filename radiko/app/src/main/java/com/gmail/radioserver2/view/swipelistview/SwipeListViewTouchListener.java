@@ -160,7 +160,7 @@ public class SwipeListViewTouchListener implements View.OnTouchListener {
             }
 
         });
-}
+    }
 
     /**
      * Set current item's back view
@@ -440,6 +440,7 @@ public class SwipeListViewTouchListener implements View.OnTouchListener {
 
     /**
      * Dismiss an item.
+     *
      * @param position is the position of the item to delete.
      * @return 0 if the item is not visible. Otherwise return the height of the cell to dismiss.
      */
@@ -513,7 +514,7 @@ public class SwipeListViewTouchListener implements View.OnTouchListener {
                 count++;
             }
         }
-        if(SwipeListView.DEBUG){
+        if (SwipeListView.DEBUG) {
             Log.d(SwipeListView.TAG, "selected: " + count);
         }
         return count;
@@ -567,7 +568,7 @@ public class SwipeListViewTouchListener implements View.OnTouchListener {
      * @param position  Position of list
      */
     private void generateAnimate(final View view, final boolean swap, final boolean swapRight, final int position) {
-        if(SwipeListView.DEBUG){
+        if (SwipeListView.DEBUG) {
             Log.d(SwipeListView.TAG, "swap: " + swap + " - swapRight: " + swapRight + " - position: " + position);
         }
         if (swipeCurrentAction == SwipeListView.SWIPE_ACTION_REVEAL) {
@@ -865,7 +866,7 @@ public class SwipeListViewTouchListener implements View.OnTouchListener {
                 boolean swapRight = false;
                 if (minFlingVelocity <= velocityX && velocityX <= maxFlingVelocity && velocityY * 2 < velocityX) {
                     swapRight = velocityTracker.getXVelocity() > 0;
-                    if(SwipeListView.DEBUG){
+                    if (SwipeListView.DEBUG) {
                         Log.d(SwipeListView.TAG, "swapRight: " + swapRight + " - swipingRight: " + swipingRight);
                     }
                     if (swapRight != swipingRight && swipeActionLeft != swipeActionRight) {
@@ -939,7 +940,7 @@ public class SwipeListViewTouchListener implements View.OnTouchListener {
                 if (deltaMode > slop && swipeCurrentAction == SwipeListView.SWIPE_ACTION_NONE && velocityY < velocityX) {
                     swiping = true;
                     swipingRight = (deltaX > 0);
-                    if(SwipeListView.DEBUG){
+                    if (SwipeListView.DEBUG) {
                         Log.d(SwipeListView.TAG, "deltaX: " + deltaX + " - swipingRight: " + swipingRight);
                     }
                     if (opened.get(downPosition)) {
@@ -1006,7 +1007,7 @@ public class SwipeListViewTouchListener implements View.OnTouchListener {
             posX += openedRight.get(downPosition) ? -viewWidth + rightOffset : viewWidth - leftOffset;
         }
         if (posX > 0 && !swipingRight) {
-            if(SwipeListView.DEBUG){
+            if (SwipeListView.DEBUG) {
                 Log.d(SwipeListView.TAG, "change to right");
             }
             swipingRight = !swipingRight;
@@ -1018,7 +1019,7 @@ public class SwipeListViewTouchListener implements View.OnTouchListener {
             }
         }
         if (posX < 0 && swipingRight) {
-            if(SwipeListView.DEBUG){
+            if (SwipeListView.DEBUG) {
                 Log.d(SwipeListView.TAG, "change to left");
             }
             swipingRight = !swipingRight;
@@ -1117,6 +1118,7 @@ public class SwipeListViewTouchListener implements View.OnTouchListener {
 
     /**
      * Will call {@link #removePendingDismisses(int)} in animationTime + 100 ms.
+     *
      * @param originalHeight will be used to rest the cells height.
      */
     protected void handlerPendingDismisses(final int originalHeight) {
@@ -1133,6 +1135,7 @@ public class SwipeListViewTouchListener implements View.OnTouchListener {
      * Will delete all pending dismisses.
      * Will call callback onDismiss for all pending dismisses.
      * Will reset all cell height to originalHeight.
+     *
      * @param originalHeight is the height of the cell before animation.
      */
     private void removePendingDismisses(int originalHeight) {

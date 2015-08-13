@@ -31,7 +31,7 @@ import io.fabric.sdk.android.Fabric;
  * Created by luhonghai on 2/16/15.
  */
 
-public abstract class BaseFragmentActivity extends SherlockFragmentActivity implements LocationListener{
+public abstract class BaseFragmentActivity extends SherlockFragmentActivity implements LocationListener {
 
     private static final long UPDATE_DATA_TIMEOUT = 2000;
 
@@ -64,7 +64,7 @@ public abstract class BaseFragmentActivity extends SherlockFragmentActivity impl
         Tracker t = AnalyticHelper.getTracker(this);
         t.setScreenName(this.getClass().getName());
         t.send(new HitBuilders.ScreenViewBuilder().build());
-       // AndroidUtil.updateLanguage(this);
+        // AndroidUtil.updateLanguage(this);
         Fabric.with(this, new Crashlytics());
 
         Thread.UncaughtExceptionHandler myHandler = new ExceptionReporter(
@@ -119,13 +119,13 @@ public abstract class BaseFragmentActivity extends SherlockFragmentActivity impl
     @Override
     public void onLocationChanged(Location location) {
         currentLocation = location;
-        SimpleAppLog.info("onLocationChanged " + ( (location == null) ? " null" : location.getProvider() ));
+        SimpleAppLog.info("onLocationChanged " + ((location == null) ? " null" : location.getProvider()));
         handler.removeCallbacks(dataPrepareRunnable);
         handler.postDelayed(dataPrepareRunnable, UPDATE_DATA_TIMEOUT);
     }
 
     private void updateSetting() {
-        
+
     }
 
     @Override
@@ -164,7 +164,7 @@ public abstract class BaseFragmentActivity extends SherlockFragmentActivity impl
         try {
             lm.removeUpdates(this);
         } catch (Exception e) {
-            SimpleAppLog.error("Could not stop request location",e);
+            SimpleAppLog.error("Could not stop request location", e);
         }
     }
 
@@ -174,36 +174,39 @@ public abstract class BaseFragmentActivity extends SherlockFragmentActivity impl
         try {
             lm.requestLocationUpdates(LocationManager.GPS_PROVIDER, 5 * 60 * 1000, 1000, this);
         } catch (Exception e) {
-            SimpleAppLog.error("Could not request GPS provider location",e);
+            SimpleAppLog.error("Could not request GPS provider location", e);
         }
         try {
             lm.requestLocationUpdates(LocationManager.NETWORK_PROVIDER, 5 * 60 * 1000, 1000, this);
         } catch (Exception e) {
-            SimpleAppLog.error("Could not request Network provider location",e);
+            SimpleAppLog.error("Could not request Network provider location", e);
         }
     }
 
     protected void locationCheck() {
         LocationManager lm = null;
-        boolean gps_enabled = false,network_enabled = false;
-        if(lm==null)
+        boolean gps_enabled = false, network_enabled = false;
+        if (lm == null)
             lm = (LocationManager) this.getSystemService(Context.LOCATION_SERVICE);
-        try{
+        try {
             gps_enabled = lm.isProviderEnabled(LocationManager.GPS_PROVIDER);
-        }catch(Exception ex){}
+        } catch (Exception ex) {
+        }
         try {
             lm.requestLocationUpdates(LocationManager.GPS_PROVIDER, 5 * 60 * 1000, 1000, this);
         } catch (Exception e) {
 
         }
-        try{
+        try {
             network_enabled = lm.isProviderEnabled(LocationManager.NETWORK_PROVIDER);
-        }catch(Exception ex){}
+        } catch (Exception ex) {
+        }
         try {
             lm.requestLocationUpdates(LocationManager.NETWORK_PROVIDER, 5 * 60 * 1000, 1000, this);
-        } catch (Exception e) {}
+        } catch (Exception e) {
+        }
 
-        if(!gps_enabled && !network_enabled){
+        if (!gps_enabled && !network_enabled) {
             if (alertDialog != null) {
                 if (alertDialog.isShowing())
                     alertDialog.dismiss();
@@ -214,24 +217,18 @@ public abstract class BaseFragmentActivity extends SherlockFragmentActivity impl
 
     private boolean checkWifiPolicy() {
         WifiManager wm = (WifiManager) this.getSystemService(Context.WIFI_SERVICE);
-        if(!wm.isWifiEnabled())
-        {
+        if (!wm.isWifiEnabled()) {
             return true;
         }
         ContentResolver cr = this.getContentResolver();
         int policyNever = android.provider.Settings.System.WIFI_SLEEP_POLICY_NEVER;
-        try
-        {
+        try {
             android.provider.Settings.System.putInt(cr, Settings.System.WIFI_SLEEP_POLICY, policyNever);
-        }
-        catch(Exception e)
-        {
+        } catch (Exception e) {
             e.printStackTrace();
         }
-        try
-        {
-            if(android.provider.Settings.System.getInt(cr, Settings.System.WIFI_SLEEP_POLICY) != policyNever)
-            {
+        try {
+            if (android.provider.Settings.System.getInt(cr, Settings.System.WIFI_SLEEP_POLICY) != policyNever) {
                 new AlertDialog.Builder(this).setTitle(getString(R.string.wifi_policy_warning_title))
                         .setMessage(getString(R.string.wifi_policy_warning_message))
                         .setPositiveButton(getString(R.string.wifi_policy_warning_positive_button), new DialogInterface.OnClickListener() {
@@ -244,9 +241,7 @@ public abstract class BaseFragmentActivity extends SherlockFragmentActivity impl
                         .show();
                 return false;
             }
-        }
-        catch (Exception e)
-        {
+        } catch (Exception e) {
             e.printStackTrace();
         }
         return false;

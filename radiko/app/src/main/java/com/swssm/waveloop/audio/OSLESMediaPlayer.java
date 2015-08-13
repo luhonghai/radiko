@@ -37,7 +37,7 @@ public class OSLESMediaPlayer {
 
     public native int getRate();
 
-    public native void setLoop( int startPos, int endPos );
+    public native void setLoop(int startPos, int endPos);
 
     public native void setNoLoop();
 
@@ -46,25 +46,21 @@ public class OSLESMediaPlayer {
     }
 
     private OnCompletionListener mCompletionListener;
-    public void SetOnCompletionListener( OnCompletionListener listener )
-    {
+
+    public void SetOnCompletionListener(OnCompletionListener listener) {
         mCompletionListener = listener;
     }
 
 
-    private void OnCompletion()
-    {
+    private void OnCompletion() {
         mCompletionListener.OnCompletion();
 
         int position = getPosition();
         int duration = getDuration();
-        if( position != duration )
-        {
+        if (position != duration) {
             int a = 0;
 
-        }
-        else
-        {
+        } else {
             int c = 0;
 
         }

@@ -89,7 +89,7 @@ public class Setting {
     }
 
     public void applyBackLength(int percent) {
-        backLength = MIN_BACK_LENGTH - ((MIN_BACK_LENGTH - MAX_BACK_LENGTH) * percent) / 100 ;
+        backLength = MIN_BACK_LENGTH - ((MIN_BACK_LENGTH - MAX_BACK_LENGTH) * percent) / 100;
     }
 
     public int getBackLengthPercent() {
@@ -97,7 +97,7 @@ public class Setting {
     }
 
     public void applyFastLevel(int percent) {
-        fastLevel =  ((MAX_FAST_LEVEL - MIN_FAST_LEVEL) * percent) / 100 + MIN_FAST_LEVEL;
+        fastLevel = ((MAX_FAST_LEVEL - MIN_FAST_LEVEL) * percent) / 100 + MIN_FAST_LEVEL;
     }
 
     public int getFastLevelPercent() {
@@ -105,7 +105,7 @@ public class Setting {
     }
 
     public void applySlowLevel(int percent) {
-        slowLevel =  MIN_SLOW_LEVEL - ((MIN_SLOW_LEVEL - MAX_SLOW_LEVEL) * percent) / 100 ;
+        slowLevel = MIN_SLOW_LEVEL - ((MIN_SLOW_LEVEL - MAX_SLOW_LEVEL) * percent) / 100;
     }
 
     public int getSlowLevelPercent() {

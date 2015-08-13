@@ -2,15 +2,15 @@
 
 <FrameLayout xmlns:android="http://schemas.android.com/apk/res/android"
     android:layout_width="fill_parent"
-    android:layout_height="fill_parent"
-    >
+    android:layout_height="fill_parent">
+
     <LinearLayout
         android:id="@+id/back"
         android:tag="back"
         android:layout_height="match_parent"
         android:layout_width="match_parent"
-        android:gravity="end"
-        >
+        android:gravity="end">
+
         <Button
             android:id="@+id/btnDelete"
             android:layout_width="@dimen/button_action_size"
@@ -20,8 +20,9 @@
             android:paddingTop="@dimen/tabs_padding"
             android:paddingBottom="@dimen/tabs_padding"
             android:textColor="@android:color/white"
-            android:textAppearance="?android:attr/textAppearanceButton"/>
+            android:textAppearance="?android:attr/textAppearanceButton" />
     </LinearLayout>
+
     <LinearLayout
         android:orientation="horizontal"
         android:id="@+id/front"
@@ -45,7 +46,7 @@
             android:layout_marginStart="@dimen/default_top_margin"
             android:layout_weight="1"
             android:textAppearance="?android:attr/textAppearanceMedium"
-            android:text="@string/default_channel_name"/>
+            android:text="@string/default_channel_name" />
 
     </LinearLayout>
 

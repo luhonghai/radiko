@@ -48,9 +48,7 @@ import wseemann.media.FFmpegMediaPlayer;
 public class TimerBroadcastReceiver extends BroadcastReceiver {
 
     public static final String ACTION_START_TIMER = "com.gmail.radioserver2.service.TimerBroadcastReceiver.START_TIMER";
-
-    private Timer selectedTimer;
-
+    private int flag = PendingIntent.FLAG_CANCEL_CURRENT;
     private Gson gson = new Gson();
 
     private Context mContext;
@@ -79,7 +77,6 @@ public class TimerBroadcastReceiver extends BroadcastReceiver {
                     createAlarm(listTimer);
                 }
             } catch (Exception e) {
-                mContext.sendBroadcast(new Intent(TimerManagerReceiver.ACTION_START_TIMER));
                 SimpleAppLog.error("Could not parse timer object", e);
             }
         }
@@ -90,18 +87,10 @@ public class TimerBroadcastReceiver extends BroadcastReceiver {
                 timerObj = bundle.getString(Constants.ARG_OBJECT);
             }
         }
-        if (timerObj != null && timerObj.length() > 0) {
-            SimpleAppLog.info("Timer object: " + timerObj);
-            try {
-                selectedTimer = gson.fromJson(timerObj, Timer.class);
-            } catch (Exception e) {
-                SimpleAppLog.error("Could not parse timer object", e);
-            }
-        }
 
         Intent serviceIntent = new Intent(mContext, RecordBackgroundService.class);
         Bundle bd = new Bundle();
-        bd.putSerializable(RecordBackgroundService.PARAM_TIMER, selectedTimer);
+        bd.putString(RecordBackgroundService.PARAM_TIMER, timerObj);
         serviceIntent.putExtras(bd);
         mContext.startService(serviceIntent);
     }
@@ -111,7 +100,9 @@ public class TimerBroadcastReceiver extends BroadcastReceiver {
         timers.remove(0);
         String timerSrc = gson.toJson(timer);
         String timerList = gson.toJson(timers);
-        AlarmManager am = (AlarmManager) mContext.getSystemService(Context.ALARM_SERVICE);
+        if (TimerManagerReceiver.mAlarmManager == null) {
+            TimerManagerReceiver.mAlarmManager = (AlarmManager) mContext.getSystemService(Context.ALARM_SERVICE);
+        }
         Intent i = new Intent(mContext, TimerBroadcastReceiver.class);
         Bundle bundle = i.getExtras();
         if (bundle == null) {
@@ -120,8 +111,8 @@ public class TimerBroadcastReceiver extends BroadcastReceiver {
         bundle.putString(Constants.ARG_OBJECT, timerSrc);
         bundle.putString(Constants.ARG_TIMER_LIST, timerList);
         i.putExtras(bundle);
-        PendingIntent pi = PendingIntent.getBroadcast(mContext, 0, i, PendingIntent.FLAG_UPDATE_CURRENT);
-        am.set(AlarmManager.RTC_WAKEUP, timer.getNextAlarmTime(), pi);
+        PendingIntent pi = PendingIntent.getBroadcast(mContext, 0, i, flag);
+        TimerManagerReceiver.mAlarmManager.set(AlarmManager.RTC_WAKEUP, timer.getNextAlarmTime(), pi);
     }
 
 }

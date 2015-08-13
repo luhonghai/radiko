@@ -267,7 +267,7 @@ public class AndroidUtil {
                     return area;
                 }
             } catch (Exception e) {
-                SimpleAppLog.error("Could not fetch address",e);
+                SimpleAppLog.error("Could not fetch address", e);
             }
         } else {
             SimpleAppLog.info("No location data found");
@@ -276,7 +276,7 @@ public class AndroidUtil {
     }
 
 
-    public static List<Address> getFromLocation(double lat, double lng, int maxResult){
+    public static List<Address> getFromLocation(double lat, double lng, int maxResult) {
         String address = String.format(Locale.ENGLISH, "http://maps.googleapis.com/maps/api/geocode/json?latlng=%1$f,%2$f&sensor=true&language=" + Locale.ENGLISH.getCountry(), lat, lng);
         HttpGet httpGet = new HttpGet(address);
         HttpClient client = new DefaultHttpClient();

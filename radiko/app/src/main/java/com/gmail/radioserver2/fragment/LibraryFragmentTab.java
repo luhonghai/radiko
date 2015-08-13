@@ -41,7 +41,7 @@ public class LibraryFragmentTab extends FragmentTab implements OnListItemActionL
 
     @Override
     public View onCreateView(LayoutInflater inflater, ViewGroup container, Bundle savedInstanceState) {
-        super.onCreateView(inflater,container,savedInstanceState);
+        super.onCreateView(inflater, container, savedInstanceState);
         View v = inflater.inflate(R.layout.fragment_library_tab, container, false);
 
         mAdView = (AdView) v.findViewById(R.id.adView);
@@ -89,7 +89,7 @@ public class LibraryFragmentTab extends FragmentTab implements OnListItemActionL
     @Override
     public void onPause() {
         super.onPause();
-        if (mAdView != null ) mAdView.pause();
+        if (mAdView != null) mAdView.pause();
     }
 
     private void loadData() {
@@ -102,7 +102,7 @@ public class LibraryFragmentTab extends FragmentTab implements OnListItemActionL
                 items = new Library[libraries.size()];
                 libraries.toArray(items);
             } else {
-                items = new Library[] {};
+                items = new Library[]{};
             }
             LibraryAdapter adapter = new LibraryAdapter(getActivity(), items, this);
             listView.setAdapter(adapter);
@@ -137,7 +137,7 @@ public class LibraryFragmentTab extends FragmentTab implements OnListItemActionL
             adapter.delete(obj);
 
         } catch (Exception ex) {
-            SimpleAppLog.error("Could not delete library",ex);
+            SimpleAppLog.error("Could not delete library", ex);
         } finally {
             adapter.close();
         }
@@ -146,7 +146,7 @@ public class LibraryFragmentTab extends FragmentTab implements OnListItemActionL
             public void run() {
                 loadData();
             }
-        },100);
+        }, 100);
     }
 
     @Override

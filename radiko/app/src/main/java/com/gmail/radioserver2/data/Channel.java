@@ -32,9 +32,9 @@ public class Channel extends AbstractData<Channel> {
 
     public String getRecordedName() {
         if (currentProgram == null) {
-            return name + "-" + key +"-" + type;
+            return name + "-" + key + "-" + type;
         } else {
-            return name + "-" + key +"-" + type + "-" + currentProgram.getTitle();
+            return name + "-" + key + "-" + type + "-" + currentProgram.getTitle();
         }
     }
 

@@ -1,5 +1,4 @@
-<?xml version="1.0" encoding="utf-8"?>
-<!-- Copyright (C) 2008 The Android Open Source Project
+<?xml version="1.0" encoding="utf-8"?><!-- Copyright (C) 2008 The Android Open Source Project
 
      Licensed under the Apache License, Version 2.0 (the "License");
      you may not use this file except in compliance with the License.
@@ -20,8 +19,8 @@
     <item android:id="@android:id/background">
         <shape>
             <corners android:radius="1dip" />
-            <solid android:color="@color/default_button_color"/>
-            <size android:height="@dimen/seek_bar_process_height"/>
+            <solid android:color="@color/default_button_color" />
+            <size android:height="@dimen/seek_bar_process_height" />
         </shape>
     </item>
 
@@ -35,8 +34,7 @@
                     android:centerColor="#40ffb600"
                     android:centerY="0.75"
                     android:endColor="#40ffcb00"
-                    android:angle="270"
-                    />
+                    android:angle="270" />
             </shape>
         </clip>
     </item>
@@ -45,8 +43,8 @@
         <clip>
             <shape>
                 <corners android:radius="1dip" />
-                <solid android:color="@color/default_button_color"/>
-                <size android:height="@dimen/seek_bar_process_height"/>
+                <solid android:color="@color/default_button_color" />
+                <size android:height="@dimen/seek_bar_process_height" />
             </shape>
         </clip>
     </item>

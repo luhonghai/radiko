@@ -2,13 +2,13 @@
 <RelativeLayout xmlns:android="http://schemas.android.com/apk/res/android"
     android:layout_width="fill_parent"
     android:layout_height="wrap_content"
-    android:background="@drawable/shadow7" >
+    android:background="@drawable/shadow7">
 
     <RelativeLayout
         android:id="@+id/bigContainer"
         android:layout_width="fill_parent"
         android:layout_height="wrap_content"
-        android:paddingTop="0dp" >
+        android:paddingTop="0dp">
 
         <ImageView
             android:id="@+id/iconView"

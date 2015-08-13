@@ -4,7 +4,9 @@ import android.content.Context;
 import android.database.Cursor;
 import android.database.sqlite.SQLiteDatabase;
 import android.database.sqlite.SQLiteOpenHelper;
+
 import com.gmail.radioserver2.data.AbstractData;
+
 import java.sql.SQLException;
 import java.util.ArrayList;
 import java.util.Collection;
@@ -21,46 +23,46 @@ public abstract class DBAdapter<T> implements IDBAdapter<T> {
 
     private static final int DATABASE_VERSION = 1;
 
-    private static final String[] DATABASE_TABLE_CREATE = new String[] {
-             "create table " + TABLE_RECORDED_PROGRAM
-                        + " ("
-                        + KEY_ROW_ID +" integer primary key autoincrement, "
-                        + KEY_NAME + " text not null, "
-                        + KEY_CHANNEL_NAME + " text, "
-                        + KEY_CHANNEL_KEY + " text, "
-                        + KEY_FILE_PATH + " text not null, "
-                        + KEY_START_TIME + " date, "
-                        + KEY_END_TIME + " date, "
-                        + KEY_LAST_PLAYED_TIME + " date, "
-                        + KEY_CREATED_DATE + " date not null"
-                        + ");"
+    private static final String[] DATABASE_TABLE_CREATE = new String[]{
+            "create table " + TABLE_RECORDED_PROGRAM
+                    + " ("
+                    + KEY_ROW_ID + " integer primary key autoincrement, "
+                    + KEY_NAME + " text not null, "
+                    + KEY_CHANNEL_NAME + " text, "
+                    + KEY_CHANNEL_KEY + " text, "
+                    + KEY_FILE_PATH + " text not null, "
+                    + KEY_START_TIME + " date, "
+                    + KEY_END_TIME + " date, "
+                    + KEY_LAST_PLAYED_TIME + " date, "
+                    + KEY_CREATED_DATE + " date not null"
+                    + ");"
             ,
             "create table " + TABLE_TIMER
                     + " ("
-                    + KEY_ROW_ID +" integer primary key autoincrement, "
-                    + KEY_MODE +" integer,"
-                    + KEY_TYPE +" integer,"
+                    + KEY_ROW_ID + " integer primary key autoincrement, "
+                    + KEY_MODE + " integer,"
+                    + KEY_TYPE + " integer,"
                     + KEY_CHANNEL_NAME + " text, "
                     + KEY_CHANNEL_KEY + " text, "
                     + KEY_EVENT_DATE + " date, "
-                    + KEY_START_HOUR +" integer,"
-                    + KEY_START_MINUTE +" integer,"
-                    + KEY_FINISH_HOUR +" integer,"
-                    + KEY_FINISH_MINUTE +" integer,"
-                    + KEY_STATUS +" integer default 1,"
+                    + KEY_START_HOUR + " integer,"
+                    + KEY_START_MINUTE + " integer,"
+                    + KEY_FINISH_HOUR + " integer,"
+                    + KEY_FINISH_MINUTE + " integer,"
+                    + KEY_STATUS + " integer default 1,"
                     + KEY_CREATED_DATE + " date not null"
                     + ");"
             ,
             "create table " + TABLE_LIBRARY
                     + " ("
-                    + KEY_ROW_ID +" integer primary key autoincrement, "
+                    + KEY_ROW_ID + " integer primary key autoincrement, "
                     + KEY_NAME + " text not null, "
                     + KEY_CREATED_DATE + " date not null"
                     + ");"
             ,
             "create table " + TABLE_CHANNEL
                     + " ("
-                    + KEY_ROW_ID +" integer primary key autoincrement, "
+                    + KEY_ROW_ID + " integer primary key autoincrement, "
                     + KEY_NAME + " text not null, "
                     + KEY_CHANNEL_KEY + " text, "
                     + KEY_TYPE + " text, "
@@ -72,7 +74,7 @@ public abstract class DBAdapter<T> implements IDBAdapter<T> {
             ,
             "create table " + TABLE_RECORDED_PROGRAM_LIBRARY
                     + " ("
-                    + KEY_ROW_ID +" integer primary key autoincrement, "
+                    + KEY_ROW_ID + " integer primary key autoincrement, "
                     + KEY_PRIMARY_MAPPING + " integer not null, "
                     + KEY_SECONDARY_MAPPING + " integer not null, "
                     + KEY_CREATED_DATE + " date not null"
@@ -86,8 +88,7 @@ public abstract class DBAdapter<T> implements IDBAdapter<T> {
     private SQLiteDatabase db;
 
 
-    public DBAdapter(Context ctx)
-    {
+    public DBAdapter(Context ctx) {
         this.context = ctx;
         DBHelper = new DatabaseHelper(getContext());
     }
@@ -96,19 +97,16 @@ public abstract class DBAdapter<T> implements IDBAdapter<T> {
         return context;
     }
 
-    private static class DatabaseHelper extends SQLiteOpenHelper
-    {
+    private static class DatabaseHelper extends SQLiteOpenHelper {
         private Context currentContext;
 
-        DatabaseHelper(Context context)
-        {
+        DatabaseHelper(Context context) {
             super(context, DATABASE_NAME, null, DATABASE_VERSION);
             this.currentContext = context;
         }
 
         @Override
-        public void onCreate(SQLiteDatabase db)
-        {
+        public void onCreate(SQLiteDatabase db) {
             for (String query : DATABASE_TABLE_CREATE) {
                 db.execSQL(query);
             }
@@ -116,8 +114,7 @@ public abstract class DBAdapter<T> implements IDBAdapter<T> {
 
         @Override
         public void onUpgrade(SQLiteDatabase db, int oldVersion,
-                              int newVersion)
-        {
+                              int newVersion) {
             //Log.w(TAG, "Upgrading database from version " + oldVersion
             //        + " to "
             //        + newVersion + ", which will destroy all old data");
@@ -131,15 +128,13 @@ public abstract class DBAdapter<T> implements IDBAdapter<T> {
     }
 
     //---opens the database---
-    public SQLiteDatabase open() throws SQLException
-    {
+    public SQLiteDatabase open() throws SQLException {
         db = DBHelper.getWritableDatabase();
         return db;
     }
 
     //---closes the database---
-    public void close()
-    {
+    public void close() {
         try {
             DBHelper.close();
         } catch (Exception ex) {

@@ -14,7 +14,7 @@ import java.util.Date;
 /**
  * Created by luhonghai on 25/02/2015.
  */
-public class Timer extends AbstractData<Timer> implements Serializable{
+public class Timer extends AbstractData<Timer> implements Serializable {
 
     public static final int MODE_DAILY = 0;
 

@@ -37,7 +37,7 @@ public class ServerTokenFetcher extends TokenFetcher {
             if (tmpFile.exists()) {
                 token = FileUtils.readFileToString(tmpFile, "UTF-8");
                 SimpleAppLog.info("Found server token: " + token);
-                outpt =  RadioArea.AREA_ID_TOKYO;
+                outpt = RadioArea.AREA_ID_TOKYO;
             } else {
 
             }

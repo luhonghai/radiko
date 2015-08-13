@@ -27,6 +27,7 @@ import android.content.ContentResolver;
 import android.content.Context;
 import android.content.Intent;
 import android.content.IntentFilter;
+import android.content.ServiceConnection;
 import android.content.SharedPreferences;
 import android.content.SharedPreferences.Editor;
 import android.database.Cursor;
@@ -276,6 +277,8 @@ public class MediaPlaybackService extends Service {
 
         }
     };
+
+    private RecordBackgroundService mRecordBackgroundService;
 
     public void stopRecord() {
         if (isStreaming && mStreamingPlayer != null) {
@@ -3169,7 +3172,7 @@ public class MediaPlaybackService extends Service {
             MusicUtils.debugLog(new Exception("MultiPlayer.start called"));
             try {
                 mCurrentMediaPlayer.start();
-            } catch (IllegalStateException e){
+            } catch (IllegalStateException e) {
                 e.printStackTrace();
             }
         }

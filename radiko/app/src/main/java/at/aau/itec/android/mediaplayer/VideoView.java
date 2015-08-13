@@ -78,8 +78,8 @@ public class VideoView extends SurfaceView implements SurfaceHolder.Callback,
     }
 
     /**
-     * @see android.widget.VideoView#setVideoPath(String)
      * @param path
+     * @see android.widget.VideoView#setVideoPath(String)
      * @deprecated only for compatibility with Android API
      */
     @Deprecated
@@ -88,8 +88,8 @@ public class VideoView extends SurfaceView implements SurfaceHolder.Callback,
     }
 
     /**
-     * @see android.widget.VideoView#setVideoURI(android.net.Uri)
      * @param uri
+     * @see android.widget.VideoView#setVideoURI(android.net.Uri)
      * @deprecated only for compatibility with Android API
      */
     @Deprecated
@@ -98,9 +98,9 @@ public class VideoView extends SurfaceView implements SurfaceHolder.Callback,
     }
 
     /**
-     * @see android.widget.VideoView#setVideoURI(android.net.Uri, java.util.Map<String, String>)
      * @param uri
      * @param headers
+     * @see android.widget.VideoView#setVideoURI(android.net.Uri, java.util.Map<String, String>)
      * @deprecated only for compatibility with Android API
      */
     @Deprecated
@@ -160,10 +160,10 @@ public class VideoView extends SurfaceView implements SurfaceHolder.Callback,
                 height = heightSpecSize;
 
                 // for compatibility, we adjust size based on aspect ratio
-                if ( mVideoWidth * height  < width * mVideoHeight ) {
+                if (mVideoWidth * height < width * mVideoHeight) {
                     //Log.i("@@@", "image too wide, correcting");
                     width = height * mVideoWidth / mVideoHeight;
-                } else if ( mVideoWidth * height  > width * mVideoHeight ) {
+                } else if (mVideoWidth * height > width * mVideoHeight) {
                     //Log.i("@@@", "image too tall, correcting");
                     height = width * mVideoHeight / mVideoWidth;
                 }
@@ -205,7 +205,7 @@ public class VideoView extends SurfaceView implements SurfaceHolder.Callback,
     }
 
     private void release() {
-        if(mPlayer != null) {
+        if (mPlayer != null) {
             mPlayer.stop();
             mPlayer = null;
         }
@@ -313,64 +313,64 @@ public class VideoView extends SurfaceView implements SurfaceHolder.Callback,
 
     private MediaPlayer.OnPreparedListener mPreparedListener =
             new MediaPlayer.OnPreparedListener() {
-        @Override
-        public void onPrepared(MediaPlayer mp) {
-            mSizeChangedListener.onVideoSizeChanged(mp, mp.getVideoWidth(), mp.getVideoHeight());
+                @Override
+                public void onPrepared(MediaPlayer mp) {
+                    mSizeChangedListener.onVideoSizeChanged(mp, mp.getVideoWidth(), mp.getVideoHeight());
 
-            if(mOnPreparedListener != null) {
-                mOnPreparedListener.onPrepared(mp);
-            }
-        }
-    };
+                    if (mOnPreparedListener != null) {
+                        mOnPreparedListener.onPrepared(mp);
+                    }
+                }
+            };
 
     private MediaPlayer.OnVideoSizeChangedListener mSizeChangedListener =
             new MediaPlayer.OnVideoSizeChangedListener() {
-        @Override
-        public void onVideoSizeChanged(MediaPlayer mp, int width, int height) {
-            mVideoWidth = width;
-            mVideoHeight = height;
-            requestLayout();
-        }
-    };
+                @Override
+                public void onVideoSizeChanged(MediaPlayer mp, int width, int height) {
+                    mVideoWidth = width;
+                    mVideoHeight = height;
+                    requestLayout();
+                }
+            };
 
     private MediaPlayer.OnSeekCompleteListener mSeekCompleteListener =
             new MediaPlayer.OnSeekCompleteListener() {
-        @Override
-        public void onSeekComplete(MediaPlayer mp) {
-            if(mOnSeekCompleteListener != null) {
-                mOnSeekCompleteListener.onSeekComplete(mp);
-            }
-        }
-    };
+                @Override
+                public void onSeekComplete(MediaPlayer mp) {
+                    if (mOnSeekCompleteListener != null) {
+                        mOnSeekCompleteListener.onSeekComplete(mp);
+                    }
+                }
+            };
 
     private MediaPlayer.OnCompletionListener mCompletionListener =
             new MediaPlayer.OnCompletionListener() {
-        @Override
-        public void onCompletion(MediaPlayer mp) {
-            if(mOnCompletionListener != null) {
-                mOnCompletionListener.onCompletion(mp);
-            }
-        }
-    };
+                @Override
+                public void onCompletion(MediaPlayer mp) {
+                    if (mOnCompletionListener != null) {
+                        mOnCompletionListener.onCompletion(mp);
+                    }
+                }
+            };
 
     private MediaPlayer.OnInfoListener mInfoListener =
             new MediaPlayer.OnInfoListener() {
-        @Override
-        public boolean onInfo(MediaPlayer mp, int what, int extra) {
-            if(mOnInfoListener != null) {
-                return mOnInfoListener.onInfo(mp, what, extra);
-            }
-            return true;
-        }
-    };
+                @Override
+                public boolean onInfo(MediaPlayer mp, int what, int extra) {
+                    if (mOnInfoListener != null) {
+                        return mOnInfoListener.onInfo(mp, what, extra);
+                    }
+                    return true;
+                }
+            };
 
     private MediaPlayer.OnBufferingUpdateListener mBufferingUpdateListener =
             new MediaPlayer.OnBufferingUpdateListener() {
-        @Override
-        public void onBufferingUpdate(MediaPlayer mp, int percent) {
-            if(mOnBufferingUpdateListener != null) {
-                mOnBufferingUpdateListener.onBufferingUpdate(mp, percent);
-            }
-        }
-    };
+                @Override
+                public void onBufferingUpdate(MediaPlayer mp, int percent) {
+                    if (mOnBufferingUpdateListener != null) {
+                        mOnBufferingUpdateListener.onBufferingUpdate(mp, percent);
+                    }
+                }
+            };
 }

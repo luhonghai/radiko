@@ -32,7 +32,7 @@ public class ChannelDBAdapter extends DBAdapter<Channel> {
 
     @Override
     public String[] getAllColumns() {
-        return new String[] {
+        return new String[]{
                 KEY_ROW_ID,
                 KEY_NAME,
                 KEY_CHANNEL_KEY,
@@ -64,9 +64,9 @@ public class ChannelDBAdapter extends DBAdapter<Channel> {
         s = StringUtil.escapeJapanSpecialChar(s);
         return toCollection(getDB().query(getTableName(), getAllColumns(),
                 KEY_NAME + " like ? or " + KEY_DESCRIPTION + " like ?",
-                new String[] {
-                    "%" + s + "%",
-                    "%" + s + "%",
+                new String[]{
+                        "%" + s + "%",
+                        "%" + s + "%",
                 },
                 null,
                 null,
@@ -76,7 +76,7 @@ public class ChannelDBAdapter extends DBAdapter<Channel> {
     public Collection<Channel> findByProvider(String provider) throws Exception {
         return toCollection(getDB().query(getTableName(), getAllColumns(),
                 KEY_TYPE + " = ?",
-                new String[] {
+                new String[]{
                         provider
                 },
                 null,
@@ -90,7 +90,7 @@ public class ChannelDBAdapter extends DBAdapter<Channel> {
                     provider
             });
         } catch (Exception e) {
-            SimpleAppLog.error("Could not delete channel by provider: " + provider,e);
+            SimpleAppLog.error("Could not delete channel by provider: " + provider, e);
         }
     }
 
@@ -105,7 +105,7 @@ public class ChannelDBAdapter extends DBAdapter<Channel> {
                 null,
                 null);
         if (cursor.moveToFirst()) {
-            long oldId =cursor.getLong(cursor.getColumnIndex(KEY_ROW_ID));
+            long oldId = cursor.getLong(cursor.getColumnIndex(KEY_ROW_ID));
             cursor.close();
             Channel oldObject = find(oldId);
             obj.setId(oldId);

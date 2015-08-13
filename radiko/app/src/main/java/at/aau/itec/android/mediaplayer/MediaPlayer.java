@@ -135,7 +135,7 @@ public class MediaPlayer {
             }
         }
 
-        if(mAudioExtractor != null) {
+        if (mAudioExtractor != null) {
             for (int i = 0; i < mAudioExtractor.getTrackCount(); ++i) {
                 MediaFormat format = mAudioExtractor.getTrackFormat(i);
                 Log.d(TAG, format.toString());
@@ -149,13 +149,13 @@ public class MediaPlayer {
             }
         }
 
-        if(mVideoFormat == null) {
+        if (mVideoFormat == null) {
             throw new IOException("no video track found");
         } else {
-            if(mAudioFormat == null) {
+            if (mAudioFormat == null) {
                 Log.i(TAG, "no audio track found");
             }
-            if(mPlaybackThread == null) {
+            if (mPlaybackThread == null) {
                 if (mSurface == null) {
                     Log.i(TAG, "no video output surface specified");
                 }
@@ -240,7 +240,7 @@ public class MediaPlayer {
         mSeekTargetTime = Math.max(mVideoMinPTS, usec);
 
         // if the decoder is paused, wake it up for the seek
-        if(mPlaybackThread.isPaused()) {
+        if (mPlaybackThread.isPaused()) {
             mPlaybackThread.play();
             mPlaybackThread.pause();
         }
@@ -261,7 +261,7 @@ public class MediaPlayer {
     }
 
     public float getPlaybackSpeed() {
-        return (float)mTimeBase.getSpeed();
+        return (float) mTimeBase.getSpeed();
     }
 
     public boolean isPlaying() {
@@ -269,7 +269,7 @@ public class MediaPlayer {
     }
 
     public void stop() {
-        if(mPlaybackThread != null) {
+        if (mPlaybackThread != null) {
             mPlaybackThread.interrupt();
             mPlaybackThread.release();
             mPlaybackThread = null;
@@ -294,8 +294,8 @@ public class MediaPlayer {
             mWakeLock = null;
         }
 
-        PowerManager pm = (PowerManager)context.getSystemService(Context.POWER_SERVICE);
-        mWakeLock = pm.newWakeLock(mode|PowerManager.ON_AFTER_RELEASE, MediaPlayer.class.getName());
+        PowerManager pm = (PowerManager) context.getSystemService(Context.POWER_SERVICE);
+        mWakeLock = pm.newWakeLock(mode | PowerManager.ON_AFTER_RELEASE, MediaPlayer.class.getName());
         mWakeLock.setReferenceCounted(false);
         if (washeld) {
             mWakeLock.acquire();
@@ -334,14 +334,14 @@ public class MediaPlayer {
     }
 
     public int getDuration() {
-        return mVideoFormat != null ? (int)(mVideoFormat.getLong(MediaFormat.KEY_DURATION)/1000) : 0;
+        return mVideoFormat != null ? (int) (mVideoFormat.getLong(MediaFormat.KEY_DURATION) / 1000) : 0;
     }
 
     public int getCurrentPosition() {
         /* During a seek, return the temporary seek target time; otherwise a seek bar doesn't
          * update to the selected seek position until the seek is finished (which can take a
          * while in exact mode). */
-        return (int)((mSeekPrepare || mSeeking ? mSeekTargetTime : mCurrentPosition)/1000);
+        return (int) ((mSeekPrepare || mSeeking ? mSeekTargetTime : mCurrentPosition) / 1000);
     }
 
     public int getBufferPercentage() {
@@ -349,11 +349,11 @@ public class MediaPlayer {
     }
 
     public int getVideoWidth() {
-        return  0;
+        return 0;
     }
 
     public int getVideoHeight() {
-        return  0;
+        return 0;
     }
 
     /**
@@ -410,7 +410,7 @@ public class MediaPlayer {
             mVideoInputEos = false;
             mVideoOutputEos = false;
 
-            if(mAudioFormat != null) {
+            if (mAudioFormat != null) {
                 mAudioCodec = MediaCodec.createDecoderByType(mAudioFormat.getString(MediaFormat.KEY_MIME));
                 mAudioCodec.configure(mAudioFormat, null, null, 0);
                 mAudioCodec.start();
@@ -454,14 +454,14 @@ public class MediaPlayer {
 
                 while (!mVideoOutputEos) {
                     if (mPaused && !mSeekPrepare && !mSeeking && !preparing) {
-                        if(mAudioPlayback != null) mAudioPlayback.pause();
+                        if (mAudioPlayback != null) mAudioPlayback.pause();
                         synchronized (this) {
                             while (mPaused && !mSeekPrepare && !mSeeking) {
                                 this.wait();
                             }
                         }
 
-                        if(mAudioPlayback != null) mAudioPlayback.play();
+                        if (mAudioPlayback != null) mAudioPlayback.play();
                         // reset time (otherwise playback tries to "catch up" time after a pause)
                         mTimeBase.startAt(mVideoInfo.presentationTimeUs);
                     }
@@ -480,7 +480,7 @@ public class MediaPlayer {
                         mVideoCodec.flush();
                         if (mAudioFormat != null) mAudioCodec.flush();
 
-                        if(mVideoExtractor.hasTrackFormatChanged()) {
+                        if (mVideoExtractor.hasTrackFormatChanged()) {
                             reinitCodecs();
                             mRepresentationChanged = true;
                         }
@@ -488,7 +488,7 @@ public class MediaPlayer {
                         mSeekPrepare = false;
                         mSeeking = true;
 
-                        if(mSeekMode == SeekMode.FAST_EXACT) {
+                        if (mSeekMode == SeekMode.FAST_EXACT) {
                             /* Check if the seek target time after the seek is the same as before the
                              * seek. If not, a new seek has been issued in the meantime; the current
                              * one must be discarded and a new seek with the new target time started.
@@ -511,7 +511,7 @@ public class MediaPlayer {
                     int res = mVideoCodec.dequeueOutputBuffer(mVideoInfo, mTimeOutUs);
                     mVideoOutputEos = res >= 0 && (mVideoInfo.flags & MediaCodec.BUFFER_FLAG_END_OF_STREAM) != 0;
 
-                    if(mVideoOutputEos && mRepresentationChanging) {
+                    if (mVideoOutputEos && mRepresentationChanging) {
                         /* Here, the video output is not really at its end, it's just the end of the
                          * current representation segment, and the codec needs to be reconfigured to
                          * the following representation format to carry on.
@@ -521,8 +521,7 @@ public class MediaPlayer {
                         mVideoOutputEos = false;
                         mRepresentationChanging = false;
                         mRepresentationChanged = true;
-                    }
-                    else if (res >= 0) {
+                    } else if (res >= 0) {
                         int outputBufIndex = res;
                         boolean render = true;
                         //ByteBuffer buf = codecOutputBuffers[outputBufIndex];
@@ -530,7 +529,7 @@ public class MediaPlayer {
                         //Log.d(TAG, "pts=" + info.presentationTimeUs);
 
                         if (mSeeking) {
-                            if(mVideoOutputEos) {
+                            if (mVideoOutputEos) {
                                 /* When the end of stream is reached while seeking, the seek target
                                  * time is set to the last frame's PTS, else the seek skips the last
                                  * frame which then does not get rendered, and it might end up in a
@@ -566,7 +565,7 @@ public class MediaPlayer {
                             if ((mSeekMode == SeekMode.PRECISE || mSeekMode == SeekMode.EXACT) && presentationTimeMs < seekTargetTimeMs) {
                                 // this is not yet the aimed time so we skip rendering of this frame
                                 render = false;
-                                if(frameSkipCount == 0) {
+                                if (frameSkipCount == 0) {
                                     Log.d(TAG, "skipping frames...");
                                 }
                                 frameSkipCount++;
@@ -575,7 +574,7 @@ public class MediaPlayer {
                                 Log.d(TAG, "seeking finished, skipped " + frameSkipCount + " frames");
                                 frameSkipCount = 0;
 
-                                if(mSeekMode == SeekMode.EXACT && presentationTimeMs > seekTargetTimeMs) {
+                                if (mSeekMode == SeekMode.EXACT && presentationTimeMs > seekTargetTimeMs) {
                                     /* If the current frame's PTS it after the seek target time, we're
                                      * one frame too far into the stream. This is because we do not know
                                      * the frame rate of the video and therefore can't decide for a frame
@@ -589,11 +588,11 @@ public class MediaPlayer {
                                     render = false;
                                     seekTo(lastPTS);
                                 } else {
-                                    if(presentationTimeMs == seekTargetTimeMs) {
+                                    if (presentationTimeMs == seekTargetTimeMs) {
                                         Log.d(TAG, "exact seek match!");
                                     }
 
-                                    if(mSeekMode == SeekMode.FAST_EXACT && mVideoInfo.presentationTimeUs < mSeekTargetTime) {
+                                    if (mSeekMode == SeekMode.FAST_EXACT && mVideoInfo.presentationTimeUs < mSeekTargetTime) {
                                         // this should only ever happen in fastseek mode, else it FFWs in fast mode
                                         Log.d(TAG, "presentation is behind, another try...");
                                     } else {
@@ -601,7 +600,7 @@ public class MediaPlayer {
                                         mTimeBase.startAt(mVideoInfo.presentationTimeUs);
                                         mCurrentPosition = mVideoInfo.presentationTimeUs;
                                         mSeeking = false;
-                                        if(mAudioExtractor != null) {
+                                        if (mAudioExtractor != null) {
                                             mAudioExtractor.seekTo(mVideoInfo.presentationTimeUs, MediaExtractor.SEEK_TO_CLOSEST_SYNC);
                                             mAudioPlayback.flush();
                                         }
@@ -614,7 +613,7 @@ public class MediaPlayer {
 
                             long waitingTime = mTimeBase.getOffsetFrom(mVideoInfo.presentationTimeUs);
 
-                            if(mAudioFormat != null) {
+                            if (mAudioFormat != null) {
                                 long audioOffsetUs = mAudioPlayback.getLastPresentationTimeUs() - mCurrentPosition;
 //                                Log.d(TAG, "VideoPTS=" + mCurrentPosition
 //                                        + " AudioPTS=" + mAudioPlayback.getLastPresentationTimeUs()
@@ -627,11 +626,11 @@ public class MediaPlayer {
                                 long audioOffsetCorrectionUs = 10000;
                                 if (audioOffsetUs > audioOffsetCorrectionUs) {
                                     waitingTime -= audioOffsetCorrectionUs;
-                                } else if(audioOffsetUs < -audioOffsetCorrectionUs) {
+                                } else if (audioOffsetUs < -audioOffsetCorrectionUs) {
                                     waitingTime += audioOffsetCorrectionUs;
                                 }
 
-                                mAudioPlayback.setPlaybackSpeed((float)mTimeBase.getSpeed());
+                                mAudioPlayback.setPlaybackSpeed((float) mTimeBase.getSpeed());
                             }
 
                             //Log.d(TAG, "waiting time = " + waitingTime);
@@ -643,7 +642,7 @@ public class MediaPlayer {
                              * the prefetched data.
                              */
                             long cachedDuration = mVideoExtractor.getCachedDuration();
-                            if(cachedDuration != -1) {
+                            if (cachedDuration != -1) {
                                 mEventHandler.sendMessage(mEventHandler.obtainMessage(MEDIA_BUFFERING_UPDATE,
                                         (int) (100d / mVideoFormat.getLong(MediaFormat.KEY_DURATION) * (mCurrentPosition + cachedDuration)), 0));
                             }
@@ -652,7 +651,7 @@ public class MediaPlayer {
                             if (waitingTime > 5000) {
                                 // sleep until it's time to render the next frame
                                 Thread.sleep(waitingTime / 1000);
-                            } else if(!preparing && waitingTime < 0) {
+                            } else if (!preparing && waitingTime < 0) {
                                 // we weed to catch up time by skipping rendering of this frame
                                 // this doesn't gain enough time if playback speed is too high and decoder at full load
                                 // TODO improve fast forward mode
@@ -662,7 +661,7 @@ public class MediaPlayer {
                             }
                         }
 
-                        if(mBuffering) {
+                        if (mBuffering) {
                             mBuffering = false;
                             mEventHandler.sendMessage(mEventHandler.obtainMessage(MEDIA_INFO,
                                     MEDIA_INFO_BUFFERING_END, 0));
@@ -670,7 +669,7 @@ public class MediaPlayer {
 
                         /* Defer the video size changed message until the first frame of the new
                          * size is being rendered. */
-                        if(mRepresentationChanged && render) {
+                        if (mRepresentationChanged && render) {
                             mEventHandler.sendMessage(mEventHandler.obtainMessage(MEDIA_SET_VIDEO_SIZE,
                                     getVideoWidth(), getVideoHeight()));
                             mRepresentationChanged = false;
@@ -710,11 +709,11 @@ public class MediaPlayer {
                              */
                             mPaused = true;
                             synchronized (this) {
-                                if(mAudioPlayback != null) mAudioPlayback.pause();
+                                if (mAudioPlayback != null) mAudioPlayback.pause();
                                 while (mPaused && !mSeeking && !mSeekPrepare) {
                                     this.wait();
                                 }
-                                if(mAudioPlayback != null) mAudioPlayback.play();
+                                if (mAudioPlayback != null) mAudioPlayback.play();
 
                                 // reset these flags so playback can continue
                                 mVideoInputEos = false;
@@ -723,7 +722,7 @@ public class MediaPlayer {
                                 mAudioOutputEos = false;
 
                                 // if no seek command but a start command arrived, seek to the start
-                                if(!mSeeking && !mSeekPrepare) {
+                                if (!mSeeking && !mSeekPrepare) {
                                     seekTo(0);
                                 }
                             }
@@ -765,13 +764,13 @@ public class MediaPlayer {
                 int sampleSize = mVideoExtractor.readSampleData(inputBuffer, 0);
                 long presentationTimeUs = 0;
 
-                if(sampleSize == 0) {
-                    if(mVideoExtractor.getCachedDuration() == 0) {
+                if (sampleSize == 0) {
+                    if (mVideoExtractor.getCachedDuration() == 0) {
                         mBuffering = true;
                         mEventHandler.sendMessage(mEventHandler.obtainMessage(MEDIA_INFO,
                                 MEDIA_INFO_BUFFERING_START, 0));
                     }
-                    if(mVideoExtractor.hasTrackFormatChanged()) {
+                    if (mVideoExtractor.hasTrackFormatChanged()) {
                         /* The mRepresentationChanging flag and BUFFER_FLAG_END_OF_STREAM flag together
                          * notify the decoding loop that the representation changes and the codec
                          * needs to be reconfigured.
@@ -805,7 +804,7 @@ public class MediaPlayer {
         }
 
         private boolean queueAudioSampleToCodec(MediaExtractor extractor) {
-            if(mAudioCodec == null) {
+            if (mAudioCodec == null) {
                 throw new IllegalStateException("no audio track configured");
             }
             /* NOTE the track index checks only for debugging
@@ -827,8 +826,8 @@ public class MediaPlayer {
                     Log.d(TAG, "EOS audio input");
                     mAudioInputEos = true;
                     sampleSize = 0;
-                } else if(sampleSize == 0) {
-                    if(extractor.getCachedDuration() == 0) {
+                } else if (sampleSize == 0) {
+                    if (extractor.getCachedDuration() == 0) {
                         mBuffering = true;
                         mEventHandler.sendMessage(mEventHandler.obtainMessage(MEDIA_INFO,
                                 MEDIA_INFO_BUFFERING_START, 0));
@@ -881,7 +880,7 @@ public class MediaPlayer {
 
         private boolean queueMediaSampleToCodec(boolean videoOnly) {
             boolean result = false;
-            if(mAudioCodec != null) {
+            if (mAudioCodec != null) {
                 if (videoOnly) {
                     /* VideoOnly mode skips audio samples, e.g. while doing a seek operation. */
                     int trackIndex;
@@ -895,7 +894,7 @@ public class MediaPlayer {
                     }
                 }
             }
-            if(!mVideoInputEos) {
+            if (!mVideoInputEos) {
                 result = queueVideoSampleToCodec();
             }
             return result;
@@ -903,10 +902,10 @@ public class MediaPlayer {
 
         private long fastSeek(long targetTime) {
             mVideoCodec.flush();
-            if(mAudioFormat != null) mAudioCodec.flush();
+            if (mAudioFormat != null) mAudioCodec.flush();
             mVideoExtractor.seekTo(targetTime, MediaExtractor.SEEK_TO_PREVIOUS_SYNC);
 
-            if(mVideoExtractor.getSampleTime() == targetTime) {
+            if (mVideoExtractor.getSampleTime() == targetTime) {
                 Log.d(TAG, "skip fastseek, already there");
                 return targetTime;
             }
@@ -954,7 +953,7 @@ public class MediaPlayer {
 
         private void release() {
             try {
-                if(mAudioPlayback != null) {
+                if (mAudioPlayback != null) {
                     mAudioPlayback.stopAndRelease();
                 }
                 if (mVideoCodec != null) {
@@ -962,7 +961,7 @@ public class MediaPlayer {
                     mVideoCodec.release();
                     mVideoCodec = null;
                 }
-                if(mAudioFormat != null) {
+                if (mAudioFormat != null) {
                     mAudioCodec.stop();
                     mAudioCodec.release();
                     mAudioCodec = null;
@@ -994,7 +993,7 @@ public class MediaPlayer {
             mVideoCodecInputBuffers = mVideoCodec.getInputBuffers();
             mVideoCodecOutputBuffers = mVideoCodec.getOutputBuffers();
 
-            if(mAudioFormat != null) {
+            if (mAudioFormat != null) {
                 mAudioCodec.stop();
                 mAudioCodec.configure(mAudioFormat, null, null, 0);
                 mAudioCodec.start();
@@ -1013,6 +1012,7 @@ public class MediaPlayer {
     public interface OnPreparedListener {
         /**
          * Called when the media file is ready for playback.
+         *
          * @param mp the MediaPlayer that is ready for playback
          */
         void onPrepared(MediaPlayer mp);
@@ -1035,6 +1035,7 @@ public class MediaPlayer {
     public interface OnCompletionListener {
         /**
          * Called when the end of a media source is reached during playback.
+         *
          * @param mp the MediaPlayer that reached the end of the file
          */
         void onCompletion(MediaPlayer mp);
@@ -1057,6 +1058,7 @@ public class MediaPlayer {
     public interface OnSeekCompleteListener {
         /**
          * Called to indicate the completion of a seek operation.
+         *
          * @param mp the MediaPlayer that issued the seek operation
          */
         public void onSeekComplete(MediaPlayer mp);
@@ -1076,17 +1078,16 @@ public class MediaPlayer {
      * Interface definition of a callback to be invoked when the
      * video size is first known or updated
      */
-    public interface OnVideoSizeChangedListener
-    {
+    public interface OnVideoSizeChangedListener {
         /**
          * Called to indicate the video size
-         *
+         * <p/>
          * The video size (width and height) could be 0 if there was no video,
          * no display surface was set, or the value was not determined yet.
          *
-         * @param mp        the MediaPlayer associated with this callback
-         * @param width     the width of the video
-         * @param height    the height of the video
+         * @param mp     the MediaPlayer associated with this callback
+         * @param width  the width of the video
+         * @param height the height of the video
          */
         public void onVideoSizeChanged(MediaPlayer mp, int width, int height);
     }
@@ -1131,24 +1132,32 @@ public class MediaPlayer {
         mOnBufferingUpdateListener = listener;
     }
 
-    /** The player just pushed the very first video frame for rendering.
+    /**
+     * The player just pushed the very first video frame for rendering.
+     *
      * @see at.aau.itec.android.mediaplayer.MediaPlayer.OnInfoListener
      */
     public static final int MEDIA_INFO_VIDEO_RENDERING_START = 3;
 
-    /** The video is too complex for the decoder: it can't decode frames fast
-     *  enough. Possibly only the audio plays fine at this stage.
+    /**
+     * The video is too complex for the decoder: it can't decode frames fast
+     * enough. Possibly only the audio plays fine at this stage.
+     *
      * @see at.aau.itec.android.mediaplayer.MediaPlayer.OnInfoListener
      */
     public static final int MEDIA_INFO_VIDEO_TRACK_LAGGING = 700;
 
-    /** MediaPlayer is temporarily pausing playback internally in order to
+    /**
+     * MediaPlayer is temporarily pausing playback internally in order to
      * buffer more data.
+     *
      * @see at.aau.itec.android.mediaplayer.MediaPlayer.OnInfoListener
      */
     public static final int MEDIA_INFO_BUFFERING_START = 701;
 
-    /** MediaPlayer is resuming playback after filling buffers.
+    /**
+     * MediaPlayer is resuming playback after filling buffers.
+     *
      * @see at.aau.itec.android.mediaplayer.MediaPlayer.OnInfoListener
      */
     public static final int MEDIA_INFO_BUFFERING_END = 702;
@@ -1161,16 +1170,16 @@ public class MediaPlayer {
         /**
          * Called to indicate an info or a warning.
          *
-         * @param mp      the MediaPlayer the info pertains to.
-         * @param what    the type of info or warning.
-         * <ul>
-         * <li>{@link #MEDIA_INFO_VIDEO_TRACK_LAGGING}
-         * <li>{@link #MEDIA_INFO_VIDEO_RENDERING_START}
-         * <li>{@link #MEDIA_INFO_BUFFERING_START}
-         * <li>{@link #MEDIA_INFO_BUFFERING_END}
-         * </ul>
+         * @param mp    the MediaPlayer the info pertains to.
+         * @param what  the type of info or warning.
+         *              <ul>
+         *              <li>{@link #MEDIA_INFO_VIDEO_TRACK_LAGGING}
+         *              <li>{@link #MEDIA_INFO_VIDEO_RENDERING_START}
+         *              <li>{@link #MEDIA_INFO_BUFFERING_START}
+         *              <li>{@link #MEDIA_INFO_BUFFERING_END}
+         *              </ul>
          * @param extra an extra code, specific to the info. Typically
-         * implementation dependent.
+         *              implementation dependent.
          * @return True if the method handled the info, false if it didn't.
          * Returning false, or not having an OnErrorListener at all, will
          * cause the info to be discarded.
@@ -1180,6 +1189,7 @@ public class MediaPlayer {
 
     /**
      * Register a callback to be invoked when an info/warning is available.
+     *
      * @param listener the callback that will be run
      */
     public void setOnInfoListener(OnInfoListener listener) {
@@ -1196,10 +1206,10 @@ public class MediaPlayer {
     private class EventHandler extends Handler {
         @Override
         public void handleMessage(Message msg) {
-            switch(msg.what) {
+            switch (msg.what) {
                 case MEDIA_PREPARED:
                     Log.d(TAG, "onPrepared");
-                    if(mOnPreparedListener != null) {
+                    if (mOnPreparedListener != null) {
                         mOnPreparedListener.onPrepared(MediaPlayer.this);
                     }
                     return;
@@ -1211,20 +1221,20 @@ public class MediaPlayer {
                     return;
                 case MEDIA_PLAYBACK_COMPLETE:
                     Log.d(TAG, "onPlaybackComplete");
-                    if(mOnCompletionListener != null) {
+                    if (mOnCompletionListener != null) {
                         mOnCompletionListener.onCompletion(MediaPlayer.this);
                     }
                     stayAwake(false);
                     return;
                 case MEDIA_SET_VIDEO_SIZE:
-                 //   Log.d(TAG, "onVideoSizeChanged");
-                    if(mOnVideoSizeChangedListener != null) {
+                    //   Log.d(TAG, "onVideoSizeChanged");
+                    if (mOnVideoSizeChangedListener != null) {
                         mOnVideoSizeChangedListener.onVideoSizeChanged(MediaPlayer.this, msg.arg1, msg.arg2);
                     }
                     return;
                 case MEDIA_INFO:
-                   // Log.d(TAG, "onInfo");
-                    if(mOnInfoListener != null) {
+                    // Log.d(TAG, "onInfo");
+                    if (mOnInfoListener != null) {
                         mOnInfoListener.onInfo(MediaPlayer.this, msg.arg1, msg.arg2);
                     }
                     return;

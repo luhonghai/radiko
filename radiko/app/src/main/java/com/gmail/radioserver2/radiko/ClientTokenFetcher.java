@@ -38,7 +38,8 @@ public class ClientTokenFetcher extends TokenFetcher {
                 try {
                     if (is != null)
                         is.close();
-                } catch (IOException e) {}
+                } catch (IOException e) {
+                }
             }
         }
 
@@ -70,7 +71,7 @@ public class ClientTokenFetcher extends TokenFetcher {
 
             }
         } catch (Exception e) {
-            onError("Could not fetch token",e);
+            onError("Could not fetch token", e);
         }
         onTokenFound(token, output);
     }

@@ -66,7 +66,7 @@ public class HomeFragmentTab extends FragmentTab implements OnListItemActionList
 
     @Override
     public View onCreateView(LayoutInflater inflater, ViewGroup container, Bundle savedInstanceState) {
-        super.onCreateView(inflater,container,savedInstanceState);
+        super.onCreateView(inflater, container, savedInstanceState);
         View v = inflater.inflate(R.layout.fragment_home_tab, container, false);
 
         mAdView = (AdView) v.findViewById(R.id.adView);
@@ -103,6 +103,7 @@ public class HomeFragmentTab extends FragmentTab implements OnListItemActionList
         loadData();
         return v;
     }
+
     private void loadData() {
         if (listView == null || txtSearch == null) return;
         ChannelDBAdapter dbAdapter = new ChannelDBAdapter(getActivity());
@@ -115,7 +116,7 @@ public class HomeFragmentTab extends FragmentTab implements OnListItemActionList
                 items = new Channel[channels.size()];
                 channels.toArray(items);
             } else {
-                items = new Channel[] {};
+                items = new Channel[]{};
             }
             ChannelAdapter adapter = new ChannelAdapter(getActivity(), items, this);
             listView.setAdapter(adapter);
@@ -173,7 +174,7 @@ public class HomeFragmentTab extends FragmentTab implements OnListItemActionList
             public void run() {
                 loadData();
             }
-        },100);
+        }, 100);
     }
 
     @Override

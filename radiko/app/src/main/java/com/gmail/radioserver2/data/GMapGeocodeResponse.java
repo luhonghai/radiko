@@ -29,7 +29,7 @@ public class GMapGeocodeResponse {
                     }
                 }
             }
-            return  false;
+            return false;
         }
 
         public String getLong_name() {
@@ -60,11 +60,9 @@ public class GMapGeocodeResponse {
     public static class Result {
 
 
-
         private String formatted_address;
 
         private List<AddressComponent> address_components;
-
 
 
         public String getFormatted_address() {

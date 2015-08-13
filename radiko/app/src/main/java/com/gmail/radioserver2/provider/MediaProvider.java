@@ -42,7 +42,7 @@ import java.util.HashMap;
  * itself, a creation date and a modified data.
  */
 public class MediaProvider extends ContentProvider {
-	
+
     private static final String TAG = MediaProvider.class.getName();
 
     private static final String DATABASE_NAME = "media.db";
@@ -99,22 +99,22 @@ public class MediaProvider extends ContentProvider {
 
     @Override
     public Cursor query(Uri uri, String[] projection, String selection, String[] selectionArgs,
-            String sortOrder) {
+                        String sortOrder) {
         SQLiteQueryBuilder qb = new SQLiteQueryBuilder();
         qb.setTables(MEDIA_TABLE_NAME);
 
         switch (sUriMatcher.match(uri)) {
-        case MEDIA:
-            qb.setProjectionMap(sMediaProjectionMap);
-            break;
+            case MEDIA:
+                qb.setProjectionMap(sMediaProjectionMap);
+                break;
 
-        case MEDIA_ID:
-            qb.setProjectionMap(sMediaProjectionMap);
-            qb.appendWhere(MediaColumns._ID + "=" + uri.getPathSegments().get(1));
-            break;
+            case MEDIA_ID:
+                qb.setProjectionMap(sMediaProjectionMap);
+                qb.appendWhere(MediaColumns._ID + "=" + uri.getPathSegments().get(1));
+                break;
 
-        default:
-            throw new IllegalArgumentException("Unknown URI " + uri);
+            default:
+                throw new IllegalArgumentException("Unknown URI " + uri);
         }
 
         // If no sort order is specified use the default
@@ -137,14 +137,14 @@ public class MediaProvider extends ContentProvider {
     @Override
     public String getType(Uri uri) {
         switch (sUriMatcher.match(uri)) {
-        case MEDIA:
-            return MediaColumns.CONTENT_TYPE;
+            case MEDIA:
+                return MediaColumns.CONTENT_TYPE;
 
-        case MEDIA_ID:
-            return MediaColumns.CONTENT_ITEM_TYPE;
+            case MEDIA_ID:
+                return MediaColumns.CONTENT_ITEM_TYPE;
 
-        default:
-            throw new IllegalArgumentException("Unknown URI " + uri);
+            default:
+                throw new IllegalArgumentException("Unknown URI " + uri);
         }
     }
 
@@ -166,31 +166,31 @@ public class MediaProvider extends ContentProvider {
         if (values.containsKey(MediaColumns.URI) == false) {
             values.put(MediaColumns.URI, Media.UNKNOWN_STRING);
         }
-        
+
         if (values.containsKey(MediaColumns.TITLE) == false) {
             values.put(MediaColumns.TITLE, Media.UNKNOWN_STRING);
         }
-        
+
         if (values.containsKey(MediaColumns.ALBUM) == false) {
             values.put(MediaColumns.ALBUM, Media.UNKNOWN_STRING);
         }
-        
+
         if (values.containsKey(MediaColumns.ARTIST) == false) {
             values.put(MediaColumns.ARTIST, Media.UNKNOWN_STRING);
         }
-        
+
         if (values.containsKey(MediaColumns.DURATION) == false) {
             values.put(MediaColumns.DURATION, Media.UNKNOWN_INTEGER);
         }
-        
+
         if (values.containsKey(MediaColumns.TRACK) == false) {
             values.put(MediaColumns.TRACK, Media.UNKNOWN_STRING);
         }
-        
+
         if (values.containsKey(MediaColumns.YEAR) == false) {
             values.put(MediaColumns.YEAR, Media.UNKNOWN_INTEGER);
         }
-        
+
         SQLiteDatabase db = mOpenHelper.getWritableDatabase();
         long rowId = db.insert(MEDIA_TABLE_NAME, MediaColumns.URI, values);
         if (rowId > 0) {
@@ -204,95 +204,95 @@ public class MediaProvider extends ContentProvider {
 
     @Override
     public int bulkInsert(Uri uri, ContentValues[] values) {
-    	// Validate the requested uri
-    	if (sUriMatcher.match(uri) != MEDIA) {
-    		throw new IllegalArgumentException("Unknown URI " + uri);
-    	}
-    	
-    	int numInserted = 0;
-    	
+        // Validate the requested uri
+        if (sUriMatcher.match(uri) != MEDIA) {
+            throw new IllegalArgumentException("Unknown URI " + uri);
+        }
+
+        int numInserted = 0;
+
         SQLiteDatabase db = mOpenHelper.getWritableDatabase();
         db.beginTransaction();
-        	        
+
         try {
-        	//standard SQL insert statement, that can be reused
-            SQLiteStatement insert = 
-            		db.compileStatement("insert into " + MEDIA_TABLE_NAME 
-            				+ " (" + MediaColumns.URI + ","
-        	                + MediaColumns.TITLE + ","
-        	                + MediaColumns.ALBUM + ","
-        	                + MediaColumns.ARTIST + ","
-        	                + MediaColumns.DURATION + ","
-        	                + MediaColumns.TRACK + ","
-        	                + MediaColumns.YEAR + ")"
-        	                + " values " + "(?,?,?,?,?,?,?)");
-        	
-        	for (ContentValues value : values) {
-        		// Make sure that the fields are all set
+            //standard SQL insert statement, that can be reused
+            SQLiteStatement insert =
+                    db.compileStatement("insert into " + MEDIA_TABLE_NAME
+                            + " (" + MediaColumns.URI + ","
+                            + MediaColumns.TITLE + ","
+                            + MediaColumns.ALBUM + ","
+                            + MediaColumns.ARTIST + ","
+                            + MediaColumns.DURATION + ","
+                            + MediaColumns.TRACK + ","
+                            + MediaColumns.YEAR + ")"
+                            + " values " + "(?,?,?,?,?,?,?)");
+
+            for (ContentValues value : values) {
+                // Make sure that the fields are all set
                 if (value.containsKey(MediaColumns.URI) == false) {
-                	value.put(MediaColumns.URI, Media.UNKNOWN_STRING);
+                    value.put(MediaColumns.URI, Media.UNKNOWN_STRING);
                 }
-                
+
                 if (value.containsKey(MediaColumns.TITLE) == false) {
-                	value.put(MediaColumns.TITLE, Media.UNKNOWN_STRING);
+                    value.put(MediaColumns.TITLE, Media.UNKNOWN_STRING);
                 }
-                
+
                 if (value.containsKey(MediaColumns.ALBUM) == false) {
-                	value.put(MediaColumns.ALBUM, Media.UNKNOWN_STRING);
+                    value.put(MediaColumns.ALBUM, Media.UNKNOWN_STRING);
                 }
-                
+
                 if (value.containsKey(MediaColumns.ARTIST) == false) {
-                	value.put(MediaColumns.ARTIST, Media.UNKNOWN_STRING);
+                    value.put(MediaColumns.ARTIST, Media.UNKNOWN_STRING);
                 }
-                
+
                 if (value.containsKey(MediaColumns.DURATION) == false) {
-                	value.put(MediaColumns.DURATION, Media.UNKNOWN_INTEGER);
+                    value.put(MediaColumns.DURATION, Media.UNKNOWN_INTEGER);
                 }
-                
+
                 if (value.containsKey(MediaColumns.TRACK) == false) {
-                	value.put(MediaColumns.TRACK, Media.UNKNOWN_STRING);
+                    value.put(MediaColumns.TRACK, Media.UNKNOWN_STRING);
                 }
-                
+
                 if (value.containsKey(MediaColumns.YEAR) == false) {
-                	value.put(MediaColumns.YEAR, Media.UNKNOWN_INTEGER);
+                    value.put(MediaColumns.YEAR, Media.UNKNOWN_INTEGER);
                 }
-        		
+
                 insert.bindString(1, value.getAsString(MediaColumns.URI));
-        	    insert.bindString(2, value.getAsString(MediaColumns.TITLE));
-        	    insert.bindString(3, value.getAsString(MediaColumns.ALBUM));
-        	    insert.bindString(4, value.getAsString(MediaColumns.ARTIST));
-        	    insert.bindLong(5, value.getAsInteger(MediaColumns.DURATION));
-        	    insert.bindString(6, value.getAsString(MediaColumns.TRACK));
-        	    insert.bindLong(7, value.getAsInteger(MediaColumns.YEAR));
-        	    insert.execute();
-        	    numInserted++;
-        	}
-            
-        	db.setTransactionSuccessful();
+                insert.bindString(2, value.getAsString(MediaColumns.TITLE));
+                insert.bindString(3, value.getAsString(MediaColumns.ALBUM));
+                insert.bindString(4, value.getAsString(MediaColumns.ARTIST));
+                insert.bindLong(5, value.getAsInteger(MediaColumns.DURATION));
+                insert.bindString(6, value.getAsString(MediaColumns.TRACK));
+                insert.bindLong(7, value.getAsInteger(MediaColumns.YEAR));
+                insert.execute();
+                numInserted++;
+            }
+
+            db.setTransactionSuccessful();
         } finally {
-        	db.endTransaction();
+            db.endTransaction();
         }
-        
+
         return numInserted;
     }
-    
+
     @Override
     public int delete(Uri uri, String where, String[] whereArgs) {
         SQLiteDatabase db = mOpenHelper.getWritableDatabase();
         int count;
         switch (sUriMatcher.match(uri)) {
-        case MEDIA:
-            count = db.delete(MEDIA_TABLE_NAME, where, whereArgs);
-            break;
+            case MEDIA:
+                count = db.delete(MEDIA_TABLE_NAME, where, whereArgs);
+                break;
 
-        case MEDIA_ID:
-            String noteId = uri.getPathSegments().get(1);
-            count = db.delete(MEDIA_TABLE_NAME, MediaColumns._ID + "=" + noteId
-                    + (!TextUtils.isEmpty(where) ? " AND (" + where + ')' : ""), whereArgs);
-            break;
+            case MEDIA_ID:
+                String noteId = uri.getPathSegments().get(1);
+                count = db.delete(MEDIA_TABLE_NAME, MediaColumns._ID + "=" + noteId
+                        + (!TextUtils.isEmpty(where) ? " AND (" + where + ')' : ""), whereArgs);
+                break;
 
-        default:
-            throw new IllegalArgumentException("Unknown URI " + uri);
+            default:
+                throw new IllegalArgumentException("Unknown URI " + uri);
         }
 
         getContext().getContentResolver().notifyChange(uri, null);
@@ -304,18 +304,18 @@ public class MediaProvider extends ContentProvider {
         SQLiteDatabase db = mOpenHelper.getWritableDatabase();
         int count;
         switch (sUriMatcher.match(uri)) {
-        case MEDIA:
-            count = db.update(MEDIA_TABLE_NAME, values, where, whereArgs);
-            break;
+            case MEDIA:
+                count = db.update(MEDIA_TABLE_NAME, values, where, whereArgs);
+                break;
 
-        case MEDIA_ID:
-            String noteId = uri.getPathSegments().get(1);
-            count = db.update(MEDIA_TABLE_NAME, values, MediaColumns._ID + "=" + noteId
-                    + (!TextUtils.isEmpty(where) ? " AND (" + where + ')' : ""), whereArgs);
-            break;
+            case MEDIA_ID:
+                String noteId = uri.getPathSegments().get(1);
+                count = db.update(MEDIA_TABLE_NAME, values, MediaColumns._ID + "=" + noteId
+                        + (!TextUtils.isEmpty(where) ? " AND (" + where + ')' : ""), whereArgs);
+                break;
 
-        default:
-            throw new IllegalArgumentException("Unknown URI " + uri);
+            default:
+                throw new IllegalArgumentException("Unknown URI " + uri);
         }
 
         getContext().getContentResolver().notifyChange(uri, null);

@@ -31,7 +31,7 @@ public class TimerDBAdapter extends DBAdapter<Timer> {
 
     @Override
     public String[] getAllColumns() {
-        return new String[] {
+        return new String[]{
                 KEY_ROW_ID,
                 KEY_MODE,
                 KEY_TYPE,
@@ -68,8 +68,8 @@ public class TimerDBAdapter extends DBAdapter<Timer> {
     public Collection<Timer> findByChannelName(String name) throws Exception {
         return toCollection(getDB().query(getTableName(), getAllColumns(),
                 KEY_CHANNEL_NAME + " = ?",
-                new String[] {
-                    name
+                new String[]{
+                        name
                 },
                 null,
                 null,

@@ -65,7 +65,7 @@ public class RecordedProgramAdapter extends DefaultAdapter<RecordedProgram> {
             holder = (ViewHolder) convertView.getTag();
         }
         if (parent instanceof SwipeListView) {
-            ((SwipeListView)parent).recycle(convertView, position);
+            ((SwipeListView) parent).recycle(convertView, position);
         }
         RecordedProgram object = getObjects()[position];
         holder.txtTitle.setText(object.toPrettyString(getContext()));

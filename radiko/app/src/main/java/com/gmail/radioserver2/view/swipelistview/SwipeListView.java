@@ -40,15 +40,15 @@ import java.util.List;
  * ListView subclass that provides the swipe functionality
  */
 public class SwipeListView extends ListView {
-    
+
     /**
      * log tag
-    */
+     */
     public final static String TAG = "SwipeListView";
-	
+
     /**
-    * whether debug
-    */
+     * whether debug
+     */
     public final static boolean DEBUG = false;
 
     /**
@@ -248,8 +248,8 @@ public class SwipeListView extends ListView {
         // Clean pressed state (if dismiss is fire from a cell, to this cell, with a press drawable, in a swipelistview
         // when this cell will be recycle it will still have his pressed state. This ensure the pressed state is
         // cleaned.
-        for(int j=0; j<((ViewGroup)convertView).getChildCount(); ++j) {
-            View nextChild = ((ViewGroup)convertView).getChildAt(j);
+        for (int j = 0; j < ((ViewGroup) convertView).getChildCount(); ++j) {
+            View nextChild = ((ViewGroup) convertView).getChildAt(j);
             nextChild.setPressed(false);
         }
     }

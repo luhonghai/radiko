@@ -20,7 +20,7 @@ package com.gmail.radioserver2.utils;
 
 public class Constants {
     /**
-     *  Application fragment tab
+     * Application fragment tab
      */
     public static final String TAB_HOME = "TAB_HOME";
 
@@ -45,7 +45,7 @@ public class Constants {
     public static final String PLAYBACK_VIEWER_INTENT = "com.gmail.radioserver2.PLAYBACK_VIEWER";
 
     /**
-     *  Fragment action intent
+     * Fragment action intent
      */
     public static final String INTENT_FILTER_FRAGMENT_ACTION = "com.gmail.radioserver2.utils.Constants.INTENT_FILTER_FRAGMENT_ACTION";
 

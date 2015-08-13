@@ -83,7 +83,7 @@ public abstract class TokenFetcher {
 
     protected final FileHelper fileHelper;
 
-    private double longitude  = -1;
+    private double longitude = -1;
 
     private double latitude = -1;
 
@@ -118,13 +118,13 @@ public abstract class TokenFetcher {
         }
         SimpleAppLog.info("No cached token found");
         AsyncTask<Void, Void, Void> getTokenTask = new AsyncTask<Void, Void, Void>() {
-                @Override
-                protected Void doInBackground(Void... params) {
-                    SimpleAppLog.info("Request remote token");
-                    fetchRemote();
-                    return null;
-                }
-            };
+            @Override
+            protected Void doInBackground(Void... params) {
+                SimpleAppLog.info("Request remote token");
+                fetchRemote();
+                return null;
+            }
+        };
         getTokenTask.execute();
     }
 
@@ -134,7 +134,7 @@ public abstract class TokenFetcher {
             try {
                 FileUtils.forceDelete(savedToken);
             } catch (Exception e) {
-                SimpleAppLog.error("Could not clear token cache",e);
+                SimpleAppLog.error("Could not clear token cache", e);
             }
         }
     }
@@ -186,10 +186,10 @@ public abstract class TokenFetcher {
         TokenFetcher tokenFetcher = null;
         if (setting.getTokenType() == Setting.TOKEN_TYPE_CLIENT) {
             SimpleAppLog.info("Use client token");
-            tokenFetcher =  new ClientTokenFetcher(context,onTokenListener);
+            tokenFetcher = new ClientTokenFetcher(context, onTokenListener);
         } else {
             SimpleAppLog.info("Use server token");
-            tokenFetcher = new ServerTokenFetcher(context,onTokenListener);
+            tokenFetcher = new ServerTokenFetcher(context, onTokenListener);
         }
         tokenFetcher.setLatitude(latitude);
         tokenFetcher.setLongitude(longitude);

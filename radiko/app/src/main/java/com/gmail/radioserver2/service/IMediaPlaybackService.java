@@ -6,42 +6,44 @@ package com.gmail.radioserver2.service;
 
 import android.os.RemoteException;
 
-public interface IMediaPlaybackService extends android.os.IInterface
-{
-    /** Local-side IPC implementation stub class. */
-    public static abstract class Stub extends android.os.Binder implements com.gmail.radioserver2.service.IMediaPlaybackService
-    {
+public interface IMediaPlaybackService extends android.os.IInterface {
+    /**
+     * Local-side IPC implementation stub class.
+     */
+    public static abstract class Stub extends android.os.Binder implements com.gmail.radioserver2.service.IMediaPlaybackService {
         private static final java.lang.String DESCRIPTOR = "com.gmail.radioserver2.service.IMediaPlaybackService";
-        /** Construct the stub at attach it to the interface. */
-        public Stub()
-        {
+
+        /**
+         * Construct the stub at attach it to the interface.
+         */
+        public Stub() {
             this.attachInterface(this, DESCRIPTOR);
         }
+
         /**
          * Cast an IBinder object into an com.gmail.radioserver2.service.IMediaPlaybackService interface,
          * generating a proxy if needed.
          */
-        public static com.gmail.radioserver2.service.IMediaPlaybackService asInterface(android.os.IBinder obj)
-        {
-            if ((obj==null)) {
+        public static com.gmail.radioserver2.service.IMediaPlaybackService asInterface(android.os.IBinder obj) {
+            if ((obj == null)) {
                 return null;
             }
             android.os.IInterface iin = obj.queryLocalInterface(DESCRIPTOR);
-            if (((iin!=null)&&(iin instanceof com.gmail.radioserver2.service.IMediaPlaybackService))) {
-                return ((com.gmail.radioserver2.service.IMediaPlaybackService)iin);
+            if (((iin != null) && (iin instanceof com.gmail.radioserver2.service.IMediaPlaybackService))) {
+                return ((com.gmail.radioserver2.service.IMediaPlaybackService) iin);
             }
             return new com.gmail.radioserver2.service.IMediaPlaybackService.Stub.Proxy(obj);
         }
-        @Override public android.os.IBinder asBinder()
-        {
+
+        @Override
+        public android.os.IBinder asBinder() {
             return this;
         }
-        @Override public boolean onTransact(int code, android.os.Parcel data, android.os.Parcel reply, int flags) throws android.os.RemoteException
-        {
-            switch (code)
-            {
-                case INTERFACE_TRANSACTION:
-                {
+
+        @Override
+        public boolean onTransact(int code, android.os.Parcel data, android.os.Parcel reply, int flags) throws android.os.RemoteException {
+            switch (code) {
+                case INTERFACE_TRANSACTION: {
                     reply.writeString(DESCRIPTOR);
                     return true;
                 }
@@ -110,16 +112,14 @@ public interface IMediaPlaybackService extends android.os.IInterface
                     reply.writeNoException();
                     return true;
                 }
-                case TRANSACTION_getAPos:
-                {
+                case TRANSACTION_getAPos: {
                     data.enforceInterface(DESCRIPTOR);
                     long _result = this.getAPos();
                     reply.writeNoException();
                     reply.writeLong(_result);
                     return true;
                 }
-                case TRANSACTION_getBPos:
-                {
+                case TRANSACTION_getBPos: {
                     data.enforceInterface(DESCRIPTOR);
                     long _result = this.getBPos();
                     reply.writeNoException();
@@ -204,8 +204,7 @@ public interface IMediaPlaybackService extends android.os.IInterface
                     return true;
                 }
                 // Default
-                case TRANSACTION_openFile:
-                {
+                case TRANSACTION_openFile: {
                     data.enforceInterface(DESCRIPTOR);
                     java.lang.String _arg0;
                     _arg0 = data.readString();
@@ -213,8 +212,7 @@ public interface IMediaPlaybackService extends android.os.IInterface
                     reply.writeNoException();
                     return true;
                 }
-                case TRANSACTION_open:
-                {
+                case TRANSACTION_open: {
                     data.enforceInterface(DESCRIPTOR);
                     long[] _arg0;
                     _arg0 = data.createLongArray();
@@ -224,75 +222,65 @@ public interface IMediaPlaybackService extends android.os.IInterface
                     reply.writeNoException();
                     return true;
                 }
-                case TRANSACTION_getQueuePosition:
-                {
+                case TRANSACTION_getQueuePosition: {
                     data.enforceInterface(DESCRIPTOR);
                     int _result = this.getQueuePosition();
                     reply.writeNoException();
                     reply.writeInt(_result);
                     return true;
                 }
-                case TRANSACTION_isPlaying:
-                {
+                case TRANSACTION_isPlaying: {
                     data.enforceInterface(DESCRIPTOR);
                     boolean _result = this.isPlaying();
                     reply.writeNoException();
-                    reply.writeInt(((_result)?(1):(0)));
+                    reply.writeInt(((_result) ? (1) : (0)));
                     return true;
                 }
-                case TRANSACTION_stop:
-                {
+                case TRANSACTION_stop: {
                     data.enforceInterface(DESCRIPTOR);
                     this.stop();
                     reply.writeNoException();
                     return true;
                 }
-                case TRANSACTION_pause:
-                {
+                case TRANSACTION_pause: {
                     data.enforceInterface(DESCRIPTOR);
                     this.pause();
                     reply.writeNoException();
                     return true;
                 }
-                case TRANSACTION_play:
-                {
+                case TRANSACTION_play: {
                     data.enforceInterface(DESCRIPTOR);
                     this.play();
                     reply.writeNoException();
                     return true;
                 }
-                case TRANSACTION_prev:
-                {
+                case TRANSACTION_prev: {
                     data.enforceInterface(DESCRIPTOR);
                     this.prev();
                     reply.writeNoException();
                     return true;
                 }
-                case TRANSACTION_next:
-                {
+                case TRANSACTION_next: {
                     data.enforceInterface(DESCRIPTOR);
                     this.next();
                     reply.writeNoException();
                     return true;
                 }
-                case TRANSACTION_duration:
-                {
+                case TRANSACTION_duration: {
                     data.enforceInterface(DESCRIPTOR);
                     long _result = this.duration();
                     reply.writeNoException();
                     reply.writeLong(_result);
                     return true;
                 }
-                case TRANSACTION_position:
-                {
+                case TRANSACTION_position: {
                     data.enforceInterface(DESCRIPTOR);
                     long _result = this.position();
                     reply.writeNoException();
                     reply.writeLong(_result);
                     return true;
                 }
-                case TRANSACTION_seek:
-                {
+                case TRANSACTION_seek: {
                     data.enforceInterface(DESCRIPTOR);
                     long _arg0;
                     _arg0 = data.readLong();
@@ -301,48 +289,42 @@ public interface IMediaPlaybackService extends android.os.IInterface
                     reply.writeLong(_result);
                     return true;
                 }
-                case TRANSACTION_getTrackName:
-                {
+                case TRANSACTION_getTrackName: {
                     data.enforceInterface(DESCRIPTOR);
                     java.lang.String _result = this.getTrackName();
                     reply.writeNoException();
                     reply.writeString(_result);
                     return true;
                 }
-                case TRANSACTION_getAlbumName:
-                {
+                case TRANSACTION_getAlbumName: {
                     data.enforceInterface(DESCRIPTOR);
                     java.lang.String _result = this.getAlbumName();
                     reply.writeNoException();
                     reply.writeString(_result);
                     return true;
                 }
-                case TRANSACTION_getAlbumId:
-                {
+                case TRANSACTION_getAlbumId: {
                     data.enforceInterface(DESCRIPTOR);
                     long _result = this.getAlbumId();
                     reply.writeNoException();
                     reply.writeLong(_result);
                     return true;
                 }
-                case TRANSACTION_getArtistName:
-                {
+                case TRANSACTION_getArtistName: {
                     data.enforceInterface(DESCRIPTOR);
                     java.lang.String _result = this.getArtistName();
                     reply.writeNoException();
                     reply.writeString(_result);
                     return true;
                 }
-                case TRANSACTION_getArtistId:
-                {
+                case TRANSACTION_getArtistId: {
                     data.enforceInterface(DESCRIPTOR);
                     long _result = this.getArtistId();
                     reply.writeNoException();
                     reply.writeLong(_result);
                     return true;
                 }
-                case TRANSACTION_enqueue:
-                {
+                case TRANSACTION_enqueue: {
                     data.enforceInterface(DESCRIPTOR);
                     long[] _arg0;
                     _arg0 = data.createLongArray();
@@ -352,16 +334,14 @@ public interface IMediaPlaybackService extends android.os.IInterface
                     reply.writeNoException();
                     return true;
                 }
-                case TRANSACTION_getQueue:
-                {
+                case TRANSACTION_getQueue: {
                     data.enforceInterface(DESCRIPTOR);
                     long[] _result = this.getQueue();
                     reply.writeNoException();
                     reply.writeLongArray(_result);
                     return true;
                 }
-                case TRANSACTION_moveQueueItem:
-                {
+                case TRANSACTION_moveQueueItem: {
                     data.enforceInterface(DESCRIPTOR);
                     int _arg0;
                     _arg0 = data.readInt();
@@ -371,8 +351,7 @@ public interface IMediaPlaybackService extends android.os.IInterface
                     reply.writeNoException();
                     return true;
                 }
-                case TRANSACTION_setQueuePosition:
-                {
+                case TRANSACTION_setQueuePosition: {
                     data.enforceInterface(DESCRIPTOR);
                     int _arg0;
                     _arg0 = data.readInt();
@@ -380,24 +359,21 @@ public interface IMediaPlaybackService extends android.os.IInterface
                     reply.writeNoException();
                     return true;
                 }
-                case TRANSACTION_getPath:
-                {
+                case TRANSACTION_getPath: {
                     data.enforceInterface(DESCRIPTOR);
                     java.lang.String _result = this.getPath();
                     reply.writeNoException();
                     reply.writeString(_result);
                     return true;
                 }
-                case TRANSACTION_getAudioId:
-                {
+                case TRANSACTION_getAudioId: {
                     data.enforceInterface(DESCRIPTOR);
                     long _result = this.getAudioId();
                     reply.writeNoException();
                     reply.writeLong(_result);
                     return true;
                 }
-                case TRANSACTION_setShuffleMode:
-                {
+                case TRANSACTION_setShuffleMode: {
                     data.enforceInterface(DESCRIPTOR);
                     int _arg0;
                     _arg0 = data.readInt();
@@ -405,16 +381,14 @@ public interface IMediaPlaybackService extends android.os.IInterface
                     reply.writeNoException();
                     return true;
                 }
-                case TRANSACTION_getShuffleMode:
-                {
+                case TRANSACTION_getShuffleMode: {
                     data.enforceInterface(DESCRIPTOR);
                     int _result = this.getShuffleMode();
                     reply.writeNoException();
                     reply.writeInt(_result);
                     return true;
                 }
-                case TRANSACTION_removeTracks:
-                {
+                case TRANSACTION_removeTracks: {
                     data.enforceInterface(DESCRIPTOR);
                     int _arg0;
                     _arg0 = data.readInt();
@@ -425,8 +399,7 @@ public interface IMediaPlaybackService extends android.os.IInterface
                     reply.writeInt(_result);
                     return true;
                 }
-                case TRANSACTION_removeTrack:
-                {
+                case TRANSACTION_removeTrack: {
                     data.enforceInterface(DESCRIPTOR);
                     long _arg0;
                     _arg0 = data.readLong();
@@ -435,8 +408,7 @@ public interface IMediaPlaybackService extends android.os.IInterface
                     reply.writeInt(_result);
                     return true;
                 }
-                case TRANSACTION_setRepeatMode:
-                {
+                case TRANSACTION_setRepeatMode: {
                     data.enforceInterface(DESCRIPTOR);
                     int _arg0;
                     _arg0 = data.readInt();
@@ -444,32 +416,28 @@ public interface IMediaPlaybackService extends android.os.IInterface
                     reply.writeNoException();
                     return true;
                 }
-                case TRANSACTION_getRepeatMode:
-                {
+                case TRANSACTION_getRepeatMode: {
                     data.enforceInterface(DESCRIPTOR);
                     int _result = this.getRepeatMode();
                     reply.writeNoException();
                     reply.writeInt(_result);
                     return true;
                 }
-                case TRANSACTION_getMediaMountedCount:
-                {
+                case TRANSACTION_getMediaMountedCount: {
                     data.enforceInterface(DESCRIPTOR);
                     int _result = this.getMediaMountedCount();
                     reply.writeNoException();
                     reply.writeInt(_result);
                     return true;
                 }
-                case TRANSACTION_getAudioSessionId:
-                {
+                case TRANSACTION_getAudioSessionId: {
                     data.enforceInterface(DESCRIPTOR);
                     int _result = this.getAudioSessionId();
                     reply.writeNoException();
                     reply.writeInt(_result);
                     return true;
                 }
-                case TRANSACTION_getMediaUri:
-                {
+                case TRANSACTION_getMediaUri: {
                     data.enforceInterface(DESCRIPTOR);
                     java.lang.String _result = this.getMediaUri();
                     reply.writeNoException();
@@ -479,23 +447,25 @@ public interface IMediaPlaybackService extends android.os.IInterface
             }
             return super.onTransact(code, data, reply, flags);
         }
-        private static class Proxy implements com.gmail.radioserver2.service.IMediaPlaybackService
-        {
+
+        private static class Proxy implements com.gmail.radioserver2.service.IMediaPlaybackService {
             private android.os.IBinder mRemote;
-            Proxy(android.os.IBinder remote)
-            {
+
+            Proxy(android.os.IBinder remote) {
                 mRemote = remote;
             }
-            @Override public android.os.IBinder asBinder()
-            {
+
+            @Override
+            public android.os.IBinder asBinder() {
                 return mRemote;
             }
-            public java.lang.String getInterfaceDescriptor()
-            {
+
+            public java.lang.String getInterfaceDescriptor() {
                 return DESCRIPTOR;
             }
-            @Override public void openFile(java.lang.String path) throws android.os.RemoteException
-            {
+
+            @Override
+            public void openFile(java.lang.String path) throws android.os.RemoteException {
                 android.os.Parcel _data = android.os.Parcel.obtain();
                 android.os.Parcel _reply = android.os.Parcel.obtain();
                 try {
@@ -503,14 +473,14 @@ public interface IMediaPlaybackService extends android.os.IInterface
                     _data.writeString(path);
                     mRemote.transact(Stub.TRANSACTION_openFile, _data, _reply, 0);
                     _reply.readException();
-                }
-                finally {
+                } finally {
                     _reply.recycle();
                     _data.recycle();
                 }
             }
-            @Override public void open(long[] list, int position) throws android.os.RemoteException
-            {
+
+            @Override
+            public void open(long[] list, int position) throws android.os.RemoteException {
                 android.os.Parcel _data = android.os.Parcel.obtain();
                 android.os.Parcel _reply = android.os.Parcel.obtain();
                 try {
@@ -519,14 +489,14 @@ public interface IMediaPlaybackService extends android.os.IInterface
                     _data.writeInt(position);
                     mRemote.transact(Stub.TRANSACTION_open, _data, _reply, 0);
                     _reply.readException();
-                }
-                finally {
+                } finally {
                     _reply.recycle();
                     _data.recycle();
                 }
             }
-            @Override public int getQueuePosition() throws android.os.RemoteException
-            {
+
+            @Override
+            public int getQueuePosition() throws android.os.RemoteException {
                 android.os.Parcel _data = android.os.Parcel.obtain();
                 android.os.Parcel _reply = android.os.Parcel.obtain();
                 int _result;
@@ -535,15 +505,15 @@ public interface IMediaPlaybackService extends android.os.IInterface
                     mRemote.transact(Stub.TRANSACTION_getQueuePosition, _data, _reply, 0);
                     _reply.readException();
                     _result = _reply.readInt();
-                }
-                finally {
+                } finally {
                     _reply.recycle();
                     _data.recycle();
                 }
                 return _result;
             }
-            @Override public boolean isPlaying() throws android.os.RemoteException
-            {
+
+            @Override
+            public boolean isPlaying() throws android.os.RemoteException {
                 android.os.Parcel _data = android.os.Parcel.obtain();
                 android.os.Parcel _reply = android.os.Parcel.obtain();
                 boolean _result;
@@ -551,86 +521,86 @@ public interface IMediaPlaybackService extends android.os.IInterface
                     _data.writeInterfaceToken(DESCRIPTOR);
                     mRemote.transact(Stub.TRANSACTION_isPlaying, _data, _reply, 0);
                     _reply.readException();
-                    _result = (0!=_reply.readInt());
-                }
-                finally {
+                    _result = (0 != _reply.readInt());
+                } finally {
                     _reply.recycle();
                     _data.recycle();
                 }
                 return _result;
             }
-            @Override public void stop() throws android.os.RemoteException
-            {
+
+            @Override
+            public void stop() throws android.os.RemoteException {
                 android.os.Parcel _data = android.os.Parcel.obtain();
                 android.os.Parcel _reply = android.os.Parcel.obtain();
                 try {
                     _data.writeInterfaceToken(DESCRIPTOR);
                     mRemote.transact(Stub.TRANSACTION_stop, _data, _reply, 0);
                     _reply.readException();
-                }
-                finally {
+                } finally {
                     _reply.recycle();
                     _data.recycle();
                 }
             }
-            @Override public void pause() throws android.os.RemoteException
-            {
+
+            @Override
+            public void pause() throws android.os.RemoteException {
                 android.os.Parcel _data = android.os.Parcel.obtain();
                 android.os.Parcel _reply = android.os.Parcel.obtain();
                 try {
                     _data.writeInterfaceToken(DESCRIPTOR);
                     mRemote.transact(Stub.TRANSACTION_pause, _data, _reply, 0);
                     _reply.readException();
-                }
-                finally {
+                } finally {
                     _reply.recycle();
                     _data.recycle();
                 }
             }
-            @Override public void play() throws android.os.RemoteException
-            {
+
+            @Override
+            public void play() throws android.os.RemoteException {
                 android.os.Parcel _data = android.os.Parcel.obtain();
                 android.os.Parcel _reply = android.os.Parcel.obtain();
                 try {
                     _data.writeInterfaceToken(DESCRIPTOR);
                     mRemote.transact(Stub.TRANSACTION_play, _data, _reply, 0);
                     _reply.readException();
-                }
-                finally {
+                } finally {
                     _reply.recycle();
                     _data.recycle();
                 }
             }
-            @Override public void prev() throws android.os.RemoteException
-            {
+
+            @Override
+            public void prev() throws android.os.RemoteException {
                 android.os.Parcel _data = android.os.Parcel.obtain();
                 android.os.Parcel _reply = android.os.Parcel.obtain();
                 try {
                     _data.writeInterfaceToken(DESCRIPTOR);
                     mRemote.transact(Stub.TRANSACTION_prev, _data, _reply, 0);
                     _reply.readException();
-                }
-                finally {
+                } finally {
                     _reply.recycle();
                     _data.recycle();
                 }
             }
-            @Override public void next() throws android.os.RemoteException
-            {
+
+            @Override
+            public void next() throws android.os.RemoteException {
                 android.os.Parcel _data = android.os.Parcel.obtain();
                 android.os.Parcel _reply = android.os.Parcel.obtain();
                 try {
                     _data.writeInterfaceToken(DESCRIPTOR);
                     mRemote.transact(Stub.TRANSACTION_next, _data, _reply, 0);
                     _reply.readException();
-                }
-                finally {
+                } finally {
                     _reply.recycle();
                     _data.recycle();
                 }
             }
-            @Override public long duration() throws android.os.RemoteException
-            {
+
+            @Override
+            public long duration() throws android.os.RemoteException {
                 android.os.Parcel _data = android.os.Parcel.obtain();
                 android.os.Parcel _reply = android.os.Parcel.obtain();
                 long _result;
@@ -639,15 +609,15 @@ public interface IMediaPlaybackService extends android.os.IInterface
                     mRemote.transact(Stub.TRANSACTION_duration, _data, _reply, 0);
                     _reply.readException();
                     _result = _reply.readLong();
-                }
-                finally {
+                } finally {
                     _reply.recycle();
                     _data.recycle();
                 }
                 return _result;
             }
-            @Override public long position() throws android.os.RemoteException
-            {
+
+            @Override
+            public long position() throws android.os.RemoteException {
                 android.os.Parcel _data = android.os.Parcel.obtain();
                 android.os.Parcel _reply = android.os.Parcel.obtain();
                 long _result;
@@ -656,15 +626,15 @@ public interface IMediaPlaybackService extends android.os.IInterface
                     mRemote.transact(Stub.TRANSACTION_position, _data, _reply, 0);
                     _reply.readException();
                     _result = _reply.readLong();
-                }
-                finally {
+                } finally {
                     _reply.recycle();
                     _data.recycle();
                 }
                 return _result;
             }
-            @Override public long seek(long pos) throws android.os.RemoteException
-            {
+
+            @Override
+            public long seek(long pos) throws android.os.RemoteException {
                 android.os.Parcel _data = android.os.Parcel.obtain();
                 android.os.Parcel _reply = android.os.Parcel.obtain();
                 long _result;
@@ -674,15 +644,15 @@ public interface IMediaPlaybackService extends android.os.IInterface
                     mRemote.transact(Stub.TRANSACTION_seek, _data, _reply, 0);
                     _reply.readException();
                     _result = _reply.readLong();
-                }
-                finally {
+                } finally {
                     _reply.recycle();
                     _data.recycle();
                 }
                 return _result;
             }
-            @Override public java.lang.String getTrackName() throws android.os.RemoteException
-            {
+
+            @Override
+            public java.lang.String getTrackName() throws android.os.RemoteException {
                 android.os.Parcel _data = android.os.Parcel.obtain();
                 android.os.Parcel _reply = android.os.Parcel.obtain();
                 java.lang.String _result;
@@ -691,15 +661,15 @@ public interface IMediaPlaybackService extends android.os.IInterface
                     mRemote.transact(Stub.TRANSACTION_getTrackName, _data, _reply, 0);
                     _reply.readException();
                     _result = _reply.readString();
-                }
-                finally {
+                } finally {
                     _reply.recycle();
                     _data.recycle();
                 }
                 return _result;
             }
-            @Override public java.lang.String getAlbumName() throws android.os.RemoteException
-            {
+
+            @Override
+            public java.lang.String getAlbumName() throws android.os.RemoteException {
                 android.os.Parcel _data = android.os.Parcel.obtain();
                 android.os.Parcel _reply = android.os.Parcel.obtain();
                 java.lang.String _result;
@@ -708,15 +678,15 @@ public interface IMediaPlaybackService extends android.os.IInterface
                     mRemote.transact(Stub.TRANSACTION_getAlbumName, _data, _reply, 0);
                     _reply.readException();
                     _result = _reply.readString();
-                }
-                finally {
+                } finally {
                     _reply.recycle();
                     _data.recycle();
                 }
                 return _result;
             }
-            @Override public long getAlbumId() throws android.os.RemoteException
-            {
+
+            @Override
+            public long getAlbumId() throws android.os.RemoteException {
                 android.os.Parcel _data = android.os.Parcel.obtain();
                 android.os.Parcel _reply = android.os.Parcel.obtain();
                 long _result;
@@ -725,15 +695,15 @@ public interface IMediaPlaybackService extends android.os.IInterface
                     mRemote.transact(Stub.TRANSACTION_getAlbumId, _data, _reply, 0);
                     _reply.readException();
                     _result = _reply.readLong();
-                }
-                finally {
+                } finally {
                     _reply.recycle();
                     _data.recycle();
                 }
                 return _result;
             }
-            @Override public java.lang.String getArtistName() throws android.os.RemoteException
-            {
+
+            @Override
+            public java.lang.String getArtistName() throws android.os.RemoteException {
                 android.os.Parcel _data = android.os.Parcel.obtain();
                 android.os.Parcel _reply = android.os.Parcel.obtain();
                 java.lang.String _result;
@@ -742,15 +712,15 @@ public interface IMediaPlaybackService extends android.os.IInterface
                     mRemote.transact(Stub.TRANSACTION_getArtistName, _data, _reply, 0);
                     _reply.readException();
                     _result = _reply.readString();
-                }
-                finally {
+                } finally {
                     _reply.recycle();
                     _data.recycle();
                 }
                 return _result;
             }
-            @Override public long getArtistId() throws android.os.RemoteException
-            {
+
+            @Override
+            public long getArtistId() throws android.os.RemoteException {
                 android.os.Parcel _data = android.os.Parcel.obtain();
                 android.os.Parcel _reply = android.os.Parcel.obtain();
                 long _result;
@@ -759,15 +729,15 @@ public interface IMediaPlaybackService extends android.os.IInterface
                     mRemote.transact(Stub.TRANSACTION_getArtistId, _data, _reply, 0);
                     _reply.readException();
                     _result = _reply.readLong();
-                }
-                finally {
+                } finally {
                     _reply.recycle();
                     _data.recycle();
                 }
                 return _result;
             }
-            @Override public void enqueue(long[] list, int action) throws android.os.RemoteException
-            {
+
+            @Override
+            public void enqueue(long[] list, int action) throws android.os.RemoteException {
                 android.os.Parcel _data = android.os.Parcel.obtain();
                 android.os.Parcel _reply = android.os.Parcel.obtain();
                 try {
@@ -776,14 +746,14 @@ public interface IMediaPlaybackService extends android.os.IInterface
                     _data.writeInt(action);
                     mRemote.transact(Stub.TRANSACTION_enqueue, _data, _reply, 0);
                     _reply.readException();
-                }
-                finally {
+                } finally {
                     _reply.recycle();
                     _data.recycle();
                 }
             }
-            @Override public long[] getQueue() throws android.os.RemoteException
-            {
+
+            @Override
+            public long[] getQueue() throws android.os.RemoteException {
                 android.os.Parcel _data = android.os.Parcel.obtain();
                 android.os.Parcel _reply = android.os.Parcel.obtain();
                 long[] _result;
@@ -792,15 +762,15 @@ public interface IMediaPlaybackService extends android.os.IInterface
                     mRemote.transact(Stub.TRANSACTION_getQueue, _data, _reply, 0);
                     _reply.readException();
                     _result = _reply.createLongArray();
-                }
-                finally {
+                } finally {
                     _reply.recycle();
                     _data.recycle();
                 }
                 return _result;
             }
-            @Override public void moveQueueItem(int from, int to) throws android.os.RemoteException
-            {
+
+            @Override
+            public void moveQueueItem(int from, int to) throws android.os.RemoteException {
                 android.os.Parcel _data = android.os.Parcel.obtain();
                 android.os.Parcel _reply = android.os.Parcel.obtain();
                 try {
@@ -809,14 +779,14 @@ public interface IMediaPlaybackService extends android.os.IInterface
                     _data.writeInt(to);
                     mRemote.transact(Stub.TRANSACTION_moveQueueItem, _data, _reply, 0);
                     _reply.readException();
-                }
-                finally {
+                } finally {
                     _reply.recycle();
                     _data.recycle();
                 }
             }
-            @Override public void setQueuePosition(int index) throws android.os.RemoteException
-            {
+
+            @Override
+            public void setQueuePosition(int index) throws android.os.RemoteException {
                 android.os.Parcel _data = android.os.Parcel.obtain();
                 android.os.Parcel _reply = android.os.Parcel.obtain();
                 try {
@@ -824,14 +794,14 @@ public interface IMediaPlaybackService extends android.os.IInterface
                     _data.writeInt(index);
                     mRemote.transact(Stub.TRANSACTION_setQueuePosition, _data, _reply, 0);
                     _reply.readException();
-                }
-                finally {
+                } finally {
                     _reply.recycle();
                     _data.recycle();
                 }
             }
-            @Override public java.lang.String getPath() throws android.os.RemoteException
-            {
+
+            @Override
+            public java.lang.String getPath() throws android.os.RemoteException {
                 android.os.Parcel _data = android.os.Parcel.obtain();
                 android.os.Parcel _reply = android.os.Parcel.obtain();
                 java.lang.String _result;
@@ -840,15 +810,15 @@ public interface IMediaPlaybackService extends android.os.IInterface
                     mRemote.transact(Stub.TRANSACTION_getPath, _data, _reply, 0);
                     _reply.readException();
                     _result = _reply.readString();
-                }
-                finally {
+                } finally {
                     _reply.recycle();
                     _data.recycle();
                 }
                 return _result;
             }
-            @Override public long getAudioId() throws android.os.RemoteException
-            {
+
+            @Override
+            public long getAudioId() throws android.os.RemoteException {
                 android.os.Parcel _data = android.os.Parcel.obtain();
                 android.os.Parcel _reply = android.os.Parcel.obtain();
                 long _result;
@@ -857,15 +827,15 @@ public interface IMediaPlaybackService extends android.os.IInterface
                     mRemote.transact(Stub.TRANSACTION_getAudioId, _data, _reply, 0);
                     _reply.readException();
                     _result = _reply.readLong();
-                }
-                finally {
+                } finally {
                     _reply.recycle();
                     _data.recycle();
                 }
                 return _result;
             }
-            @Override public void setShuffleMode(int shufflemode) throws android.os.RemoteException
-            {
+
+            @Override
+            public void setShuffleMode(int shufflemode) throws android.os.RemoteException {
                 android.os.Parcel _data = android.os.Parcel.obtain();
                 android.os.Parcel _reply = android.os.Parcel.obtain();
                 try {
@@ -873,14 +843,14 @@ public interface IMediaPlaybackService extends android.os.IInterface
                     _data.writeInt(shufflemode);
                     mRemote.transact(Stub.TRANSACTION_setShuffleMode, _data, _reply, 0);
                     _reply.readException();
-                }
-                finally {
+                } finally {
                     _reply.recycle();
                     _data.recycle();
                 }
             }
-            @Override public int getShuffleMode() throws android.os.RemoteException
-            {
+
+            @Override
+            public int getShuffleMode() throws android.os.RemoteException {
                 android.os.Parcel _data = android.os.Parcel.obtain();
                 android.os.Parcel _reply = android.os.Parcel.obtain();
                 int _result;
@@ -889,15 +859,15 @@ public interface IMediaPlaybackService extends android.os.IInterface
                     mRemote.transact(Stub.TRANSACTION_getShuffleMode, _data, _reply, 0);
                     _reply.readException();
                     _result = _reply.readInt();
-                }
-                finally {
+                } finally {
                     _reply.recycle();
                     _data.recycle();
                 }
                 return _result;
             }
-            @Override public int removeTracks(int first, int last) throws android.os.RemoteException
-            {
+
+            @Override
+            public int removeTracks(int first, int last) throws android.os.RemoteException {
                 android.os.Parcel _data = android.os.Parcel.obtain();
                 android.os.Parcel _reply = android.os.Parcel.obtain();
                 int _result;
@@ -908,15 +878,15 @@ public interface IMediaPlaybackService extends android.os.IInterface
                     mRemote.transact(Stub.TRANSACTION_removeTracks, _data, _reply, 0);
                     _reply.readException();
                     _result = _reply.readInt();
-                }
-                finally {
+                } finally {
                     _reply.recycle();
                     _data.recycle();
                 }
                 return _result;
             }
-            @Override public int removeTrack(long id) throws android.os.RemoteException
-            {
+
+            @Override
+            public int removeTrack(long id) throws android.os.RemoteException {
                 android.os.Parcel _data = android.os.Parcel.obtain();
                 android.os.Parcel _reply = android.os.Parcel.obtain();
                 int _result;
@@ -926,15 +896,15 @@ public interface IMediaPlaybackService extends android.os.IInterface
                     mRemote.transact(Stub.TRANSACTION_removeTrack, _data, _reply, 0);
                     _reply.readException();
                     _result = _reply.readInt();
-                }
-                finally {
+                } finally {
                     _reply.recycle();
                     _data.recycle();
                 }
                 return _result;
             }
-            @Override public void setRepeatMode(int repeatmode) throws android.os.RemoteException
-            {
+
+            @Override
+            public void setRepeatMode(int repeatmode) throws android.os.RemoteException {
                 android.os.Parcel _data = android.os.Parcel.obtain();
                 android.os.Parcel _reply = android.os.Parcel.obtain();
                 try {
@@ -942,14 +912,14 @@ public interface IMediaPlaybackService extends android.os.IInterface
                     _data.writeInt(repeatmode);
                     mRemote.transact(Stub.TRANSACTION_setRepeatMode, _data, _reply, 0);
                     _reply.readException();
-                }
-                finally {
+                } finally {
                     _reply.recycle();
                     _data.recycle();
                 }
             }
-            @Override public int getRepeatMode() throws android.os.RemoteException
-            {
+
+            @Override
+            public int getRepeatMode() throws android.os.RemoteException {
                 android.os.Parcel _data = android.os.Parcel.obtain();
                 android.os.Parcel _reply = android.os.Parcel.obtain();
                 int _result;
@@ -958,15 +928,15 @@ public interface IMediaPlaybackService extends android.os.IInterface
                     mRemote.transact(Stub.TRANSACTION_getRepeatMode, _data, _reply, 0);
                     _reply.readException();
                     _result = _reply.readInt();
-                }
-                finally {
+                } finally {
                     _reply.recycle();
                     _data.recycle();
                 }
                 return _result;
             }
-            @Override public int getMediaMountedCount() throws android.os.RemoteException
-            {
+
+            @Override
+            public int getMediaMountedCount() throws android.os.RemoteException {
                 android.os.Parcel _data = android.os.Parcel.obtain();
                 android.os.Parcel _reply = android.os.Parcel.obtain();
                 int _result;
@@ -975,15 +945,15 @@ public interface IMediaPlaybackService extends android.os.IInterface
                     mRemote.transact(Stub.TRANSACTION_getMediaMountedCount, _data, _reply, 0);
                     _reply.readException();
                     _result = _reply.readInt();
-                }
-                finally {
+                } finally {
                     _reply.recycle();
                     _data.recycle();
                 }
                 return _result;
             }
-            @Override public int getAudioSessionId() throws android.os.RemoteException
-            {
+
+            @Override
+            public int getAudioSessionId() throws android.os.RemoteException {
                 android.os.Parcel _data = android.os.Parcel.obtain();
                 android.os.Parcel _reply = android.os.Parcel.obtain();
                 int _result;
@@ -992,15 +962,15 @@ public interface IMediaPlaybackService extends android.os.IInterface
                     mRemote.transact(Stub.TRANSACTION_getAudioSessionId, _data, _reply, 0);
                     _reply.readException();
                     _result = _reply.readInt();
-                }
-                finally {
+                } finally {
                     _reply.recycle();
                     _data.recycle();
                 }
                 return _result;
             }
-            @Override public java.lang.String getMediaUri() throws android.os.RemoteException
-            {
+
+            @Override
+            public java.lang.String getMediaUri() throws android.os.RemoteException {
                 android.os.Parcel _data = android.os.Parcel.obtain();
                 android.os.Parcel _reply = android.os.Parcel.obtain();
                 java.lang.String _result;
@@ -1009,16 +979,15 @@ public interface IMediaPlaybackService extends android.os.IInterface
                     mRemote.transact(Stub.TRANSACTION_getMediaUri, _data, _reply, 0);
                     _reply.readException();
                     _result = _reply.readString();
-                }
-                finally {
+                } finally {
                     _reply.recycle();
                     _data.recycle();
                 }
                 return _result;
             }
 
-            @Override public void startRecord(java.lang.String token, java.lang.String filePath) throws android.os.RemoteException
-            {
+            @Override
+            public void startRecord(java.lang.String token, java.lang.String filePath) throws android.os.RemoteException {
                 android.os.Parcel _data = android.os.Parcel.obtain();
                 android.os.Parcel _reply = android.os.Parcel.obtain();
                 try {
@@ -1027,28 +996,28 @@ public interface IMediaPlaybackService extends android.os.IInterface
                     _data.writeString(filePath);
                     mRemote.transact(Stub.TRANSACTION_startRecord, _data, _reply, 0);
                     _reply.readException();
-                }
-                finally {
+                } finally {
                     _reply.recycle();
                     _data.recycle();
                 }
             }
-            @Override public void stopRecord() throws android.os.RemoteException
-            {
+
+            @Override
+            public void stopRecord() throws android.os.RemoteException {
                 android.os.Parcel _data = android.os.Parcel.obtain();
                 android.os.Parcel _reply = android.os.Parcel.obtain();
                 try {
                     _data.writeInterfaceToken(DESCRIPTOR);
                     mRemote.transact(Stub.TRANSACTION_stopRecord, _data, _reply, 0);
                     _reply.readException();
-                }
-                finally {
+                } finally {
                     _reply.recycle();
                     _data.recycle();
                 }
             }
-            @Override public boolean isRecording() throws android.os.RemoteException
-            {
+
+            @Override
+            public boolean isRecording() throws android.os.RemoteException {
                 android.os.Parcel _data = android.os.Parcel.obtain();
                 android.os.Parcel _reply = android.os.Parcel.obtain();
                 boolean _result = false;
@@ -1057,29 +1026,29 @@ public interface IMediaPlaybackService extends android.os.IInterface
                     mRemote.transact(Stub.TRANSACTION_isRecording, _data, _reply, 0);
                     _reply.readException();
                     _result = (_reply.readInt() != 0);
-                }
-                finally {
+                } finally {
                     _reply.recycle();
                     _data.recycle();
                 }
                 return _result;
             }
-            @Override public void markAB() throws android.os.RemoteException
-            {
+
+            @Override
+            public void markAB() throws android.os.RemoteException {
                 android.os.Parcel _data = android.os.Parcel.obtain();
                 android.os.Parcel _reply = android.os.Parcel.obtain();
                 try {
                     _data.writeInterfaceToken(DESCRIPTOR);
                     mRemote.transact(Stub.TRANSACTION_markAB, _data, _reply, 0);
                     _reply.readException();
-                }
-                finally {
+                } finally {
                     _reply.recycle();
                     _data.recycle();
                 }
             }
-            @Override public int getStateAB() throws android.os.RemoteException
-            {
+
+            @Override
+            public int getStateAB() throws android.os.RemoteException {
                 android.os.Parcel _data = android.os.Parcel.obtain();
                 android.os.Parcel _reply = android.os.Parcel.obtain();
                 int _result = -1;
@@ -1088,29 +1057,29 @@ public interface IMediaPlaybackService extends android.os.IInterface
                     mRemote.transact(Stub.TRANSACTION_getStateAB, _data, _reply, 0);
                     _reply.readException();
                     _result = _reply.readInt();
-                }
-                finally {
+                } finally {
                     _reply.recycle();
                     _data.recycle();
                 }
                 return _result;
             }
-            @Override public void stopAB() throws android.os.RemoteException
-            {
+
+            @Override
+            public void stopAB() throws android.os.RemoteException {
                 android.os.Parcel _data = android.os.Parcel.obtain();
                 android.os.Parcel _reply = android.os.Parcel.obtain();
                 try {
                     _data.writeInterfaceToken(DESCRIPTOR);
                     mRemote.transact(Stub.TRANSACTION_stopAB, _data, _reply, 0);
                     _reply.readException();
-                }
-                finally {
+                } finally {
                     _reply.recycle();
                     _data.recycle();
                 }
             }
-            @Override public void doBack(int length) throws android.os.RemoteException
-            {
+
+            @Override
+            public void doBack(int length) throws android.os.RemoteException {
                 android.os.Parcel _data = android.os.Parcel.obtain();
                 android.os.Parcel _reply = android.os.Parcel.obtain();
                 try {
@@ -1118,14 +1087,14 @@ public interface IMediaPlaybackService extends android.os.IInterface
                     _data.writeInt(length);
                     mRemote.transact(Stub.TRANSACTION_doBack, _data, _reply, 0);
                     _reply.readException();
-                }
-                finally {
+                } finally {
                     _reply.recycle();
                     _data.recycle();
                 }
             }
-            @Override public void doFast(float level) throws android.os.RemoteException
-            {
+
+            @Override
+            public void doFast(float level) throws android.os.RemoteException {
                 android.os.Parcel _data = android.os.Parcel.obtain();
                 android.os.Parcel _reply = android.os.Parcel.obtain();
                 try {
@@ -1133,28 +1102,28 @@ public interface IMediaPlaybackService extends android.os.IInterface
                     _data.writeFloat(level);
                     mRemote.transact(Stub.TRANSACTION_doFast, _data, _reply, 0);
                     _reply.readException();
-                }
-                finally {
+                } finally {
                     _reply.recycle();
                     _data.recycle();
                 }
             }
-            @Override public void stopFast() throws android.os.RemoteException
-            {
+
+            @Override
+            public void stopFast() throws android.os.RemoteException {
                 android.os.Parcel _data = android.os.Parcel.obtain();
                 android.os.Parcel _reply = android.os.Parcel.obtain();
                 try {
                     _data.writeInterfaceToken(DESCRIPTOR);
                     mRemote.transact(Stub.TRANSACTION_stopFast, _data, _reply, 0);
                     _reply.readException();
-                }
-                finally {
+                } finally {
                     _reply.recycle();
                     _data.recycle();
                 }
             }
-            @Override public void doSlow(float level) throws android.os.RemoteException
-            {
+
+            @Override
+            public void doSlow(float level) throws android.os.RemoteException {
                 android.os.Parcel _data = android.os.Parcel.obtain();
                 android.os.Parcel _reply = android.os.Parcel.obtain();
                 try {
@@ -1162,29 +1131,28 @@ public interface IMediaPlaybackService extends android.os.IInterface
                     _data.writeFloat(level);
                     mRemote.transact(Stub.TRANSACTION_doSlow, _data, _reply, 0);
                     _reply.readException();
-                }
-                finally {
+                } finally {
                     _reply.recycle();
                     _data.recycle();
                 }
             }
-            @Override public void stopSlow() throws android.os.RemoteException
-            {
+
+            @Override
+            public void stopSlow() throws android.os.RemoteException {
                 android.os.Parcel _data = android.os.Parcel.obtain();
                 android.os.Parcel _reply = android.os.Parcel.obtain();
                 try {
                     _data.writeInterfaceToken(DESCRIPTOR);
                     mRemote.transact(Stub.TRANSACTION_stopSlow, _data, _reply, 0);
                     _reply.readException();
-                }
-                finally {
+                } finally {
                     _reply.recycle();
                     _data.recycle();
                 }
             }
 
-            @Override public void setStreaming(boolean isStreaming) throws android.os.RemoteException
-            {
+            @Override
+            public void setStreaming(boolean isStreaming) throws android.os.RemoteException {
                 android.os.Parcel _data = android.os.Parcel.obtain();
                 android.os.Parcel _reply = android.os.Parcel.obtain();
                 try {
@@ -1192,14 +1160,14 @@ public interface IMediaPlaybackService extends android.os.IInterface
                     _data.writeInt(isStreaming ? 1 : 0);
                     mRemote.transact(Stub.TRANSACTION_setStreaming, _data, _reply, 0);
                     _reply.readException();
-                }
-                finally {
+                } finally {
                     _reply.recycle();
                     _data.recycle();
                 }
             }
-            @Override public boolean isStreaming() throws android.os.RemoteException
-            {
+
+            @Override
+            public boolean isStreaming() throws android.os.RemoteException {
                 android.os.Parcel _data = android.os.Parcel.obtain();
                 android.os.Parcel _reply = android.os.Parcel.obtain();
                 boolean _result;
@@ -1208,16 +1176,15 @@ public interface IMediaPlaybackService extends android.os.IInterface
                     mRemote.transact(Stub.TRANSACTION_isStreaming, _data, _reply, 0);
                     _reply.readException();
                     _result = (_reply.readInt() != 0);
-                }
-                finally {
+                } finally {
                     _reply.recycle();
                     _data.recycle();
                 }
                 return _result;
             }
 
-            @Override public void openStream(String token, String channelObject) throws android.os.RemoteException
-            {
+            @Override
+            public void openStream(String token, String channelObject) throws android.os.RemoteException {
                 android.os.Parcel _data = android.os.Parcel.obtain();
                 android.os.Parcel _reply = android.os.Parcel.obtain();
                 try {
@@ -1226,15 +1193,14 @@ public interface IMediaPlaybackService extends android.os.IInterface
                     _data.writeString(channelObject);
                     mRemote.transact(Stub.TRANSACTION_openStream, _data, _reply, 0);
                     _reply.readException();
-                }
-                finally {
+                } finally {
                     _reply.recycle();
                     _data.recycle();
                 }
             }
 
-            @Override public String getChannelObject() throws android.os.RemoteException
-            {
+            @Override
+            public String getChannelObject() throws android.os.RemoteException {
                 android.os.Parcel _data = android.os.Parcel.obtain();
                 android.os.Parcel _reply = android.os.Parcel.obtain();
                 String _result;
@@ -1243,16 +1209,15 @@ public interface IMediaPlaybackService extends android.os.IInterface
                     mRemote.transact(Stub.TRANSACTION_getChannelObject, _data, _reply, 0);
                     _reply.readException();
                     _result = _reply.readString();
-                }
-                finally {
+                } finally {
                     _reply.recycle();
                     _data.recycle();
                 }
                 return _result;
             }
 
-            @Override public String updateRtmpSuck(String token, String playUrl) throws android.os.RemoteException
-            {
+            @Override
+            public String updateRtmpSuck(String token, String playUrl) throws android.os.RemoteException {
                 android.os.Parcel _data = android.os.Parcel.obtain();
                 android.os.Parcel _reply = android.os.Parcel.obtain();
                 String _result;
@@ -1263,16 +1228,15 @@ public interface IMediaPlaybackService extends android.os.IInterface
                     mRemote.transact(Stub.TRANSACTION_updateRtmpSuck, _data, _reply, 0);
                     _reply.readException();
                     _result = _reply.readString();
-                }
-                finally {
+                } finally {
                     _reply.recycle();
                     _data.recycle();
                 }
                 return _result;
             }
 
-            @Override public void setChannelObject(String channelObject) throws android.os.RemoteException
-            {
+            @Override
+            public void setChannelObject(String channelObject) throws android.os.RemoteException {
                 android.os.Parcel _data = android.os.Parcel.obtain();
                 android.os.Parcel _reply = android.os.Parcel.obtain();
                 try {
@@ -1281,15 +1245,14 @@ public interface IMediaPlaybackService extends android.os.IInterface
                     mRemote.transact(Stub.TRANSACTION_setChannelObject, _data, _reply, 0);
                     _reply.readException();
 
-                }
-                finally {
+                } finally {
                     _reply.recycle();
                     _data.recycle();
                 }
             }
 
-            @Override public boolean isFast() throws android.os.RemoteException
-            {
+            @Override
+            public boolean isFast() throws android.os.RemoteException {
                 android.os.Parcel _data = android.os.Parcel.obtain();
                 android.os.Parcel _reply = android.os.Parcel.obtain();
                 boolean _result;
@@ -1298,16 +1261,15 @@ public interface IMediaPlaybackService extends android.os.IInterface
                     mRemote.transact(Stub.TRANSACTION_isFast, _data, _reply, 0);
                     _reply.readException();
                     _result = (_reply.readInt() != 0);
-                }
-                finally {
+                } finally {
                     _reply.recycle();
                     _data.recycle();
                 }
                 return _result;
             }
 
-            @Override public boolean isSlow() throws android.os.RemoteException
-            {
+            @Override
+            public boolean isSlow() throws android.os.RemoteException {
                 android.os.Parcel _data = android.os.Parcel.obtain();
                 android.os.Parcel _reply = android.os.Parcel.obtain();
                 boolean _result;
@@ -1316,16 +1278,15 @@ public interface IMediaPlaybackService extends android.os.IInterface
                     mRemote.transact(Stub.TRANSACTION_isSlow, _data, _reply, 0);
                     _reply.readException();
                     _result = (_reply.readInt() != 0);
-                }
-                finally {
+                } finally {
                     _reply.recycle();
                     _data.recycle();
                 }
                 return _result;
             }
 
-            @Override public long getAPos() throws android.os.RemoteException
-            {
+            @Override
+            public long getAPos() throws android.os.RemoteException {
                 android.os.Parcel _data = android.os.Parcel.obtain();
                 android.os.Parcel _reply = android.os.Parcel.obtain();
                 long _result;
@@ -1334,16 +1295,15 @@ public interface IMediaPlaybackService extends android.os.IInterface
                     mRemote.transact(Stub.TRANSACTION_getAPos, _data, _reply, 0);
                     _reply.readException();
                     _result = _reply.readLong();
-                }
-                finally {
+                } finally {
                     _reply.recycle();
                     _data.recycle();
                 }
                 return _result;
             }
 
-            @Override public long getBPos() throws android.os.RemoteException
-            {
+            @Override
+            public long getBPos() throws android.os.RemoteException {
                 android.os.Parcel _data = android.os.Parcel.obtain();
                 android.os.Parcel _reply = android.os.Parcel.obtain();
                 long _result;
@@ -1352,14 +1312,14 @@ public interface IMediaPlaybackService extends android.os.IInterface
                     mRemote.transact(Stub.TRANSACTION_getBPos, _data, _reply, 0);
                     _reply.readException();
                     _result = _reply.readLong();
-                }
-                finally {
+                } finally {
                     _reply.recycle();
                     _data.recycle();
                 }
                 return _result;
             }
         }
+
         // Added by Hai
         static final int TRANSACTION_startRecord = (android.os.IBinder.FIRST_CALL_TRANSACTION + 32);
         static final int TRANSACTION_stopRecord = (android.os.IBinder.FIRST_CALL_TRANSACTION + 33);
@@ -1381,7 +1341,7 @@ public interface IMediaPlaybackService extends android.os.IInterface
         static final int TRANSACTION_isFast = (android.os.IBinder.FIRST_CALL_TRANSACTION + 49);
         static final int TRANSACTION_isSlow = (android.os.IBinder.FIRST_CALL_TRANSACTION + 50);
         static final int TRANSACTION_getAPos = (android.os.IBinder.FIRST_CALL_TRANSACTION + 51);
-        static final int TRANSACTION_getBPos= (android.os.IBinder.FIRST_CALL_TRANSACTION + 52);
+        static final int TRANSACTION_getBPos = (android.os.IBinder.FIRST_CALL_TRANSACTION + 52);
 
 
         // Default
@@ -1419,65 +1379,112 @@ public interface IMediaPlaybackService extends android.os.IInterface
         static final int TRANSACTION_getMediaUri = (android.os.IBinder.FIRST_CALL_TRANSACTION + 31);
 
     }
+
     // Added by Hai
     public String updateRtmpSuck(String token, String playUrl) throws RemoteException;
+
     public void startRecord(String token, String fileName) throws android.os.RemoteException;
+
     public void stopRecord() throws android.os.RemoteException;
-    public boolean isRecording() throws  android.os.RemoteException;
+
+    public boolean isRecording() throws android.os.RemoteException;
+
     public void markAB() throws android.os.RemoteException;
+
     public int getStateAB() throws android.os.RemoteException;
+
     public void stopAB() throws android.os.RemoteException;
 
     public long getAPos() throws android.os.RemoteException;
+
     public long getBPos() throws android.os.RemoteException;
+
     public boolean isFast() throws android.os.RemoteException;
+
     public boolean isSlow() throws android.os.RemoteException;
 
     public void doBack(int length) throws android.os.RemoteException;
+
     public void doFast(float level) throws android.os.RemoteException;
 
     public void stopFast() throws android.os.RemoteException;
+
     public void doSlow(float level) throws android.os.RemoteException;
 
     public void stopSlow() throws android.os.RemoteException;
 
     public boolean isStreaming() throws RemoteException;
+
     public void setStreaming(boolean isStreaming) throws RemoteException;
+
     public void openStream(String token, String objChannel) throws RemoteException;
+
     public String getChannelObject() throws RemoteException;
+
     public void setChannelObject(String channelObject) throws RemoteException;
 
     // Default
     public void openFile(java.lang.String path) throws android.os.RemoteException;
+
     public void open(long[] list, int position) throws android.os.RemoteException;
+
     public int getQueuePosition() throws android.os.RemoteException;
+
     public boolean isPlaying() throws android.os.RemoteException;
+
     public void stop() throws android.os.RemoteException;
+
     public void pause() throws android.os.RemoteException;
+
     public void play() throws android.os.RemoteException;
+
     public void prev() throws android.os.RemoteException;
+
     public void next() throws android.os.RemoteException;
+
     public long duration() throws android.os.RemoteException;
+
     public long position() throws android.os.RemoteException;
+
     public long seek(long pos) throws android.os.RemoteException;
+
     public java.lang.String getTrackName() throws android.os.RemoteException;
+
     public java.lang.String getAlbumName() throws android.os.RemoteException;
+
     public long getAlbumId() throws android.os.RemoteException;
+
     public java.lang.String getArtistName() throws android.os.RemoteException;
+
     public long getArtistId() throws android.os.RemoteException;
+
     public void enqueue(long[] list, int action) throws android.os.RemoteException;
+
     public long[] getQueue() throws android.os.RemoteException;
+
     public void moveQueueItem(int from, int to) throws android.os.RemoteException;
+
     public void setQueuePosition(int index) throws android.os.RemoteException;
+
     public java.lang.String getPath() throws android.os.RemoteException;
+
     public long getAudioId() throws android.os.RemoteException;
+
     public void setShuffleMode(int shufflemode) throws android.os.RemoteException;
+
     public int getShuffleMode() throws android.os.RemoteException;
+
     public int removeTracks(int first, int last) throws android.os.RemoteException;
+
     public int removeTrack(long id) throws android.os.RemoteException;
+
     public void setRepeatMode(int repeatmode) throws android.os.RemoteException;
+
     public int getRepeatMode() throws android.os.RemoteException;
+
     public int getMediaMountedCount() throws android.os.RemoteException;
+
     public int getAudioSessionId() throws android.os.RemoteException;
+
     public java.lang.String getMediaUri() throws android.os.RemoteException;
 }

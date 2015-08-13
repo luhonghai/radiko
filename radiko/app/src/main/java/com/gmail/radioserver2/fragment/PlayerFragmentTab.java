@@ -56,9 +56,9 @@ import java.util.List;
  * Created by luhonghai on 2/16/15.
  */
 
-public class PlayerFragmentTab extends FragmentTab implements ServiceConnection,View.OnClickListener {
+public class PlayerFragmentTab extends FragmentTab implements ServiceConnection, View.OnClickListener {
     /**
-     *  Screen state
+     * Screen state
      */
     private TextView txtTitle;
 
@@ -87,7 +87,6 @@ public class PlayerFragmentTab extends FragmentTab implements ServiceConnection,
     private Button btnSlow;
 
     private Button btnFast;
-
 
 
     private ImageButton btnPrev;
@@ -129,7 +128,7 @@ public class PlayerFragmentTab extends FragmentTab implements ServiceConnection,
         }
     }
 
-    void destroyWebView( WebView wv ){
+    void destroyWebView(WebView wv) {
 //        wv.stopLoading();
 //
 //        wv.clearFormData();
@@ -169,7 +168,7 @@ public class PlayerFragmentTab extends FragmentTab implements ServiceConnection,
 
     @Override
     public View onCreateView(LayoutInflater inflater, ViewGroup container, Bundle savedInstanceState) {
-        super.onCreateView(inflater,container,savedInstanceState);
+        super.onCreateView(inflater, container, savedInstanceState);
         View v = inflater.inflate(R.layout.fragment_player_tab, container, false);
         mAdView = (AdView) v.findViewById(R.id.adView);
         if (mAdView != null) {
@@ -252,9 +251,9 @@ public class PlayerFragmentTab extends FragmentTab implements ServiceConnection,
         File loader = fileHelper.getTempFile("loader.gif");
         if (!loader.exists()) {
             try {
-                FileUtils.copyInputStreamToFile( getResources().openRawResource(R.raw.loader),loader);
+                FileUtils.copyInputStreamToFile(getResources().openRawResource(R.raw.loader), loader);
             } catch (IOException e) {
-                SimpleAppLog.error("Could not generate loader.gif",e);
+                SimpleAppLog.error("Could not generate loader.gif", e);
             }
         }
         StringBuffer sb = new StringBuffer();
@@ -314,7 +313,7 @@ public class PlayerFragmentTab extends FragmentTab implements ServiceConnection,
                 }
             }
         } catch (Exception e) {
-            SimpleAppLog.error("Could not update ABState",e);
+            SimpleAppLog.error("Could not update ABState", e);
         }
     }
 
@@ -331,7 +330,7 @@ public class PlayerFragmentTab extends FragmentTab implements ServiceConnection,
                     Gson gson = new Gson();
                     selectedChannel = gson.fromJson(obj, Channel.class);
                 } catch (Exception e) {
-                    SimpleAppLog.error("Could not parse channel",e);
+                    SimpleAppLog.error("Could not parse channel", e);
                 }
             }
         } catch (RemoteException e) {
@@ -355,7 +354,8 @@ public class PlayerFragmentTab extends FragmentTab implements ServiceConnection,
             txtPlay.setText(R.string.button_pause);
             btnPlay.setEnabled(false);
             txtPlay.setEnabled(false);
-        } catch (Exception e) {}
+        } catch (Exception e) {
+        }
     }
 
     private void showPlayer() {
@@ -503,7 +503,7 @@ public class PlayerFragmentTab extends FragmentTab implements ServiceConnection,
                 showABState();
             }
         } catch (Exception e) {
-            SimpleAppLog.error("Could to change player state",e);
+            SimpleAppLog.error("Could to change player state", e);
         }
     }
 
@@ -563,7 +563,7 @@ public class PlayerFragmentTab extends FragmentTab implements ServiceConnection,
                                 btnSlow.setEnabled(!isStreaming);
                                 btnBack.setEnabled(!isStreaming);
                             } catch (Exception ex) {
-                                SimpleAppLog.error("Could not update state streaming",ex);
+                                SimpleAppLog.error("Could not update state streaming", ex);
                             }
                         }
                         break;
@@ -573,6 +573,7 @@ public class PlayerFragmentTab extends FragmentTab implements ServiceConnection,
     }
 
     private String lastChannelObject;
+
     @Override
     public void onClick(View v) {
         switch (v.getId()) {
@@ -585,7 +586,7 @@ public class PlayerFragmentTab extends FragmentTab implements ServiceConnection,
                         mService.doBack(Math.round(setting.getBackLength()));
                     }
                 } catch (RemoteException e) {
-                    SimpleAppLog.error("Could not back",e);
+                    SimpleAppLog.error("Could not back", e);
                 }
                 break;
             case R.id.txtPlay:
@@ -607,7 +608,7 @@ public class PlayerFragmentTab extends FragmentTab implements ServiceConnection,
 //                                            mService.setChannelObject("");
 //                                        }
                                     } catch (Exception e) {
-                                        SimpleAppLog.error("Could not stop stream",e);
+                                        SimpleAppLog.error("Could not stop stream", e);
                                     }
                                     try {
                                         getActivity().runOnUiThread(new Runnable() {
@@ -616,7 +617,7 @@ public class PlayerFragmentTab extends FragmentTab implements ServiceConnection,
                                                 showPlayer();
                                             }
                                         });
-                                    } catch ( Exception e) {
+                                    } catch (Exception e) {
                                         e.printStackTrace();
                                     }
                                 }
@@ -630,7 +631,7 @@ public class PlayerFragmentTab extends FragmentTab implements ServiceConnection,
                             if (mService.isStreaming() && mService.isRecording())
                                 mService.stopRecord();
                         } catch (Exception ex) {
-                            SimpleAppLog.error("Could not stop recording",ex);
+                            SimpleAppLog.error("Could not stop recording", ex);
                         }
                         if (mService.isStreaming() && mService.isPlaying()) {
                             mService.stop();
@@ -660,11 +661,11 @@ public class PlayerFragmentTab extends FragmentTab implements ServiceConnection,
                         try {
                             mService.startRecord("", "");
                         } catch (RemoteException e) {
-                            SimpleAppLog.error("Could not start recording",e);
+                            SimpleAppLog.error("Could not start recording", e);
                         }
                     }
                 } catch (RemoteException e) {
-                    SimpleAppLog.error("Could not stop recording",e);
+                    SimpleAppLog.error("Could not stop recording", e);
                 }
                 showPlayer();
                 break;
@@ -687,7 +688,7 @@ public class PlayerFragmentTab extends FragmentTab implements ServiceConnection,
             case R.id.txtRepeat:
             case R.id.btnRepeat:
                 try {
-                    switch(mService.getStateAB()) {
+                    switch (mService.getStateAB()) {
                         case MediaPlaybackService.ABState.FLAG:
                             mService.markAB();
                             break;
@@ -778,7 +779,7 @@ public class PlayerFragmentTab extends FragmentTab implements ServiceConnection,
     };
 
     private long refreshNow() {
-        if(mService == null || seekBarPlayer == null)
+        if (mService == null || seekBarPlayer == null)
             return 500;
         try {
             if (mService.isStreaming()) return -1;
@@ -882,6 +883,7 @@ public class PlayerFragmentTab extends FragmentTab implements ServiceConnection,
             mLastSeekEventTime = 0;
             mFromTouch = true;
         }
+
         public void onProgressChanged(SeekBar bar, int progress, boolean fromuser) {
             if (!fromuser || (mService == null)) return;
             long now = SystemClock.elapsedRealtime();
@@ -899,6 +901,7 @@ public class PlayerFragmentTab extends FragmentTab implements ServiceConnection,
                 }
             }
         }
+
         public void onStopTrackingTouch(SeekBar bar) {
             mPosOverride = -1;
             mFromTouch = false;

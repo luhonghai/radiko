@@ -119,7 +119,7 @@ public class DataPrepareService {
         if (location == null) location = AndroidUtil.getLastBestLocation(context);
         try {
             if (location != null) {
-                String url = "http://radioserver.mienamthuc.com/api/loc/?area=" + URLEncoder.encode(areaId,"UTF-8")
+                String url = "http://radioserver.mienamthuc.com/api/loc/?area=" + URLEncoder.encode(areaId, "UTF-8")
                         + "&long=" + location.getLongitude()
                         + "&lat=" + location.getLatitude()
                         + "&AID=" + URLEncoder.encode(adId, "UTF-8");
@@ -128,7 +128,7 @@ public class DataPrepareService {
                         new File(fileHelper.getApplicationDir(), FileHelper.LOCATION_DUMP_API));
             }
         } catch (Exception e) {
-            SimpleAppLog.error("Could not request to Radio Server location API",e);
+            SimpleAppLog.error("Could not request to Radio Server location API", e);
         }
 
     }
@@ -137,10 +137,10 @@ public class DataPrepareService {
         String defaulLocations = "";
         InputStream is = null;
         try {
-            is =context.getResources().openRawResource(R.raw.radio_jp13_location);
+            is = context.getResources().openRawResource(R.raw.radio_jp13_location);
             defaulLocations = IOUtils.toString(is);
         } catch (IOException e) {
-            SimpleAppLog.error("Could not fetch radio jp13 location from resource",e);
+            SimpleAppLog.error("Could not fetch radio jp13 location from resource", e);
         } finally {
             if (is != null) {
                 try {
@@ -159,7 +159,7 @@ public class DataPrepareService {
                 List<RadioLocation> locations = container.getLocations();
                 if (locations != null && locations.size() > 0) {
                     SimpleAppLog.info("Found " + locations.size() + " Radio location");
-                    for(RadioLocation radioLocation : locations) {
+                    for (RadioLocation radioLocation : locations) {
                         if (address.toLowerCase().contains(radioLocation.getName().toLowerCase())) {
                             SimpleAppLog.info("Matched location: " + radioLocation.getName()
                                     + ". AreaID: " + radioLocation.getName());
@@ -200,10 +200,10 @@ public class DataPrepareService {
         String defaultChannel = "";
         InputStream is = null;
         try {
-            is =context.getResources().openRawResource(R.raw.default_channels);
+            is = context.getResources().openRawResource(R.raw.default_channels);
             defaultChannel = IOUtils.toString(is);
         } catch (IOException e) {
-            SimpleAppLog.error("Could not fetch default channels from resource",e);
+            SimpleAppLog.error("Could not fetch default channels from resource", e);
         } finally {
             if (is != null) {
                 try {

@@ -53,7 +53,7 @@ public class LibraryAdapter extends DefaultAdapter<Library> {
             holder = (ViewHolder) convertView.getTag();
         }
         if (parent instanceof SwipeListView) {
-            ((SwipeListView)parent).recycle(convertView, position);
+            ((SwipeListView) parent).recycle(convertView, position);
         }
         Library object = getObjects()[position];
         holder.txtTitle.setText(object.toPrettyString(getContext()));

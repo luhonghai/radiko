@@ -8,8 +8,6 @@
 package vavi.util;
 
 
-
-
 /**
  * Fast Fourier/Cosine/Sine Transform.
  * <pre>
@@ -22,9 +20,10 @@ package vavi.util;
  * </pre>
  * <h4>Appendix:</h4>
  * <p>
- *  The cos/sin table is recalculated when the larger table required.
- *  w[] and ip[] are compatible with all routines.
+ * The cos/sin table is recalculated when the larger table required.
+ * w[] and ip[] are compatible with all routines.
  * </p>
+ *
  * @author <a href="mailto:ooura@mmm.t.u-tokyo.ac.jp">Takuya OOURA</a>
  * @author <a href="mailto:vavivavi@yahoo.co.jp">Naohide Sano</a> (nsano)
  * @version 0.00 060127 nsano port to java version <br>
@@ -60,24 +59,25 @@ public class SplitRadixFft {
      *          }
      *      .
      * </pre>
-     * @param n 2*n data length (int)
-     *          n &gt;= 1, n = power of 2
+     *
+     * @param n    2*n data length (int)
+     *             n &gt;= 1, n = power of 2
      * @param isgn
-     * @param a a[0...2*n-1] input/output data (REAL *)
-     *                      input data
-     *                          a[2*j] = Re(x[j]),
-     *                          a[2*j+1] = Im(x[j]), 0&lt;=j&lt;n
-     *                      output data
-     *                          a[2*k] = Re(X[k]),
-     *                          a[2*k+1] = Im(X[k]), 0&lt;=k&lt;n
-     * @param ip ip[0...*] work area for bit reversal (int *)
-     *           length of ip &gt;= 2+sqrt(n)
-     *           strictly,
-     *           length of ip &gt;=
-     *              2+(1&lt;&lt;(int)(log(n+0.5)/log(2))/2).
-     *           ip[0],ip[1] are pointers of the cos/sin table.
-     * @param w w[0...n/2-1] cos/sin table (REAL *)
-     *          w[],ip[] are initialized if ip[0] == 0.
+     * @param a    a[0...2*n-1] input/output data (REAL *)
+     *             input data
+     *             a[2*j] = Re(x[j]),
+     *             a[2*j+1] = Im(x[j]), 0&lt;=j&lt;n
+     *             output data
+     *             a[2*k] = Re(X[k]),
+     *             a[2*k+1] = Im(X[k]), 0&lt;=k&lt;n
+     * @param ip   ip[0...*] work area for bit reversal (int *)
+     *             length of ip &gt;= 2+sqrt(n)
+     *             strictly,
+     *             length of ip &gt;=
+     *             2+(1&lt;&lt;(int)(log(n+0.5)/log(2))/2).
+     *             ip[0],ip[1] are pointers of the cos/sin table.
+     * @param w    w[0...n/2-1] cos/sin table (REAL *)
+     *             w[],ip[] are initialized if ip[0] == 0.
      */
     public void cdft(int n, int isgn, double[] a, int[] ip, double[] w) {
         int nw;
@@ -122,32 +122,33 @@ public class SplitRadixFft {
      *          }
      *      .
      * </pre>
-     * @param n data length <br>
-     *  n &gt;= 2, n = power of 2
+     *
+     * @param n    data length <br>
+     *             n &gt;= 2, n = power of 2
      * @param isgn
-     * @param a [0...n-1] input/output data
-     * <pre>
-     *  &lt;case1&gt;
-     *      output data
-     *          a[2 * k] = R[k], 0 &lt;= k &lt; n / 2
-     *          a[2 * k + 1] = I[k], 0 &lt; k &lt; n / 2
-     *          a[1] = R[n/2]
-     *  &lt;case2&gt;
-     *      input data
-     *          a[2 * j] = R[j], 0 &lt;= j &lt; n / 2
-     *          a[2 * j + 1] = I[j], 0 &lt; j &lt; n / 2
-     *          a[1] = R[n / 2]
-     * </pre>
-     * @param ip [0...*] work area for bit reversal
-     * <pre>
-     *  length of ip &gt;= 2 + sqrt(n / 2)
-     *  strictly,
-     *  length of ip &gt;=
-     *      2 + (1 &lt;&lt; (int) (log(n / 2 + 0.5) / log(2)) / 2).
-     * </pre>
-     *  ip[0],ip[1] are pointers of the cos/sin table.
-     * @param w [0...n/2-1] cos/sin table <br>
-     *  w[],ip[] are initialized if ip[0] == 0.
+     * @param a    [0...n-1] input/output data
+     *             <pre>
+     *              &lt;case1&gt;
+     *                  output data
+     *                      a[2 * k] = R[k], 0 &lt;= k &lt; n / 2
+     *                      a[2 * k + 1] = I[k], 0 &lt; k &lt; n / 2
+     *                      a[1] = R[n/2]
+     *              &lt;case2&gt;
+     *                  input data
+     *                      a[2 * j] = R[j], 0 &lt;= j &lt; n / 2
+     *                      a[2 * j + 1] = I[j], 0 &lt; j &lt; n / 2
+     *                      a[1] = R[n / 2]
+     *             </pre>
+     * @param ip   [0...*] work area for bit reversal
+     *             <pre>
+     *              length of ip &gt;= 2 + sqrt(n / 2)
+     *              strictly,
+     *              length of ip &gt;=
+     *                  2 + (1 &lt;&lt; (int) (log(n / 2 + 0.5) / log(2)) / 2).
+     *             </pre>
+     *             ip[0],ip[1] are pointers of the cos/sin table.
+     * @param w    [0...n/2-1] cos/sin table <br>
+     *             w[],ip[] are initialized if ip[0] == 0.
      */
     public void rdft(int n, int isgn, double[] a, int[] ip, double[] w) {
         int nw, nc;
@@ -211,28 +212,29 @@ public class SplitRadixFft {
      *          }
      *      .
      * </pre>
-     * @param n data length (int)
-     * <pre>
-     *  n &gt;= 2, n = power of 2
-     * </pre>
+     *
+     * @param n    data length (int)
+     *             <pre>
+     *              n &gt;= 2, n = power of 2
+     *             </pre>
      * @param isgn
-     * @param a [0...n-1] input/output data (REAL *)
-     * <pre>
-     *  output data
-     *      a[k] = C[k], 0&lt;=k&lt;n
-     * </pre>
-     * @param ip [0...*] work area for bit reversal (int *)
-     * <pre>
-     *  length of ip &gt;= 2+sqrt(n/2)
-     *  strictly,
-     *  length of ip &gt;=
-     *      2+(1&lt;&lt;(int)(log(n/2+0.5)/log(2))/2).
-     *  ip[0],ip[1] are pointers of the cos/sin table.
-     * </pre>
-     * @param w [0...n*5/4-1] cos/sin table (REAL *)
-     * <pre>
-     *  w[],ip[] are initialized if ip[0] == 0.
-     * </pre>
+     * @param a    [0...n-1] input/output data (REAL *)
+     *             <pre>
+     *              output data
+     *                  a[k] = C[k], 0&lt;=k&lt;n
+     *             </pre>
+     * @param ip   [0...*] work area for bit reversal (int *)
+     *             <pre>
+     *              length of ip &gt;= 2+sqrt(n/2)
+     *              strictly,
+     *              length of ip &gt;=
+     *                  2+(1&lt;&lt;(int)(log(n/2+0.5)/log(2))/2).
+     *              ip[0],ip[1] are pointers of the cos/sin table.
+     *             </pre>
+     * @param w    [0...n*5/4-1] cos/sin table (REAL *)
+     *             <pre>
+     *              w[],ip[] are initialized if ip[0] == 0.
+     *             </pre>
      */
     public void ddct(int n, int isgn, double[] a, int[] ip, double[] w) {
         int j, nw, nc;
@@ -307,28 +309,29 @@ public class SplitRadixFft {
      *          }
      *      .
      * </pre>
-     * @param n data length (int)
-     *                      n &gt;= 2, n = power of 2
+     *
+     * @param n    data length (int)
+     *             n &gt;= 2, n = power of 2
      * @param isgn
-     * @param a [0...n-1] input/output data (REAL *)
-     *                      &lt;case1&gt;
-     *                          input data
-     *                              a[j] = A[j], 0&lt;j&lt;n
-     *                              a[0] = A[n]
-     *                          output data
-     *                              a[k] = S[k], 0&lt;=k&lt;n
-     *                      &lt;case2&gt;
-     *                          output data
-     *                              a[k] = S[k], 0&lt;k&lt;n
-     *                              a[0] = S[n]
-     * @param ip [0...*] work area for bit reversal (int *)
-     *                      length of ip &gt;= 2+sqrt(n/2)
-     *                      strictly,
-     *                      length of ip &gt;=
-     *                          2+(1&lt;&lt;(int)(log(n/2+0.5)/log(2))/2).
-     *                      ip[0],ip[1] are pointers of the cos/sin table.
-     * @param w [0...n*5/4-1] cos/sin table (REAL *)
-     *                      w[],ip[] are initialized if ip[0] == 0.
+     * @param a    [0...n-1] input/output data (REAL *)
+     *             &lt;case1&gt;
+     *             input data
+     *             a[j] = A[j], 0&lt;j&lt;n
+     *             a[0] = A[n]
+     *             output data
+     *             a[k] = S[k], 0&lt;=k&lt;n
+     *             &lt;case2&gt;
+     *             output data
+     *             a[k] = S[k], 0&lt;k&lt;n
+     *             a[0] = S[n]
+     * @param ip   [0...*] work area for bit reversal (int *)
+     *             length of ip &gt;= 2+sqrt(n/2)
+     *             strictly,
+     *             length of ip &gt;=
+     *             2+(1&lt;&lt;(int)(log(n/2+0.5)/log(2))/2).
+     *             ip[0],ip[1] are pointers of the cos/sin table.
+     * @param w    [0...n*5/4-1] cos/sin table (REAL *)
+     *             w[],ip[] are initialized if ip[0] == 0.
      */
     public void ddst(int n, int isgn, double[] a, int[] ip, double[] w) {
         int j, nw, nc;
@@ -400,28 +403,29 @@ public class SplitRadixFft {
      *          }
      *      .
      * </pre>
-     * @param n data length - 1 (int)
-     * <pre>
-     *  n &gt;= 2, n = power of 2
-     * </pre>
-     * @param a [0...n] input/output data (REAL *)
-     * <pre>
-     *  output data
-     *      a[k] = C[k], 0&lt;=k&lt;=n
-     * </pre>
-     * @param t [0...n/2] work area (REAL *)
+     *
+     * @param n  data length - 1 (int)
+     *           <pre>
+     *            n &gt;= 2, n = power of 2
+     *           </pre>
+     * @param a  [0...n] input/output data (REAL *)
+     *           <pre>
+     *            output data
+     *                a[k] = C[k], 0&lt;=k&lt;=n
+     *           </pre>
+     * @param t  [0...n/2] work area (REAL *)
      * @param ip [0...*] work area for bit reversal (int *)
-     * <pre>
-     *  length of ip &gt;= 2+sqrt(n/4)
-     *  strictly,
-     *  length of ip &gt;=
-     *      2+(1&lt;&lt;(int)(log(n/4+0.5)/log(2))/2).
-     *  ip[0],ip[1] are pointers of the cos/sin table.
-     * </pre>
-     * @param w [0...n*5/8-1] cos/sin table (REAL *)
-     * <pre>
-     *  w[],ip[] are initialized if ip[0] == 0.
-     * </pre>
+     *           <pre>
+     *            length of ip &gt;= 2+sqrt(n/4)
+     *            strictly,
+     *            length of ip &gt;=
+     *                2+(1&lt;&lt;(int)(log(n/4+0.5)/log(2))/2).
+     *            ip[0],ip[1] are pointers of the cos/sin table.
+     *           </pre>
+     * @param w  [0...n*5/8-1] cos/sin table (REAL *)
+     *           <pre>
+     *            w[],ip[] are initialized if ip[0] == 0.
+     *           </pre>
      */
     public void dfct(int n, double[] a, double[] t, int[] ip, double[] w) {
         int j, k, l, m, mh, nw, nc;
@@ -527,29 +531,30 @@ public class SplitRadixFft {
      *          }
      *      .
      * </pre>
-     * @param n data length + 1 (int)
-     * <pre>
-     *  n &gt;= 2, n = power of 2
-     * </pre>
-     * @param a [0...n-1] input/output data (REAL *)
-     * <pre>
-     *  output data
-     *      a[k] = S[k], 0&lt;k&lt;n
-     *      (a[0] is used for work area)
-     * </pre>
-     * @param t [0...n/2-1] work area (REAL *)
+     *
+     * @param n  data length + 1 (int)
+     *           <pre>
+     *            n &gt;= 2, n = power of 2
+     *           </pre>
+     * @param a  [0...n-1] input/output data (REAL *)
+     *           <pre>
+     *            output data
+     *                a[k] = S[k], 0&lt;k&lt;n
+     *                (a[0] is used for work area)
+     *           </pre>
+     * @param t  [0...n/2-1] work area (REAL *)
      * @param ip [0...*] work area for bit reversal (int *)
-     * <pre>
-     *  length of ip &gt;= 2+sqrt(n/4)
-     *  strictly,
-     *  length of ip &gt;=
-     *      2+(1&lt;&lt;(int)(log(n/4+0.5)/log(2))/2).
-     *  ip[0],ip[1] are pointers of the cos/sin table.
-     * </pre>
-     * @param w [0...n*5/8-1] cos/sin table (REAL *)
-     * <pre>
-     *  w[],ip[] are initialized if ip[0] == 0.
-     * </pre>
+     *           <pre>
+     *            length of ip &gt;= 2+sqrt(n/4)
+     *            strictly,
+     *            length of ip &gt;=
+     *                2+(1&lt;&lt;(int)(log(n/4+0.5)/log(2))/2).
+     *            ip[0],ip[1] are pointers of the cos/sin table.
+     *           </pre>
+     * @param w  [0...n*5/8-1] cos/sin table (REAL *)
+     *           <pre>
+     *            w[],ip[] are initialized if ip[0] == 0.
+     *           </pre>
      */
     public void dfst(int n, double[] a, double[] t, int[] ip, double[] w) {
         int j, k, l, m, mh, nw, nc;
@@ -704,6 +709,7 @@ public class SplitRadixFft {
 
     /**
      * 2nd
+     *
      * @see #rdft(int, int, double[], int[], double[])
      * @see #ddct(int, int, double[], int[], double[])
      * @see #cdft(int, int, double[], int[], double[])
@@ -745,6 +751,7 @@ public class SplitRadixFft {
 
     /**
      * 2nd
+     *
      * @see #rdft(int, int, double[], int[], double[])
      * @see #ddct(int, int, double[], int[], double[])
      * @see #cdft(int, int, double[], int[], double[])
@@ -784,6 +791,7 @@ public class SplitRadixFft {
 
     /**
      * 3rd
+     *
      * @see #cftfsub(int, double[], int[], int, int, double[])
      */
     private final void bitrv2(int n, int[] ip, int ipP, double[] a) {
@@ -886,6 +894,7 @@ public class SplitRadixFft {
 
     /**
      * 3rd
+     *
      * @see #cftbsub(int, double[], int[], int, int, double[])
      */
     private final void bitrv2conj(int n, int[] ip, int ipP, double[] a) {
@@ -997,6 +1006,7 @@ public class SplitRadixFft {
 
     /**
      * 3rd
+     *
      * @see #cftfsub(int, double[], int[], int, int, double[])
      */
     private void bitrv216(double[] a) {
@@ -1054,6 +1064,7 @@ public class SplitRadixFft {
 
     /**
      * 3rd
+     *
      * @see #cftbsub(int, double[], int[], int, int, double[])
      */
     private void bitrv216neg(double[] a) {
@@ -1123,6 +1134,7 @@ public class SplitRadixFft {
 
     /**
      * 3rd
+     *
      * @see #cftfsub(int, double[], int[], int, int, double[])
      */
     private void bitrv208(double[] a) {
@@ -1148,6 +1160,7 @@ public class SplitRadixFft {
 
     /**
      * 3rd
+     *
      * @see #cftbsub(int, double[], int[], int, int, double[])
      */
     private void bitrv208neg(double[] a) {
@@ -1185,6 +1198,7 @@ public class SplitRadixFft {
 
     /**
      * 3rd
+     *
      * @see #cftfsub(int, double[], int[], int, int, double[])
      */
     private void cftf1st(int n, double[] a, double[] w, int wP) {
@@ -1391,6 +1405,7 @@ public class SplitRadixFft {
 
     /**
      * 3rd
+     *
      * @see #cftbsub(int, double[], int[], int, int, double[])
      */
     private final void cftb1st(int n, double[] a, double[] w, int wP) {
@@ -2425,6 +2440,7 @@ public class SplitRadixFft {
     /**
      * 3rd
      * when n = 8.
+     *
      * @see #cftfsub(int, double[], int[], int, int, double[])
      */
     private void cftf040(double[] a) {
@@ -2451,6 +2467,7 @@ public class SplitRadixFft {
     /**
      * 3rd
      * when n = 8.
+     *
      * @see #cftbsub(int, double[], int[], int, int, double[])
      */
     private void cftb040(double[] a) {
@@ -2477,6 +2494,7 @@ public class SplitRadixFft {
     /**
      * 3rd
      * when n = 4.
+     *
      * @see #cftbsub(int, double[], int[], int, int, double[])
      * @see #cftfsub(int, double[], int[], int, int, double[])
      */
@@ -2493,6 +2511,7 @@ public class SplitRadixFft {
 
     /**
      * 2nd
+     *
      * @see #rdft(int, int, double[], int[], double[])
      * @see #ddct(int, int, double[], int[], double[])
      * @see #ddst(int, int, double[], int[], double[])
@@ -2524,6 +2543,7 @@ public class SplitRadixFft {
 
     /**
      * 2nd
+     *
      * @see #rdft(int, int, double[], int[], double[])
      * @see #ddct(int, int, double[], int[], double[])
      * @see #ddst(int, int, double[], int[], double[])
@@ -2553,6 +2573,7 @@ public class SplitRadixFft {
 
     /**
      * 2nd
+     *
      * @see #ddct(int, int, double[], int[], double[])
      * @see #dfct(int, double[], double[], int[], double[])
      */
@@ -2577,6 +2598,7 @@ public class SplitRadixFft {
 
     /**
      * 2nd
+     *
      * @see #ddst(int, int, double[], int[], double[])
      * @see #dfst(int, double[], double[], int[], double[])
      */

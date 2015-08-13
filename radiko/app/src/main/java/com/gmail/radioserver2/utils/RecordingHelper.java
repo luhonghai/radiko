@@ -52,7 +52,7 @@ public class RecordingHelper {
             while (true) {
                 int samplesRead = reader.read(buf, AUTOTALENT_CHUNK_SIZE);
                 if (samplesRead > 0) {
-                  //  Autotalent.processSamples(buf, samplesRead);
+                    //  Autotalent.processSamples(buf, samplesRead);
                     writer.write(buf, 0, samplesRead);
                 } else {
                     break;
@@ -75,7 +75,7 @@ public class RecordingHelper {
         }
     }
 
-    public void copyWaveFile(String inFilename,String outFilename) throws IOException {
+    public void copyWaveFile(String inFilename, String outFilename) throws IOException {
         SimpleAppLog.info("Start create WAV header");
         FileInputStream in = null;
         FileOutputStream out = null;
@@ -109,11 +109,11 @@ public class RecordingHelper {
             writeWaveFileHeader(out, totalAudioLen, myChunkSize,
                     longSampleRate, channels);
             int len;
-            while((len = in.read(data)) != -1){
+            while ((len = in.read(data)) != -1) {
                 out.write(data);
             }
         } catch (IOException e) {
-            throw  e;
+            throw e;
         } finally {
             try {
                 if (out != null)
@@ -122,7 +122,7 @@ public class RecordingHelper {
 
             }
             try {
-                if (in!=null)
+                if (in != null)
                     in.close();
             } catch (Exception ex) {
 
@@ -151,7 +151,7 @@ public class RecordingHelper {
             }
             try {
                 FileUtils.forceDelete(tmp);
-            }catch (Exception ex) {
+            } catch (Exception ex) {
 
             }
         }
@@ -205,7 +205,7 @@ public class RecordingHelper {
         header[37] = 'a';
         header[38] = 't';
         header[39] = 'a';
-        header[40] = (byte) ((totalAudioLen)  & 0xff);
+        header[40] = (byte) ((totalAudioLen) & 0xff);
         header[41] = (byte) (((totalAudioLen) >> 8) & 0xff);
         header[42] = (byte) (((totalAudioLen) >> 16) & 0xff);
         header[43] = (byte) (((totalAudioLen) >> 24) & 0xff);
@@ -221,7 +221,7 @@ public class RecordingHelper {
 
             // read first 4 bytes
             // should be RIFF descriptor
-            if(in.read(bytes) < 0) {
+            if (in.read(bytes) < 0) {
                 return;
             }
 
@@ -231,16 +231,16 @@ public class RecordingHelper {
             // there is no other dependable constant
             in.skip(8);
 
-            for(;;) {
+            for (; ; ) {
                 // read each chunk descriptor
-                if(in.read(bytes) < 0) {
+                if (in.read(bytes) < 0) {
                     break;
                 }
 
                 printDescriptor(bytes);
 
                 // read chunk length
-                if(in.read(bytes) < 0) {
+                if (in.read(bytes) < 0) {
                     break;
                 }
 
@@ -257,7 +257,7 @@ public class RecordingHelper {
             System.out.println("end of file");
 
         } finally {
-            if(in != null) {
+            if (in != null) {
                 in.close();
             }
         }

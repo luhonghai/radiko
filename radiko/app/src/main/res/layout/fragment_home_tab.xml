@@ -1,19 +1,23 @@
 <?xml version="1.0" encoding="utf-8"?>
 <LinearLayout xmlns:android="http://schemas.android.com/apk/res/android"
 
-    android:orientation="vertical" android:layout_width="match_parent"
+    android:orientation="vertical"
+    android:layout_width="match_parent"
     android:layout_height="match_parent"
     android:background="@color/default_background_color">
+
     <RelativeLayout
         android:layout_width="match_parent"
         android:layout_height="wrap_content"
         android:layout_marginTop="@dimen/default_top_margin"
         android:paddingLeft="@dimen/title_margin"
         android:paddingRight="@dimen/title_margin">
+
         <LinearLayout
             android:layout_width="match_parent"
             android:layout_height="wrap_content"
             android:orientation="horizontal">
+
             <EditText
                 android:id="@+id/txtSearch"
                 android:layout_width="0dp"
@@ -22,7 +26,8 @@
                 android:padding="6dp"
                 android:textAppearance="?android:attr/textAppearanceSmall"
                 android:hint="@string/hint_search_channel"
-                android:background="@android:color/white"/>
+                android:background="@android:color/white" />
+
             <Button
                 android:id="@+id/btnSearch"
                 android:layout_width="wrap_content"
@@ -30,13 +35,15 @@
                 android:text="@string/button_search"
                 android:textAppearance="?android:attr/textAppearanceButton"
                 android:textColor="@android:color/white"
-                android:background="@color/default_button_color"/>
-            </LinearLayout>
-        </RelativeLayout>
+                android:background="@color/default_button_color" />
+        </LinearLayout>
+    </RelativeLayout>
+
     <RelativeLayout
         android:layout_width="match_parent"
         android:layout_height="wrap_content"
         android:layout_margin="@dimen/title_margin">
+
         <TextView
             android:layout_width="wrap_content"
             android:layout_height="@dimen/layout_item_height"
@@ -45,15 +52,15 @@
             android:gravity="center_horizontal|center_vertical"
             android:textColor="@android:color/white"
             android:background="@color/default_button_color"
-            android:text="@string/label_recent_channels"/>
-        </RelativeLayout>
+            android:text="@string/label_recent_channels" />
+    </RelativeLayout>
 
     <RelativeLayout
         android:layout_width="match_parent"
         android:layout_height="0dp"
         android:layout_weight="1">
-        <com.gmail.radioserver2.view.swipelistview.SwipeListView
-            xmlns:swipe="http://schemas.android.com/apk/res-auto"
+
+        <com.gmail.radioserver2.view.swipelistview.SwipeListView xmlns:swipe="http://schemas.android.com/apk/res-auto"
             android:background="@android:color/white"
             android:id="@+id/list_channel"
             android:listSelector="@color/default_background_color"
@@ -63,22 +70,20 @@
             swipe:swipeBackView="@+id/back"
             swipe:swipeActionLeft="reveal"
             swipe:swipeMode="left"
-            swipe:swipeOffsetLeft="290dp"
-            />
+            swipe:swipeOffsetLeft="290dp" />
     </RelativeLayout>
+
     <RelativeLayout
         android:layout_width="match_parent"
         android:layout_height="wrap_content"
         android:gravity="center_horizontal|center_vertical"
-        android:background="@android:color/white"
-        >
-        <com.google.android.gms.ads.AdView
-            xmlns:ads="http://schemas.android.com/apk/res-auto"
+        android:background="@android:color/white">
+
+        <com.google.android.gms.ads.AdView xmlns:ads="http://schemas.android.com/apk/res-auto"
             android:id="@+id/adView"
             android:layout_width="wrap_content"
             android:layout_height="wrap_content"
             ads:adSize="BANNER"
-            ads:adUnitId="@string/banner_channel_ad_unit_id">
-        </com.google.android.gms.ads.AdView>
+            ads:adUnitId="@string/banner_channel_ad_unit_id"></com.google.android.gms.ads.AdView>
     </RelativeLayout>
 </LinearLayout>

@@ -15,12 +15,10 @@ public class InetHelper {
             socket.connect(new InetSocketAddress(ip, port), timeout);
             socket.close();
             return true;
-        }
-        catch(ConnectException ce){
+        } catch (ConnectException ce) {
             //SimpleAppLog.error("Could not connect to " + ip + ":" + port,ce);
             return false;
-        }
-        catch (Exception ex) {
+        } catch (Exception ex) {
             //SimpleAppLog.error("Could not connect to " + ip + ":" + port,ex);
             return false;
         }

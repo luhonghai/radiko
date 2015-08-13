@@ -58,11 +58,11 @@ import java.util.UUID;
  * extractor.release();
  * extractor = null;
  * </pre>
- *
+ * <p/>
  * This class wraps Android API's extractor because it is final and cannot be extended. The ability
  * for extension is needed to keep the MediaPlayer code clean and encapsulate more sophisticated
  * processing of data sources.
- *
+ * <p/>
  * Created by maguggen on 27.08.2014.
  *
  * @see android.media.MediaExtractor
@@ -78,7 +78,7 @@ public class MediaExtractor {
     }
 
     protected void renewExtractor() {
-        if(mApiExtractor != null) {
+        if (mApiExtractor != null) {
             mApiExtractor.release();
         }
         mApiExtractor = new android.media.MediaExtractor();
@@ -88,7 +88,7 @@ public class MediaExtractor {
      * Sets the data source as a content Uri.
      *
      * @param context the Context to use when resolving the Uri
-     * @param uri the Content URI of the data you want to extract from.
+     * @param uri     the Content URI of the data you want to extract from.
      * @param headers the headers to be sent together with the request for the data
      */
     public final void setDataSource(
@@ -100,7 +100,7 @@ public class MediaExtractor {
     /**
      * Sets the data source (file-path or http URL) to use.
      *
-     * @param path the path of the file, or the http URL
+     * @param path    the path of the file, or the http URL
      * @param headers the headers associated with the http request for the stream you want to play
      */
     public final void setDataSource(String path, Map<String, String> headers)
@@ -112,13 +112,13 @@ public class MediaExtractor {
      * Sets the data source (file-path or http URL) to use.
      *
      * @param path the path of the file, or the http URL of the stream
-     *
-     * <p>When <code>path</code> refers to a local file, the file may actually be opened by a
-     * process other than the calling application.  This implies that the pathname
-     * should be an absolute path (as any other process runs with unspecified current working
-     * directory), and that the pathname should reference a world-readable file.
-     * As an alternative, the application could first open the file for reading,
-     * and then use the file descriptor form {@link #setDataSource(java.io.FileDescriptor)}.
+     *             <p/>
+     *             <p>When <code>path</code> refers to a local file, the file may actually be opened by a
+     *             process other than the calling application.  This implies that the pathname
+     *             should be an absolute path (as any other process runs with unspecified current working
+     *             directory), and that the pathname should reference a world-readable file.
+     *             As an alternative, the application could first open the file for reading,
+     *             and then use the file descriptor form {@link #setDataSource(java.io.FileDescriptor)}.
      */
     public final void setDataSource(String path) throws IOException {
         mApiExtractor.setDataSource(path);
@@ -139,7 +139,7 @@ public class MediaExtractor {
      * seekable (N.B. a LocalSocket is not seekable). It is the caller's responsibility
      * to close the file descriptor. It is safe to do so as soon as this call returns.
      *
-     * @param fd the FileDescriptor for the file you want to extract from.
+     * @param fd     the FileDescriptor for the file you want to extract from.
      * @param offset the offset into the file where the data to be extracted starts, in bytes
      * @param length the length in bytes of the data to be extracted
      */
@@ -167,6 +167,7 @@ public class MediaExtractor {
 
     /**
      * Get the PSSH info if present.
+     *
      * @return a map of uuid-to-bytes, with the uuid specifying
      * the crypto scheme, and the bytes being the data specific to that scheme.
      */
@@ -182,9 +183,9 @@ public class MediaExtractor {
     public MediaFormat getTrackFormat(int index) {
         MediaFormat mediaFormat = mApiExtractor.getTrackFormat(index);
         // set the default DAR
-        if(mediaFormat.getString(MediaFormat.KEY_MIME).startsWith("video/")) {
+        if (mediaFormat.getString(MediaFormat.KEY_MIME).startsWith("video/")) {
             mediaFormat.setFloat(MEDIA_FORMAT_EXTENSION_KEY_DAR,
-                    (float)mediaFormat.getInteger(MediaFormat.KEY_WIDTH)
+                    (float) mediaFormat.getInteger(MediaFormat.KEY_WIDTH)
                             / mediaFormat.getInteger(MediaFormat.KEY_HEIGHT));
         }
         return mediaFormat;
@@ -213,15 +214,15 @@ public class MediaExtractor {
     /**
      * If possible, seek to a sync sample at or before the specified time
      */
-    public static final int SEEK_TO_PREVIOUS_SYNC       = 0;
+    public static final int SEEK_TO_PREVIOUS_SYNC = 0;
     /**
      * If possible, seek to a sync sample at or after the specified time
      */
-    public static final int SEEK_TO_NEXT_SYNC           = 1;
+    public static final int SEEK_TO_NEXT_SYNC = 1;
     /**
      * If possible, seek to the sync sample closest to the specified time
      */
-    public static final int SEEK_TO_CLOSEST_SYNC        = 2;
+    public static final int SEEK_TO_CLOSEST_SYNC = 2;
 
     /**
      * All selected tracks seek near the requested time according to the
@@ -268,7 +269,7 @@ public class MediaExtractor {
     /**
      * The sample is a sync sample
      */
-    public static final int SAMPLE_FLAG_SYNC      = 1;
+    public static final int SAMPLE_FLAG_SYNC = 1;
 
     /**
      * The sample is (at least partially) encrypted, see also the documentation
@@ -287,6 +288,7 @@ public class MediaExtractor {
      * If the sample flags indicate that the current sample is at least
      * partially encrypted, this call returns relevant information about
      * the structure of the sample data required for decryption.
+     *
      * @param info The android.media.MediaCodec.CryptoInfo structure
      *             to be filled in.
      * @return true iff the sample flags contain {@link #SAMPLE_FLAG_ENCRYPTED}

@@ -1,5 +1,4 @@
-<?xml version="1.0" encoding="utf-8"?>
-<!--
+<?xml version="1.0" encoding="utf-8"?><!--
 /*
 ** Copyright 2007, The Android Open Source Project
 **
@@ -21,12 +20,12 @@
     android:layout_height="match_parent"
     android:orientation="horizontal">
 
-    <ImageView android:id="@+id/icon"
+    <ImageView
+        android:id="@+id/icon"
         android:padding="4dip"
         android:gravity="center"
         android:layout_width="wrap_content"
-        android:layout_height="wrap_content">
-    </ImageView>
+        android:layout_height="wrap_content"></ImageView>
 
     <LinearLayout
         android:layout_width="match_parent"
@@ -35,7 +34,8 @@
         android:layout_marginLeft="5dp"
         android:padding="4dip">
 
-        <TextView android:id="@+id/trackname"
+        <TextView
+            android:id="@+id/trackname"
             style="@android:style/TextAppearance.StatusBar.EventContent.Title"
             android:focusable="true"
             android:ellipsize="marquee"
@@ -44,7 +44,8 @@
             android:layout_width="wrap_content"
             android:layout_height="wrap_content" />
 
-        <TextView android:id="@+id/artistalbum"
+        <TextView
+            android:id="@+id/artistalbum"
             style="@android:style/TextAppearance.StatusBar.EventContent"
             android:layout_gravity="start"
             android:maxLines="2"

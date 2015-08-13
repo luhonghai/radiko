@@ -2,14 +2,14 @@
 <LinearLayout xmlns:android="http://schemas.android.com/apk/res/android"
     android:layout_width="fill_parent"
     android:layout_height="fill_parent"
-    android:orientation="vertical" >
+    android:orientation="vertical">
 
     <LinearLayout
         android:layout_width="match_parent"
         android:layout_height="0dip"
         android:layout_weight="1"
         android:background="@null"
-        android:padding="10dip" >
+        android:padding="10dip">
 
         <com.gmail.radioserver2.view.CoverView
             android:id="@+id/album_art"
@@ -24,7 +24,7 @@
         android:layout_height="wrap_content"
         android:layout_marginTop="10dip"
         android:gravity="center_horizontal"
-        android:orientation="vertical" >
+        android:orientation="vertical">
 
         <TextView
             android:id="@+id/track_number_text"

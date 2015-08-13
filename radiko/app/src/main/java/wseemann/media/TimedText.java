@@ -20,6 +20,7 @@ package wseemann.media;
 
 import android.os.Parcel;
 import android.util.Log;
+
 import java.util.HashMap;
 import java.util.Set;
 import java.util.List;
@@ -27,46 +28,45 @@ import java.util.ArrayList;
 
 /**
  * Class to hold the timed text's metadata.
- *
+ * <p/>
  * {@hide}
  */
-public class TimedText
-{
-    private static final int FIRST_PUBLIC_KEY                 = 1;
+public class TimedText {
+    private static final int FIRST_PUBLIC_KEY = 1;
 
     // These keys must be in sync with the keys in TextDescription.h
-    public static final int KEY_DISPLAY_FLAGS                 = 1; // int
-    public static final int KEY_STYLE_FLAGS                   = 2; // int
-    public static final int KEY_BACKGROUND_COLOR_RGBA         = 3; // int
-    public static final int KEY_HIGHLIGHT_COLOR_RGBA          = 4; // int
-    public static final int KEY_SCROLL_DELAY                  = 5; // int
-    public static final int KEY_WRAP_TEXT                     = 6; // int
-    public static final int KEY_START_TIME                    = 7; // int
-    public static final int KEY_STRUCT_BLINKING_TEXT_LIST     = 8; // List<CharPos>
-    public static final int KEY_STRUCT_FONT_LIST              = 9; // List<Font>
-    public static final int KEY_STRUCT_HIGHLIGHT_LIST         = 10; // List<CharPos>
-    public static final int KEY_STRUCT_HYPER_TEXT_LIST        = 11; // List<HyperText>
-    public static final int KEY_STRUCT_KARAOKE_LIST           = 12; // List<Karaoke>
-    public static final int KEY_STRUCT_STYLE_LIST             = 13; // List<Style>
-    public static final int KEY_STRUCT_TEXT_POS               = 14; // TextPos
-    public static final int KEY_STRUCT_JUSTIFICATION          = 15; // Justification
-    public static final int KEY_STRUCT_TEXT                   = 16; // Text
+    public static final int KEY_DISPLAY_FLAGS = 1; // int
+    public static final int KEY_STYLE_FLAGS = 2; // int
+    public static final int KEY_BACKGROUND_COLOR_RGBA = 3; // int
+    public static final int KEY_HIGHLIGHT_COLOR_RGBA = 4; // int
+    public static final int KEY_SCROLL_DELAY = 5; // int
+    public static final int KEY_WRAP_TEXT = 6; // int
+    public static final int KEY_START_TIME = 7; // int
+    public static final int KEY_STRUCT_BLINKING_TEXT_LIST = 8; // List<CharPos>
+    public static final int KEY_STRUCT_FONT_LIST = 9; // List<Font>
+    public static final int KEY_STRUCT_HIGHLIGHT_LIST = 10; // List<CharPos>
+    public static final int KEY_STRUCT_HYPER_TEXT_LIST = 11; // List<HyperText>
+    public static final int KEY_STRUCT_KARAOKE_LIST = 12; // List<Karaoke>
+    public static final int KEY_STRUCT_STYLE_LIST = 13; // List<Style>
+    public static final int KEY_STRUCT_TEXT_POS = 14; // TextPos
+    public static final int KEY_STRUCT_JUSTIFICATION = 15; // Justification
+    public static final int KEY_STRUCT_TEXT = 16; // Text
 
-    private static final int LAST_PUBLIC_KEY                  = 16;
+    private static final int LAST_PUBLIC_KEY = 16;
 
-    private static final int FIRST_PRIVATE_KEY                = 101;
+    private static final int FIRST_PRIVATE_KEY = 101;
 
     // The following keys are used between TimedText.java and
     // TextDescription.cpp in order to parce the Parcel.
-    private static final int KEY_GLOBAL_SETTING               = 101;
-    private static final int KEY_LOCAL_SETTING                = 102;
-    private static final int KEY_START_CHAR                   = 103;
-    private static final int KEY_END_CHAR                     = 104;
-    private static final int KEY_FONT_ID                      = 105;
-    private static final int KEY_FONT_SIZE                    = 106;
-    private static final int KEY_TEXT_COLOR_RGBA              = 107;
+    private static final int KEY_GLOBAL_SETTING = 101;
+    private static final int KEY_LOCAL_SETTING = 102;
+    private static final int KEY_START_CHAR = 103;
+    private static final int KEY_END_CHAR = 104;
+    private static final int KEY_FONT_ID = 105;
+    private static final int KEY_FONT_SIZE = 106;
+    private static final int KEY_TEXT_COLOR_RGBA = 107;
 
-    private static final int LAST_PRIVATE_KEY                 = 107;
+    private static final int LAST_PRIVATE_KEY = 107;
 
     private static final String TAG = "TimedText";
 
@@ -107,7 +107,8 @@ public class TimedText
          */
         public byte[] text;
 
-        public Text() { }
+        public Text() {
+        }
     }
 
     /**
@@ -127,7 +128,8 @@ public class TimedText
          */
         public int endChar = -1;
 
-        public CharPos() { }
+        public CharPos() {
+        }
     }
 
     /**
@@ -155,7 +157,8 @@ public class TimedText
          */
         public int right = -1;
 
-        public TextPos() { }
+        public TextPos() {
+        }
     }
 
     /**
@@ -173,7 +176,8 @@ public class TimedText
          */
         public int verticalJustification = -1;
 
-        public Justification() { }
+        public Justification() {
+        }
     }
 
     /**
@@ -223,7 +227,8 @@ public class TimedText
          */
         public int colorRGBA = -1;
 
-        public Style() { }
+        public Style() {
+        }
     }
 
     /**
@@ -241,7 +246,8 @@ public class TimedText
          */
         public String name;
 
-        public Font() { }
+        public Font() {
+        }
     }
 
     /**
@@ -271,7 +277,8 @@ public class TimedText
          */
         public int endChar = -1;
 
-        public Karaoke() { }
+        public Karaoke() {
+        }
     }
 
     /**
@@ -299,13 +306,14 @@ public class TimedText
          */
         public String altString;
 
-        public HyperText() { }
+        public HyperText() {
+        }
     }
 
     /**
      * @param obj the byte array which contains the timed text.
      * @throws IllegalArgumentExcept if parseParcel() fails.
-     * {@hide}
+     *                               {@hide}
      */
     public TimedText(byte[] obj) {
         mParcel.unmarshall(obj, 0, obj.length);
@@ -319,6 +327,7 @@ public class TimedText
     /**
      * Go over all the records, collecting metadata keys and fields in the
      * Parcel. These are stored in mKeyObjectMap for application to retrieve.
+     *
      * @return false if an error occurred during parsing. Otherwise, true.
      */
     private boolean parseParcel() {
@@ -609,6 +618,7 @@ public class TimedText
 
     /**
      * To check whether the given key is valid.
+     *
      * @param key the key to be checked.
      * @return true if the key is a valid one. Otherwise, false.
      */
@@ -622,9 +632,10 @@ public class TimedText
 
     /**
      * To check whether the given key is contained in this TimedText object.
+     *
      * @param key the key to be checked.
      * @return true if the key is contained in this TimedText object.
-     *         Otherwise, false.
+     * Otherwise, false.
      */
     public boolean containsKey(final int key) {
         if (isValidKey(key) && mKeyObjectMap.containsKey(key)) {
@@ -632,6 +643,7 @@ public class TimedText
         }
         return false;
     }
+
     /**
      * @return a set of the keys contained in this TimedText object.
      */
@@ -643,6 +655,7 @@ public class TimedText
      * To retrieve the object associated with the key. Caller must make sure
      * the key is present using the containsKey method otherwise a
      * RuntimeException will occur.
+     *
      * @param key the key used to retrieve the object.
      * @return an object. The object could be an instanceof Integer, List, or
      * any of the helper classes such as TextPos, Justification, and Text.

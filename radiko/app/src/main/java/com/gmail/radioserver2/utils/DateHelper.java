@@ -43,7 +43,7 @@ public class DateHelper {
 
     public static String[] getTimeList(int startHour, int endHour) {
         if (startHour < 0) startHour = 0;
-        if (endHour < startHour) return new String[] {toTimeNumberString(endHour)};
+        if (endHour < startHour) return new String[]{toTimeNumberString(endHour)};
         String[] items = new String[endHour - startHour + 1];
         for (int i = 0; i < (endHour - startHour + 1); i++) {
             items[i] = toTimeNumberString(startHour + i);

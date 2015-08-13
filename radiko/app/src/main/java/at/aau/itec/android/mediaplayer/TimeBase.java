@@ -21,7 +21,7 @@ package at.aau.itec.android.mediaplayer;
 
 /**
  * Created by Mario on 14.06.2014.
- *
+ * <p/>
  * A time base in microseconds for media playback.
  */
 class TimeBase {
@@ -46,7 +46,7 @@ class TimeBase {
     }
 
     public long getOffsetFrom(long from) {
-        return  from - getCurrentTime();
+        return from - getCurrentTime();
     }
 
     public double getSpeed() {
@@ -57,6 +57,7 @@ class TimeBase {
      * Sets the playback speed. Can be used for fast forward and slow motion.
      * speed 0.5 = half speed / slow motion
      * speed 2.0 = double speed / fast forward
+     *
      * @param speed
      */
     public void setSpeed(double speed) {
@@ -64,6 +65,6 @@ class TimeBase {
     }
 
     private long microTime() {
-        return (long)(System.nanoTime() / 1000 * mSpeed);
+        return (long) (System.nanoTime() / 1000 * mSpeed);
     }
 }

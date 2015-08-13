@@ -57,7 +57,7 @@ public class ChannelAdapter extends DefaultAdapter<Channel> {
             holder = (ViewHolder) convertView.getTag();
         }
         if (parent instanceof SwipeListView) {
-            ((SwipeListView)parent).recycle(convertView, position);
+            ((SwipeListView) parent).recycle(convertView, position);
         }
         Channel channel = getObjects()[position];
         holder.txtTitle.setText(channel.toPrettyString(getContext()));

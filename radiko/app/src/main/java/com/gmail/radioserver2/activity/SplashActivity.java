@@ -12,7 +12,7 @@ public class SplashActivity extends BaseActivity {
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
         Intent intent = new Intent();
-        intent.setClass(this,MainActivity.class);
+        intent.setClass(this, MainActivity.class);
         startActivity(intent);
     }
 }

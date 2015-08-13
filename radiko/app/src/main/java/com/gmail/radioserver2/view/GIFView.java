@@ -20,6 +20,7 @@ public class GIFView extends View {
 
     private Movie mMovie;
     private long movieStart;
+
     public GIFView(Context context) {
         super(context);
         initializeView();
@@ -34,6 +35,7 @@ public class GIFView extends View {
         super(context, attrs, defStyle);
         setAttrs(attrs);
     }
+
     private int gifId;
 
     public void setGIFResource(int resId) {
@@ -53,6 +55,7 @@ public class GIFView extends View {
             this.invalidate();
         }
     }
+
     private void setAttrs(AttributeSet attrs) {
         if (attrs != null) {
             setGIFResource(attrs.getAttributeResourceValue("http://schemas.android.com/apk/res/android", "src", 0));

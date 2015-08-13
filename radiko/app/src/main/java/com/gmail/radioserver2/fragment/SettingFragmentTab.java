@@ -53,7 +53,7 @@ public class SettingFragmentTab extends FragmentTab implements View.OnClickListe
 
     @Override
     public View onCreateView(LayoutInflater inflater, ViewGroup container, Bundle savedInstanceState) {
-        super.onCreateView(inflater,container,savedInstanceState);
+        super.onCreateView(inflater, container, savedInstanceState);
         View v = inflater.inflate(R.layout.fragment_setting, container, false);
         v.findViewById(R.id.btnSave).setOnClickListener(this);
         seekBarFastLevel = (CustomSeekBar) v.findViewById(R.id.seekBarFastLevel);
@@ -185,6 +185,7 @@ public class SettingFragmentTab extends FragmentTab implements View.OnClickListe
                 bar.setProgress(desPros);
             }
         }
+
         public void onStopTrackingTouch(SeekBar bar) {
 
         }

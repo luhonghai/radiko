@@ -35,7 +35,7 @@ import java.util.Queue;
 
 /**
  * Wrapper of an AudioTrack for easier management in the playback thread.
- *
+ * <p/>
  * Created by maguggen on 23.09.2014.
  */
 class AudioPlayback {
@@ -70,7 +70,7 @@ class AudioPlayback {
 
         boolean playing = false;
 
-        if(isInitialized()) {
+        if (isInitialized()) {
             playing = isPlaying();
             pause();
             stopAndRelease(false);
@@ -104,7 +104,7 @@ class AudioPlayback {
         }
         mAudioSessionId = mAudioTrack.getAudioSessionId();
 
-        if(playing) {
+        if (playing) {
             play();
         }
     }
@@ -113,7 +113,7 @@ class AudioPlayback {
      * Can be used to set an audio session ID before calling {@link #init(android.media.MediaFormat)}.
      */
     public void setAudioSessionId(int sessionId) {
-        if(isInitialized()) {
+        if (isInitialized()) {
             throw new IllegalStateException("cannot set session id on an initialized audio track");
         }
         mAudioSessionId = sessionId;
@@ -129,7 +129,7 @@ class AudioPlayback {
 
     public void play() {
         //Log.d(TAG, "play");
-        if(isInitialized()) {
+        if (isInitialized()) {
             mAudioTrack.play();
             mAudioThread.setPaused(false);
         } else {
@@ -139,10 +139,10 @@ class AudioPlayback {
 
     public void pause(boolean flush) {
         //Log.d(TAG, "pause(" + flush + ")");
-        if(isInitialized()) {
+        if (isInitialized()) {
             mAudioThread.setPaused(true);
             mAudioTrack.pause();
-            if(flush) {
+            if (flush) {
                 flush();
             }
         } else {
@@ -155,14 +155,14 @@ class AudioPlayback {
     }
 
     public void flush() {
-        if(isInitialized()) {
+        if (isInitialized()) {
             boolean playing = isPlaying();
-            if(playing) {
+            if (playing) {
                 mAudioTrack.pause();
             }
             mAudioTrack.flush();
             mBufferQueue.flush();
-            if(playing) {
+            if (playing) {
                 mAudioTrack.play();
             }
         } else {
@@ -174,7 +174,7 @@ class AudioPlayback {
         int sizeInBytes = audioData.remaining();
 
         // TODO find a way to determine the audio decoder max output frame size at configuration time
-        if(mFrameChunkSize < sizeInBytes) {
+        if (mFrameChunkSize < sizeInBytes) {
             Log.d(TAG, "incoming frame chunk size increased to " + sizeInBytes);
             mFrameChunkSize = sizeInBytes;
             // re-init the audio track to accommodate buffer to new chunk size
@@ -189,8 +189,8 @@ class AudioPlayback {
     }
 
     private void stopAndRelease(boolean killThread) {
-        if(isInitialized()) {
-            if(killThread) mAudioThread.interrupt();
+        if (isInitialized()) {
+            if (killThread) mAudioThread.interrupt();
             mAudioTrack.stop();
             mAudioTrack.release();
         }
@@ -202,7 +202,7 @@ class AudioPlayback {
     }
 
     public long getBufferTimeUs() {
-        return (long)((double)(mBufferQueue.mQueuedDataSize / mFrameSize)
+        return (long) ((double) (mBufferQueue.mQueuedDataSize / mFrameSize)
                 / mSampleRate * 1000000d);
     }
 
@@ -223,7 +223,7 @@ class AudioPlayback {
                 throw new IllegalStateException();
             }
         } catch (Exception e) {
-            SimpleAppLog.error("Could not set playback speed",e);
+            SimpleAppLog.error("Could not set playback speed", e);
         }
     }
 
@@ -233,7 +233,7 @@ class AudioPlayback {
 
     private void writeToPlaybackBuffer(ByteBuffer audioData, long presentationTimeUs) {
         int size = audioData.remaining();
-        if(mTransferBuffer == null || mTransferBuffer.length < size) {
+        if (mTransferBuffer == null || mTransferBuffer.length < size) {
             mTransferBuffer = new byte[size];
         }
         audioData.get(mTransferBuffer, 0, size);
@@ -283,10 +283,10 @@ class AudioPlayback {
 
         @Override
         public void run() {
-            while(!isInterrupted()) {
+            while (!isInterrupted()) {
                 try {
-                    synchronized(this) {
-                        while(mPaused) {
+                    synchronized (this) {
+                        while (mPaused) {
                             wait();
                         }
                     }
@@ -337,7 +337,7 @@ class AudioPlayback {
 
         synchronized void put(ByteBuffer data, long presentationTimeUs) {
             //Log.d(TAG, "put");
-            if(data.remaining() > bufferSize) {
+            if (data.remaining() > bufferSize) {
                 /* Buffer size has increased, invalidate all empty buffers since they can not be
                  * reused any more. */
                 emptyBuffers.clear();
@@ -345,7 +345,7 @@ class AudioPlayback {
             }
 
             Item item;
-            if(!emptyBuffers.isEmpty()) {
+            if (!emptyBuffers.isEmpty()) {
                 item = emptyBuffers.remove(0);
             } else {
                 item = new Item(data.remaining());
@@ -368,7 +368,7 @@ class AudioPlayback {
         synchronized Item take() {
             //Log.d(TAG, "take");
             Item item = bufferQueue.poll();
-            if(item != null) {
+            if (item != null) {
                 mQueuedDataSize -= item.buffer.remaining();
             }
             return item;
@@ -378,7 +378,7 @@ class AudioPlayback {
          * Returns a buffer to the queue for reuse.
          */
         synchronized void put(Item returnItem) {
-            if(returnItem.buffer.capacity() != bufferSize) {
+            if (returnItem.buffer.capacity() != bufferSize) {
                 /* The buffer size has changed and the returned buffer is not valid any more and
                  * can be discarded. */
                 return;
@@ -393,7 +393,7 @@ class AudioPlayback {
          */
         synchronized void flush() {
             Item item;
-            while((item = bufferQueue.poll()) != null) {
+            while ((item = bufferQueue.poll()) != null) {
                 put(item);
             }
             mQueuedDataSize = 0;

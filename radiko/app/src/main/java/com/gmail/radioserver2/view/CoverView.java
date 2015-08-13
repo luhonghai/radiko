@@ -20,6 +20,7 @@ package com.gmail.radioserver2.view;
 
 import com.gmail.radioserver2.R;
 import com.gmail.radioserver2.service.MusicUtils;
+
 import android.content.Context;
 import android.graphics.Bitmap;
 import android.graphics.Canvas;
@@ -29,86 +30,86 @@ import android.util.AttributeSet;
 import android.view.View;
 
 public final class CoverView extends View {
-	
-	private CoverViewListener mListener;
-	
-	private Bitmap mBitmap = null;
 
-	public CoverView(Context context, AttributeSet attributes) {
-		super(context, attributes);
-	}
+    private CoverViewListener mListener;
 
-	public void setup(Looper looper, Fragment fragment) {
-		// Verify that the host activity implements the callback interface
-	    try {
-	    	// Instantiate the CoverViewListener so we can send events to the host
-	        mListener = (CoverViewListener) fragment;
-	    } catch (ClassCastException e) {
-	        // The activity doesn't implement the interface, throw exception
-	        throw new ClassCastException(fragment.toString()
-	        	+ " must implement CoverViewListener");
-	    }
-	}
+    private Bitmap mBitmap = null;
 
-	@Override
-	protected void onDraw(Canvas canvas) {
-		int width = getWidth();
-		int height = getHeight();
-		
-		//canvas.drawColor(android.R.color.transparent);
-		
-		if (mBitmap != null) {
-			int xOffset = (width - mBitmap.getWidth()) / 2;
-			int yOffset = (height - mBitmap.getHeight()) / 2;
-			canvas.drawBitmap(mBitmap, xOffset, yOffset, null);
-		}
-	}
+    public CoverView(Context context, AttributeSet attributes) {
+        super(context, attributes);
+    }
 
-	@Override
-	protected void onSizeChanged(int w, int h, int oldw, int oldh) {
-		if (w != 0 && h != 0) {
-			if (mListener != null) {
-				mListener.onCoverViewInitialized();
-			}
-		}
-	}
-	
-	public boolean generateBitmap(long id) {
-		Bitmap b = null;
-		
-		int width = getWidth();
-		int height = getHeight();
-		
-		if (width == 0 || height == 0) {
-			return false;
-		}
+    public void setup(Looper looper, Fragment fragment) {
+        // Verify that the host activity implements the callback interface
+        try {
+            // Instantiate the CoverViewListener so we can send events to the host
+            mListener = (CoverViewListener) fragment;
+        } catch (ClassCastException e) {
+            // The activity doesn't implement the interface, throw exception
+            throw new ClassCastException(fragment.toString()
+                    + " must implement CoverViewListener");
+        }
+    }
 
-		int scale = Math.min(width, height);
-		
-		Context context = getContext();
+    @Override
+    protected void onDraw(Canvas canvas) {
+        int width = getWidth();
+        int height = getHeight();
 
-		b = MusicUtils.getDefaultArtwork(context, R.drawable.albumart_mp_unknown, scale, scale);
-		
-		mBitmap = b;
-		postInvalidate();
-		
-		return true;
-	}
+        //canvas.drawColor(android.R.color.transparent);
 
-	@Override
-	protected void onMeasure(int widthSpec, int heightSpec) {
-		int width = View.MeasureSpec.getSize(widthSpec);
-		int height = View.MeasureSpec.getSize(heightSpec);
+        if (mBitmap != null) {
+            int xOffset = (width - mBitmap.getWidth()) / 2;
+            int yOffset = (height - mBitmap.getHeight()) / 2;
+            canvas.drawBitmap(mBitmap, xOffset, yOffset, null);
+        }
+    }
 
-		if (View.MeasureSpec.getMode(widthSpec) == View.MeasureSpec.EXACTLY
-			&& View.MeasureSpec.getMode(heightSpec) == View.MeasureSpec.EXACTLY) {
-			setMeasuredDimension(width, height);
-		} else {
-			int size = Math.min(width, height);
-			setMeasuredDimension(size, size);
-		}
-	}
-	
+    @Override
+    protected void onSizeChanged(int w, int h, int oldw, int oldh) {
+        if (w != 0 && h != 0) {
+            if (mListener != null) {
+                mListener.onCoverViewInitialized();
+            }
+        }
+    }
+
+    public boolean generateBitmap(long id) {
+        Bitmap b = null;
+
+        int width = getWidth();
+        int height = getHeight();
+
+        if (width == 0 || height == 0) {
+            return false;
+        }
+
+        int scale = Math.min(width, height);
+
+        Context context = getContext();
+
+        b = MusicUtils.getDefaultArtwork(context, R.drawable.albumart_mp_unknown, scale, scale);
+
+        mBitmap = b;
+        postInvalidate();
+
+        return true;
+    }
+
+    @Override
+    protected void onMeasure(int widthSpec, int heightSpec) {
+        int width = View.MeasureSpec.getSize(widthSpec);
+        int height = View.MeasureSpec.getSize(heightSpec);
+
+        if (View.MeasureSpec.getMode(widthSpec) == View.MeasureSpec.EXACTLY
+                && View.MeasureSpec.getMode(heightSpec) == View.MeasureSpec.EXACTLY) {
+            setMeasuredDimension(width, height);
+        } else {
+            int size = Math.min(width, height);
+            setMeasuredDimension(size, size);
+        }
+    }
+
     /* The activity that creates an instance of this class must
      * implement this interface in order to receive event callbacks. */
     public interface CoverViewListener {

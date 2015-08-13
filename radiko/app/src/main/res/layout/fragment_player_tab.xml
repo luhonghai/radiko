@@ -1,8 +1,10 @@
 <?xml version="1.0" encoding="utf-8"?>
 <LinearLayout xmlns:android="http://schemas.android.com/apk/res/android"
-    android:orientation="vertical" android:layout_width="match_parent"
+    android:orientation="vertical"
+    android:layout_width="match_parent"
     android:layout_height="match_parent"
     android:background="@color/default_background_color">
+
     <LinearLayout
         android:layout_width="match_parent"
         android:layout_height="0dp"
@@ -10,20 +12,20 @@
         android:orientation="vertical"
         android:background="@android:color/white"
         android:layout_marginTop="@dimen/default_top_margin">
+
         <RelativeLayout
             android:layout_width="match_parent"
             android:layout_height="wrap_content"
-            android:gravity="center_horizontal|center_vertical"
-            >
-            <com.google.android.gms.ads.AdView
-                xmlns:ads="http://schemas.android.com/apk/res-auto"
+            android:gravity="center_horizontal|center_vertical">
+
+            <com.google.android.gms.ads.AdView xmlns:ads="http://schemas.android.com/apk/res-auto"
                 android:id="@+id/adView"
                 android:layout_width="wrap_content"
                 android:layout_height="wrap_content"
                 ads:adSize="BANNER"
-                ads:adUnitId="@string/banner_player_ad_unit_id">
-            </com.google.android.gms.ads.AdView>
+                ads:adUnitId="@string/banner_player_ad_unit_id"></com.google.android.gms.ads.AdView>
         </RelativeLayout>
+
         <TextView
             android:id="@+id/txtTitle"
             android:layout_width="match_parent"
@@ -31,35 +33,42 @@
             android:textSize="@dimen/font_size_title"
             android:layout_marginTop="@dimen/default_top_margin"
             android:gravity="center"
-            android:textStyle="bold"/>
+            android:textStyle="bold" />
+
         <ScrollView
             android:layout_width="match_parent"
             android:layout_height="wrap_content"
             android:padding="@dimen/tabs_padding">
+
             <TextView
                 android:id="@+id/txtDescription"
                 android:layout_width="match_parent"
                 android:layout_height="wrap_content"
                 android:gravity="center"
-                android:textSize="@dimen/font_size_description"/>
+                android:textSize="@dimen/font_size_description" />
         </ScrollView>
     </LinearLayout>
+
     <RelativeLayout
         android:layout_width="match_parent"
         android:layout_height="0dp"
         android:layout_weight="1">
+
         <LinearLayout
             android:layout_width="match_parent"
             android:layout_height="match_parent"
             android:orientation="vertical"
             android:layout_margin="@dimen/button_media_margin">
+
             <RelativeLayout
                 android:layout_width="match_parent"
                 android:layout_height="wrap_content">
+
                 <LinearLayout
                     android:layout_width="match_parent"
                     android:layout_height="wrap_content"
                     android:orientation="horizontal">
+
                     <ImageButton
                         android:id="@+id/btnPrev"
                         android:background="@null"
@@ -67,19 +76,21 @@
                         android:layout_height="@dimen/button_size_prev_next"
                         android:src="@drawable/btn_prev"
                         android:adjustViewBounds="true"
-                        android:scaleType="fitCenter"/>
+                        android:scaleType="fitCenter" />
+
                     <RelativeLayout
                         android:layout_width="0dp"
                         android:layout_height="match_parent"
                         android:layout_weight="1"
                         android:gravity="center_horizontal|center_vertical">
+
                         <WebView
                             android:id="@+id/gifView"
                             android:layout_marginTop="15dp"
                             android:layout_width="match_parent"
                             android:visibility="gone"
-                            android:layout_height="match_parent"
-                            />
+                            android:layout_height="match_parent" />
+
                         <com.gmail.radioserver2.view.CustomSeekBar
                             android:layout_width="match_parent"
                             android:layout_height="wrap_content"
@@ -87,6 +98,7 @@
                             android:visibility="gone"
                             android:indeterminate="false" />
                     </RelativeLayout>
+
                     <ImageButton
                         android:id="@+id/btnNext"
                         android:background="@null"
@@ -94,17 +106,20 @@
                         android:layout_height="@dimen/button_size_prev_next"
                         android:src="@drawable/btn_next"
                         android:adjustViewBounds="true"
-                        android:scaleType="fitCenter"/>
+                        android:scaleType="fitCenter" />
                 </LinearLayout>
             </RelativeLayout>
+
             <RelativeLayout
                 android:layout_width="match_parent"
                 android:layout_height="match_parent"
                 android:layout_weight="1">
+
                 <LinearLayout
                     android:layout_width="match_parent"
                     android:layout_height="match_parent"
                     android:orientation="horizontal">
+
                     <Button
                         android:id="@+id/btnSlow"
                         android:layout_width="0dp"
@@ -115,17 +130,20 @@
                         android:textColor="@color/text_color"
                         android:background="@drawable/rounded_corner_button"
                         android:textAppearance="?android:attr/textAppearanceButton"
-                        android:layout_margin="@dimen/button_media_margin"/>
+                        android:layout_margin="@dimen/button_media_margin" />
+
                     <RelativeLayout
                         android:layout_weight="2"
                         android:layout_width="0dp"
                         android:background="@drawable/rounded_corner_button"
                         android:layout_height="match_parent"
                         android:layout_margin="@dimen/button_media_margin">
+
                         <LinearLayout
                             android:layout_width="match_parent"
                             android:layout_height="match_parent"
                             android:orientation="vertical">
+
                             <ImageButton
                                 android:id="@+id/btnPlay"
                                 android:layout_weight="1"
@@ -134,7 +152,8 @@
                                 android:layout_height="0dp"
                                 android:src="@drawable/btn_play"
                                 android:adjustViewBounds="true"
-                                android:scaleType="fitCenter"/>
+                                android:scaleType="fitCenter" />
+
                             <TextView
                                 android:id="@+id/txtPlay"
                                 android:layout_width="match_parent"
@@ -142,9 +161,10 @@
                                 android:textColor="@color/text_color"
                                 android:textAppearance="?android:attr/textAppearanceButton"
                                 android:gravity="center_horizontal|center_vertical"
-                                android:text="@string/button_play"/>
+                                android:text="@string/button_play" />
                         </LinearLayout>
                     </RelativeLayout>
+
                     <Button
                         android:id="@+id/btnFast"
                         android:visibility="invisible"
@@ -155,13 +175,15 @@
                         android:background="@drawable/rounded_corner_button"
                         android:textColor="@color/text_color"
                         android:textAppearance="?android:attr/textAppearanceButton"
-                        android:layout_margin="@dimen/button_media_margin"/>
+                        android:layout_margin="@dimen/button_media_margin" />
                 </LinearLayout>
             </RelativeLayout>
+
             <RelativeLayout
                 android:layout_weight="1"
                 android:layout_width="match_parent"
                 android:layout_height="match_parent">
+
                 <LinearLayout
                     android:layout_width="match_parent"
                     android:layout_height="match_parent"
@@ -173,10 +195,12 @@
                         android:background="@drawable/rounded_corner_button"
                         android:layout_height="match_parent"
                         android:layout_margin="@dimen/button_media_margin">
+
                         <LinearLayout
                             android:layout_width="match_parent"
                             android:layout_height="match_parent"
                             android:orientation="vertical">
+
                             <ImageButton
                                 android:id="@+id/btnBack"
                                 android:layout_weight="1"
@@ -185,7 +209,8 @@
                                 android:layout_height="0dp"
                                 android:src="@drawable/btn_back"
                                 android:adjustViewBounds="true"
-                                android:scaleType="fitCenter"/>
+                                android:scaleType="fitCenter" />
+
                             <TextView
                                 android:id="@+id/txtBack"
                                 android:layout_width="match_parent"
@@ -193,7 +218,7 @@
                                 android:textAppearance="?android:attr/textAppearanceButton"
                                 android:gravity="center_horizontal|center_vertical"
                                 android:textColor="@color/text_color"
-                                android:text="@string/button_back"/>
+                                android:text="@string/button_back" />
                         </LinearLayout>
                     </RelativeLayout>
 
@@ -203,10 +228,12 @@
                         android:background="@drawable/rounded_corner_button"
                         android:layout_height="match_parent"
                         android:layout_margin="@dimen/button_media_margin">
+
                         <LinearLayout
                             android:layout_width="match_parent"
                             android:layout_height="match_parent"
                             android:orientation="vertical">
+
                             <ImageButton
                                 android:id="@+id/btnTimer"
                                 android:layout_weight="1"
@@ -215,7 +242,8 @@
                                 android:layout_height="0dp"
                                 android:src="@drawable/btn_timer"
                                 android:adjustViewBounds="true"
-                                android:scaleType="fitCenter"/>
+                                android:scaleType="fitCenter" />
+
                             <TextView
                                 android:id="@+id/txtTimer"
                                 android:layout_width="match_parent"
@@ -223,7 +251,7 @@
                                 android:textAppearance="?android:attr/textAppearanceButton"
                                 android:gravity="center_horizontal|center_vertical"
                                 android:textColor="@color/text_color"
-                                android:text="@string/button_timer"/>
+                                android:text="@string/button_timer" />
                         </LinearLayout>
                     </RelativeLayout>
 
@@ -233,10 +261,12 @@
                         android:background="@drawable/rounded_corner_button"
                         android:layout_height="match_parent"
                         android:layout_margin="@dimen/button_media_margin">
+
                         <LinearLayout
                             android:layout_width="match_parent"
                             android:layout_height="match_parent"
                             android:orientation="vertical">
+
                             <ImageButton
                                 android:id="@+id/btnRecord"
                                 android:layout_weight="1"
@@ -245,7 +275,8 @@
                                 android:layout_height="0dp"
                                 android:src="@drawable/btn_record"
                                 android:adjustViewBounds="true"
-                                android:scaleType="fitCenter"/>
+                                android:scaleType="fitCenter" />
+
                             <TextView
                                 android:id="@+id/txtRecord"
                                 android:layout_width="match_parent"
@@ -253,7 +284,7 @@
                                 android:textAppearance="?android:attr/textAppearanceButton"
                                 android:gravity="center_horizontal|center_vertical"
                                 android:textColor="@color/text_color"
-                                android:text="@string/button_record"/>
+                                android:text="@string/button_record" />
                         </LinearLayout>
                     </RelativeLayout>
 
@@ -263,10 +294,12 @@
                         android:background="@drawable/rounded_corner_button"
                         android:layout_height="match_parent"
                         android:layout_margin="@dimen/button_media_margin">
+
                         <LinearLayout
                             android:layout_width="match_parent"
                             android:layout_height="match_parent"
                             android:orientation="vertical">
+
                             <ImageButton
                                 android:id="@+id/btnRepeat"
                                 android:layout_weight="1"
@@ -275,7 +308,8 @@
                                 android:layout_height="0dp"
                                 android:src="@drawable/btn_repeat"
                                 android:adjustViewBounds="true"
-                                android:scaleType="fitCenter"/>
+                                android:scaleType="fitCenter" />
+
                             <TextView
                                 android:id="@+id/txtRepeat"
                                 android:layout_width="match_parent"
@@ -283,7 +317,7 @@
                                 android:textAppearance="?android:attr/textAppearanceSmall"
                                 android:gravity="center_horizontal|center_vertical"
                                 android:textColor="@color/text_color"
-                                android:text="@string/button_repeat"/>
+                                android:text="@string/button_repeat" />
                         </LinearLayout>
                     </RelativeLayout>
                 </LinearLayout>

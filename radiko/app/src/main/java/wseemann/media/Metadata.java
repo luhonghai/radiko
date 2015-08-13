@@ -24,22 +24,21 @@ import java.util.HashMap;
 import java.util.TimeZone;
 
 /**
-   Class to hold the media's metadata.  Metadata are used
-   for human consumption and can be embedded in the media (e.g
-   shoutcast) or available from an external source. The source can be
-   local (e.g thumbnail stored in the DB) or remote.
-
-   Metadata is like a Bundle. It is sparse and each key can occur at
-   most once. The key is an integer and the value is the actual metadata.
-
-   The caller is expected to know the type of the metadata and call
-   the right get* method to fetch its value.
-   
-   //@hide
-   //@deprecated Use {@link MediaMetadata}.
+ * Class to hold the media's metadata.  Metadata are used
+ * for human consumption and can be embedded in the media (e.g
+ * shoutcast) or available from an external source. The source can be
+ * local (e.g thumbnail stored in the DB) or remote.
+ * <p/>
+ * Metadata is like a Bundle. It is sparse and each key can occur at
+ * most once. The key is an integer and the value is the actual metadata.
+ * <p/>
+ * The caller is expected to know the type of the metadata and call
+ * the right get* method to fetch its value.
+ * <p/>
+ * //@hide
+ * //@deprecated Use {@link MediaMetadata}.
  */
-public class Metadata
-{
+public class Metadata {
     // The metadata are keyed using integers rather than more heavy
     // weight strings. We considered using Bundle to ship the metadata
     // between the native layer and the java layer but dropped that
@@ -56,27 +55,27 @@ public class Metadata
     /**
      * {@hide}
      */
-    public static final int STRING_VAL     = 1;
+    public static final int STRING_VAL = 1;
     /**
      * {@hide}
      */
-    public static final int INTEGER_VAL    = 2;
+    public static final int INTEGER_VAL = 2;
     /**
      * {@hide}
      */
-    public static final int BOOLEAN_VAL    = 3;
+    public static final int BOOLEAN_VAL = 3;
     /**
      * {@hide}
      */
-    public static final int LONG_VAL       = 4;
+    public static final int LONG_VAL = 4;
     /**
      * {@hide}
      */
-    public static final int DOUBLE_VAL     = 5;
+    public static final int DOUBLE_VAL = 5;
     /**
      * {@hide}
      */
-    public static final int DATE_VAL       = 6;
+    public static final int DATE_VAL = 6;
     /**
      * {@hide}
      */
@@ -84,33 +83,33 @@ public class Metadata
     // FIXME: misses a type for shared heap is missing (MemoryFile).
     // FIXME: misses a type for bitmaps.
     //private static final int LAST_TYPE = 7;
-    
+
     //private static final String TAG = "media.Metadata";
 
     // After a successful parsing, set the parcel with the serialized metadata.
     //private Parcel mParcel;
     private HashMap<String, String> mParcel;
-    
+
     /**
      * Check a parcel containing metadata is well formed. The header
      * is checked as well as the individual records format. However, the
      * data inside the record is not checked because we do lazy access
      * (we check/unmarshall only data the user asks for.)
-     *
+     * <p/>
      * Format of a metadata parcel:
-     <pre>
-                         1                   2                   3
-      0 1 2 3 4 5 6 7 8 9 0 1 2 3 4 5 6 7 8 9 0 1 2 3 4 5 6 7 8 9 0 1
-      +-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+
-      |                     metadata total size                       |
-      +-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+
-      |     'M'       |     'E'       |     'T'       |     'A'       |
-      +-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+
-      |                                                               |
-      |                .... metadata records ....                     |
-      |                                                               |
-      +-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+
-     </pre>
+     * <pre>
+     * 1                   2                   3
+     * 0 1 2 3 4 5 6 7 8 9 0 1 2 3 4 5 6 7 8 9 0 1 2 3 4 5 6 7 8 9 0 1
+     * +-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+
+     * |                     metadata total size                       |
+     * +-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+
+     * |     'M'       |     'E'       |     'T'       |     'A'       |
+     * +-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+
+     * |                                                               |
+     * |                .... metadata records ....                     |
+     * |                                                               |
+     * +-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+
+     * </pre>
      *
      * @param parcel With the serialized data. Metadata keeps a
      *               reference on it to access it later on. The caller
@@ -120,14 +119,14 @@ public class Metadata
      * {@hide}
      */
     public boolean parse(HashMap<String, String> metadata) {
-    	if (metadata == null) {
-    		return false;
-    	} else {
-    		mParcel = metadata;
-    		return true;
-    	}
+        if (metadata == null) {
+            return false;
+        } else {
+            mParcel = metadata;
+            return true;
+        }
     }
-    
+
     /**
      * @return true if a value is present for the given key.
      */
@@ -137,7 +136,7 @@ public class Metadata
         }
         return mParcel.containsKey(metadataId);
     }
-    
+
     // Accessors.
     // Caller must make sure the key is present using the {@code has}
     // method otherwise a RuntimeException will occur.
@@ -148,7 +147,7 @@ public class Metadata
     public HashMap<String, String> getAll() {
         return mParcel;
     }
-    
+
     /**
      * {@hide}
      */
@@ -218,6 +217,7 @@ public class Metadata
 
     /**
      * Check val is either a system id or a custom one.
+     *
      * @param val Metadata key to test.
      * @return true if it is in a valid range.
      **/
@@ -233,10 +233,10 @@ public class Metadata
      * Check the type of the data match what is expected.
      */
     private void checkType(final String key, final int expectedType) {
-    	String type = mParcel.get(key);
-    	
-    	if (type == null) {
-        //if (type != expectedType) {
+        String type = mParcel.get(key);
+
+        if (type == null) {
+            //if (type != expectedType) {
             throw new IllegalStateException("Wrong type " + expectedType + " but got " + type);
         }
     }

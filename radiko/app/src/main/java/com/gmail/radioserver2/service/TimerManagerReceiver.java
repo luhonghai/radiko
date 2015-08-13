@@ -28,10 +28,12 @@ import java.util.List;
 public class TimerManagerReceiver extends BroadcastReceiver {
 
     public static final String ACTION_START_TIMER = "com.gmail.radioserver2.service.TimerManagerReceiver.START_TIMER";
-
+    private int flag = PendingIntent.FLAG_CANCEL_CURRENT;
+    private final int OFFSET_TIME = 5;
     private Context context;
-
+    private final static Object lockObj = new Object();
     private Gson gson = new Gson();
+    public static AlarmManager mAlarmManager;
 
     private SimpleDateFormat sdf = new SimpleDateFormat("yyyy/MM/dd HH:mm:ss");
 
@@ -39,9 +41,15 @@ public class TimerManagerReceiver extends BroadcastReceiver {
     public void onReceive(Context context, Intent intent) {
         SimpleAppLog.info("TimerManagerReceiver starting up ...");
         this.context = context.getApplicationContext();
-        cancel();
-        startTimerManager();
-        reCalculateTimer();
+        // log time (ms) and entering critical section here!
+        SimpleAppLog.debug("Start" + System.currentTimeMillis() + "");
+        synchronized (lockObj) {
+            cancel();
+            startTimerManager();
+            reCalculateTimer();
+        }
+        SimpleAppLog.debug("Stop" + System.currentTimeMillis() + "");
+        // log time (ms) and leaving critical section here!
     }
 
     private void startTimerManager() {
@@ -53,21 +61,29 @@ public class TimerManagerReceiver extends BroadcastReceiver {
         cal.set(Calendar.HOUR_OF_DAY, 0);
         cal.set(Calendar.MINUTE, 0);
         cal.set(Calendar.SECOND, 1);
+//debug only
+//        cal.add(Calendar.MINUTE, 5);
         Intent intent = new Intent(context, TimerManagerReceiver.class);
         PendingIntent sender = PendingIntent.getBroadcast(context, 0, intent, 0);
-        AlarmManager alarmManager = (AlarmManager) context.getSystemService(Context.ALARM_SERVICE);
-        alarmManager.set(AlarmManager.RTC_WAKEUP, cal.getTimeInMillis(), sender);
+        if (mAlarmManager == null) {
+            mAlarmManager = (AlarmManager) context.getSystemService(Context.ALARM_SERVICE);
+        }
+        mAlarmManager.set(AlarmManager.RTC_WAKEUP, cal.getTimeInMillis(), sender);
     }
 
     private void cancel() {
         // Cancel old schedule
         Intent intent = new Intent(context, TimerManagerReceiver.class);
-        PendingIntent sender = PendingIntent.getBroadcast(context, 0, intent, 0);
-        AlarmManager alarmManager = (AlarmManager) context.getSystemService(Context.ALARM_SERVICE);
-        alarmManager.cancel(sender);
+        PendingIntent sender = PendingIntent.getBroadcast(context, 0, intent, flag);
+        if (mAlarmManager == null) {
+            mAlarmManager = (AlarmManager) context.getSystemService(Context.ALARM_SERVICE);
+        }
+        mAlarmManager = (AlarmManager) context.getSystemService(Context.ALARM_SERVICE);
+        mAlarmManager.cancel(sender);
+
         intent = new Intent(context, TimerBroadcastReceiver.class);
-        sender = PendingIntent.getBroadcast(context, 0, intent, 0);
-        alarmManager.cancel(sender);
+        sender = PendingIntent.getBroadcast(context, 0, intent, flag);
+        mAlarmManager.cancel(sender);
     }
 
     private void reCalculateTimer() {
@@ -86,17 +102,18 @@ public class TimerManagerReceiver extends BroadcastReceiver {
                         calculateCal.set(Calendar.HOUR_OF_DAY, item.getStartHour());
                         calculateCal.set(Calendar.MINUTE, item.getStartMinute());
                         if (item.getStartHour() == 0 && item.getStartMinute() == 0) {
-                            calculateCal.set(Calendar.SECOND, 10);
+                            calculateCal.set(Calendar.SECOND, OFFSET_TIME);
                         } else {
                             calculateCal.set(Calendar.SECOND, 0);
                         }
+                        calculateCal.set(Calendar.MILLISECOND, 0);
                         switch (item.getMode()) {
                             case Timer.MODE_ONE_TIME:
                                 calculateCal.setTime(item.getEventDate());
                                 calculateCal.set(Calendar.HOUR_OF_DAY, item.getStartHour());
                                 calculateCal.set(Calendar.MINUTE, item.getStartMinute());
                                 if (item.getStartHour() == 0 && item.getStartMinute() == 0) {
-                                    calculateCal.set(Calendar.SECOND, 10);
+                                    calculateCal.set(Calendar.SECOND, OFFSET_TIME);
                                 } else {
                                     calculateCal.set(Calendar.SECOND, 0);
                                 }
@@ -115,7 +132,7 @@ public class TimerManagerReceiver extends BroadcastReceiver {
                                         calculateCal.set(Calendar.MINUTE, item.getStartMinute());
                                         calculateCal.set(Calendar.SECOND, 0);
                                         if (item.getStartHour() == 0 && item.getStartMinute() == 0) {
-                                            calculateCal.set(Calendar.SECOND, 10);
+                                            calculateCal.set(Calendar.SECOND, OFFSET_TIME);
                                         } else {
                                             calculateCal.set(Calendar.SECOND, 0);
                                         }
@@ -154,10 +171,36 @@ public class TimerManagerReceiver extends BroadcastReceiver {
         Comparator<Timer> comparator = new Comparator<Timer>() {
             @Override
             public int compare(Timer t1, Timer t2) {
-                return (t1.getNextAlarmTime() - t2.getNextAlarmTime()) >= 0 ? 1 : -1;
+                int result = compareTime(t1.getNextAlarmTime(), t2.getNextAlarmTime()) > 0 ? 1 :
+                        (compareTime(t1.getNextAlarmTime(), t2.getNextAlarmTime()) == 0)
+                                && (t1.getType() == Timer.TYPE_RECORDING && t1.getType() == t2.getType()) ? 0 : -1;
+                if (result == 0) {
+                    result = totalRecordTime(t1) - totalRecordTime(t2) > 0 ? 1 : -1;
+                }
+                return result;
             }
         };
         Collections.sort(timers, comparator);
+    }
+
+    private byte compareTime(long var1, long var2) {
+        long offset = var1 - var2;
+        return (byte) (offset < 1000 ? 0 : offset < 0 ? -1 : 1);
+    }
+
+    private long totalRecordTime(Timer t) {
+        Calendar startCal = Calendar.getInstance();
+        Calendar finishCal = Calendar.getInstance();
+        startCal.set(Calendar.HOUR_OF_DAY, t.getStartHour());
+        startCal.set(Calendar.MINUTE, t.getStartMinute());
+        startCal.set(Calendar.SECOND, 0);
+        finishCal.set(Calendar.HOUR_OF_DAY, t.getFinishHour());
+        finishCal.set(Calendar.MINUTE, t.getFinishMinute());
+        finishCal.set(Calendar.SECOND, 0);
+        if (t.getFinishHour() < t.getStartHour()) {
+            finishCal.add(Calendar.DAY_OF_MONTH, 1);
+        }
+        return finishCal.getTimeInMillis() - startCal.getTimeInMillis();
     }
 
     private void createAlarm(List<Timer> timers) {
@@ -165,7 +208,9 @@ public class TimerManagerReceiver extends BroadcastReceiver {
         timers.remove(0);
         String timerSrc = gson.toJson(timer);
         String timerList = gson.toJson(timers);
-        AlarmManager am = (AlarmManager) context.getSystemService(Context.ALARM_SERVICE);
+        if (mAlarmManager == null) {
+            mAlarmManager = (AlarmManager) context.getSystemService(Context.ALARM_SERVICE);
+        }
         Intent i = new Intent(context, TimerBroadcastReceiver.class);
         Bundle bundle = i.getExtras();
         if (bundle == null) {
@@ -174,8 +219,7 @@ public class TimerManagerReceiver extends BroadcastReceiver {
         bundle.putString(Constants.ARG_OBJECT, timerSrc);
         bundle.putString(Constants.ARG_TIMER_LIST, timerList);
         i.putExtras(bundle);
-        PendingIntent pi = PendingIntent.getBroadcast(context, 0, i, PendingIntent.FLAG_UPDATE_CURRENT);
-        am.set(AlarmManager.RTC_WAKEUP, timer.getNextAlarmTime(), pi);
+        PendingIntent pi = PendingIntent.getBroadcast(context, 0, i, flag);
+        mAlarmManager.set(AlarmManager.RTC_WAKEUP, timer.getNextAlarmTime(), pi);
     }
-
 }

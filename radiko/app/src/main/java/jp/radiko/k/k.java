@@ -7,8 +7,7 @@ import android.content.Context;
  */
 
 public class k {
-    static
-    {
+    static {
         System.loadLibrary("RadikoSmartPhoneExtra");
     }
 

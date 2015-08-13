@@ -11,7 +11,7 @@ import java.util.Collection;
  */
 public interface IDBAdapter<T> {
     /**
-     *  FIELD
+     * FIELD
      */
     public static final String KEY_ROW_ID = "_id";
 
@@ -56,7 +56,7 @@ public interface IDBAdapter<T> {
     public static final String KEY_SECONDARY_MAPPING = "secondary_mapping";
 
     /**
-     *  TABLE
+     * TABLE
      */
     public static final String TABLE_RECORDED_PROGRAM = "recorded_program";
 

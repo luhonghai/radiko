@@ -4,6 +4,7 @@ import android.content.Context;
 import android.content.Intent;
 import android.os.AsyncTask;
 import android.os.Handler;
+import android.os.Looper;
 import android.os.RemoteException;
 import android.support.annotation.Nullable;
 
@@ -11,6 +12,7 @@ import com.dotohsoft.radio.api.APIRequester;
 import com.dotohsoft.radio.data.RadioArea;
 import com.dotohsoft.radio.data.RadioChannel;
 import com.dotohsoft.radio.data.RadioProgram;
+import com.gmail.radioserver2.BuildConfig;
 import com.gmail.radioserver2.data.Channel;
 import com.gmail.radioserver2.data.RecordedProgram;
 import com.gmail.radioserver2.data.Timer;
@@ -41,15 +43,14 @@ import wseemann.media.FFmpegMediaPlayer;
 public class MediaRecord {
     private static final long MIN_RECORDING_LENGTH = 5 * 1000;
     private final int MAX_FILE_SIZE = 2 * 1024 * 1024;
-    //    private final int MAX_FILE_SIZE = 700;
     private Context mContext;
     private Timer selectedTimer;
     private Channel channel;
     private Gson gson = new Gson();
     private FFmpegMediaPlayer recorder;
-    private Handler timeOutHandler = new Handler();
-    private Handler completeHandler = new Handler();
-    private Handler retryHandler = new Handler();
+    private Handler timeOutHandler = new Handler(Looper.getMainLooper());
+    private Handler completeHandler = new Handler(Looper.getMainLooper());
+    private Handler retryHandler = new Handler(Looper.getMainLooper());
     private final int MAX_TIMEOUT = 60 * 1000;
     private int currentTimeout = 1000;
     private final String NEW_LINE = "\n";
@@ -60,7 +61,7 @@ public class MediaRecord {
     private int mCurrentRetryCount = 0;
     private RadioProgram mRadioProgram;
     private File mLogFile;
-    private final SimpleDateFormat dateFormat = new SimpleDateFormat("dd/MM/yyyy - HH:mm:ss");
+    private final SimpleDateFormat dateFormat = new SimpleDateFormat("yyyy/MM/dd - HH:mm:ss");
 
     public MediaRecord(Context context, IMediaPlaybackService mService, Timer timer, final OnRecordStateChangeListenner mStateChangeListenner) {
         mContext = context;
@@ -95,7 +96,7 @@ public class MediaRecord {
             completeHandler.post(new Runnable() {
                 @Override
                 public void run() {
-                    notifyChange(null);
+                    notifyChange(null, true);
                 }
             });
         } catch (Exception e) {
@@ -109,6 +110,7 @@ public class MediaRecord {
                 recorder.stopRecording();
                 recorder.stop();
                 recorder.release();
+                recorder = null;
             }
         } catch (Exception e) {
             SimpleAppLog.error("Could not stop recording", e);
@@ -157,7 +159,7 @@ public class MediaRecord {
             }
             notifyPlayerStateChanged();
         } else {
-            notifyChange(null);
+            notifyChange(null, false);
             SimpleAppLog.error("No selected timer");
         }
     }
@@ -167,12 +169,12 @@ public class MediaRecord {
             if (mService.isPlaying()) {
                 mService.stop();
                 writeLogFileRaw("____________________");
-                writeLogFile("Timer stop playing occur");
+                writeLogFile("Timer stop playing occur: -build: " + BuildConfig.VERSION_CODE);
             }
         } catch (RemoteException e) {
             SimpleAppLog.error("Could not stop playing", e);
         } finally {
-            notifyChange(null);
+            notifyChange(null, false);
         }
     }
 
@@ -184,12 +186,12 @@ public class MediaRecord {
                 }
                 mService.openStream("", channelSrc);
                 writeLogFileRaw("____________________");
-                writeLogFile("Timer start playing occur");
+                writeLogFile("Timer start playing occur: -build: " + BuildConfig.VERSION_CODE);
             }
         } catch (RemoteException e) {
             SimpleAppLog.error("Could not open stream", e);
         } finally {
-            notifyChange(null);
+            notifyChange(null, false);
         }
     }
 
@@ -207,18 +209,18 @@ public class MediaRecord {
         }
         SimpleAppLog.debug("TIMER TIME: start: " + calStart.toString() + " - " + calFinish.toString());
         writeLogFileRaw("____________________");
-        writeLogFile("Timer recording occur");
+        writeLogFile("Timer recording occur: -build: " + BuildConfig.VERSION_CODE);
         long recordingLength = calFinish.getTimeInMillis() - calStart.getTimeInMillis();
         if (recordingLength <= MIN_RECORDING_LENGTH) {
             writeLogFile("Timer recording: timer length too long");
             SimpleAppLog.error("Too small recording length: " + recordingLength);
             return;
         }
-        timeOutHandler.postDelayed(timeoutRunable, calFinish.getTimeInMillis() - System.currentTimeMillis());
+        timeOutHandler.postDelayed(timeoutRunnable, calFinish.getTimeInMillis() - System.currentTimeMillis());
         TokenFetcher.getTokenFetcher(mContext, tokenListener).fetch();
     }
 
-    private Runnable timeoutRunable = new Runnable() {
+    private Runnable timeoutRunnable = new Runnable() {
         @Override
         public void run() {
             SimpleAppLog.debug("Record: out of timer");
@@ -232,7 +234,7 @@ public class MediaRecord {
         }
     };
 
-    Runnable retryRunable = new Runnable() {
+    Runnable retryRunnable = new Runnable() {
         @Override
         public void run() {
             SimpleAppLog.debug("Record: retry occur");
@@ -244,7 +246,7 @@ public class MediaRecord {
                     calFinish.set(Calendar.MINUTE, selectedTimer.getFinishMinute());
                     if (System.currentTimeMillis() < calFinish.getTimeInMillis()) {
                         stopRecord();
-                        retryHandler.removeCallbacks(retryRunable);
+                        retryHandler.removeCallbacks(retryRunnable);
                         startRecording(mCurrentLink);
                     } else {
                         finishRecord();
@@ -312,7 +314,7 @@ public class MediaRecord {
         public void onError(String message, Throwable throwable) {
             writeLogFile("Timer recording: token could not be fetched - end recording");
             finishRecord();
-            notifyChange(null);
+            notifyChange(null, true);
         }
     };
 
@@ -399,7 +401,7 @@ public class MediaRecord {
         public void onError(String message, Throwable e, long recordedID) {
             deleteRecordedProgram(recordedID);
             finishRecord();
-            notifyChange(null);
+            notifyChange(null, true);
         }
 
         @Override
@@ -431,7 +433,7 @@ public class MediaRecord {
             FFmpegMediaPlayer.mRetryPivot = mCurrentRetry;
             SimpleAppLog.debug("RECORD " + currentTimeout);
             if (mCurrentRetry <= 5) {
-                retryHandler.postDelayed(retryRunable, currentTimeout);
+                retryHandler.postDelayed(retryRunnable, currentTimeout);
             } else {
                 new AsyncTask<Void, Void, Void>() {
                     @Override
@@ -468,9 +470,10 @@ public class MediaRecord {
     private void startRecording(String url) {
         if (channel != null && selectedTimer != null) {
             long startTime = System.currentTimeMillis();
+            recorder = null;
             recorder = new FFmpegMediaPlayer();
             recorder.setRecordingOnly(true);
-            notifyChange(channel);
+            notifyChange(channel, true);
             try {
                 recorder.setDataSource(url);
             } catch (IOException e) {
@@ -547,20 +550,20 @@ public class MediaRecord {
         return recordedID;
     }
 
-    private void notifyChange(@Nullable Channel channel) {
+    private void notifyChange(@Nullable Channel channel, boolean isRecord) {
         SimpleAppLog.debug("Record: Notification changed");
         if (mStateChangeListenner != null) {
             if (channel != null) {
                 mStateChangeListenner.showNotification(channel);
             } else {
-                mStateChangeListenner.refresh();
+                mStateChangeListenner.refresh(isRecord);
                 try {
-                    timeOutHandler.removeCallbacks(timeoutRunable);
+                    timeOutHandler.removeCallbacks(timeoutRunnable);
                 } catch (Exception e) {
                     e.printStackTrace();
                 }
                 try {
-                    retryHandler.removeCallbacks(retryRunable);
+                    retryHandler.removeCallbacks(retryRunnable);
                 } catch (Exception e) {
                     e.printStackTrace();
                 }

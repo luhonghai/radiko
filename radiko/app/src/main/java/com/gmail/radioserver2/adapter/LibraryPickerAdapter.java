@@ -47,9 +47,9 @@ public class LibraryPickerAdapter extends DefaultAdapter<Library> {
     private final List<Library> selectedItems;
 
     public LibraryPickerAdapter(Context context,
-                                    Library[] objects,
-                                    List<Library> selectedItems,
-                                    OnListItemActionListener<Library> onListItemActionListener) {
+                                Library[] objects,
+                                List<Library> selectedItems,
+                                OnListItemActionListener<Library> onListItemActionListener) {
         super(context, R.layout.list_item_library_picker, objects, onListItemActionListener);
         this.selectedItems = selectedItems;
     }
@@ -100,7 +100,7 @@ public class LibraryPickerAdapter extends DefaultAdapter<Library> {
             holder = (ViewHolder) convertView.getTag();
         }
         if (parent instanceof SwipeListView) {
-            ((SwipeListView)parent).recycle(convertView, position);
+            ((SwipeListView) parent).recycle(convertView, position);
         }
         Library object = getObjects()[position];
         holder.txtTitle.setText(object.toPrettyString(getContext()));

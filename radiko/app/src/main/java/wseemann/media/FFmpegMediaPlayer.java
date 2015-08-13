@@ -2432,7 +2432,6 @@ public class FFmpegMediaPlayer {
                 if (!isRecording) return;
                 isInitRecording = false;
                 isRecording = false;
-
                 if (mp3Encoder != null) {
                     mp3Encoder.cleanup();
                     mp3Encoder = null;

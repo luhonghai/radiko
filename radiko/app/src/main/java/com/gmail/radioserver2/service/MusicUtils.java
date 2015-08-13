@@ -45,6 +45,7 @@ import java.util.Locale;
 
 import com.gmail.radioserver2.R;
 import com.gmail.radioserver2.provider.Media;
+
 public class MusicUtils {
 
     public static IMediaPlaybackService sService = null;
@@ -52,6 +53,7 @@ public class MusicUtils {
 
     public static class ServiceToken {
         ContextWrapper mWrappedContext;
+
         ServiceToken(ContextWrapper context) {
             mWrappedContext = context;
         }
@@ -110,17 +112,18 @@ public class MusicUtils {
 
     private static class ServiceBinder implements ServiceConnection {
         ServiceConnection mCallback;
+
         ServiceBinder(ServiceConnection callback) {
             mCallback = callback;
         }
-        
+
         public void onServiceConnected(ComponentName className, android.os.IBinder service) {
             sService = IMediaPlaybackService.Stub.asInterface(service);
             if (mCallback != null) {
                 mCallback.onServiceConnected(className, service);
             }
         }
-        
+
         public void onServiceDisconnected(ComponentName className) {
             if (mCallback != null) {
                 mCallback.onServiceDisconnected(className);
@@ -128,7 +131,7 @@ public class MusicUtils {
             sService = null;
         }
     }
-    
+
     public static long getCurrentAlbumId() {
         if (sService != null) {
             try {
@@ -158,7 +161,7 @@ public class MusicUtils {
         }
         return -1;
     }
-    
+
     public static int getCurrentShuffleMode() {
         int mode = MediaPlaybackService.SHUFFLE_NONE;
         if (sService != null) {
@@ -169,7 +172,7 @@ public class MusicUtils {
         }
         return mode;
     }
-    
+
     public static void togglePartyShuffle() {
         if (sService != null) {
             int shuffle = getCurrentShuffleMode();
@@ -183,7 +186,7 @@ public class MusicUtils {
             }
         }
     }
-    
+
     /*
      * Returns true if a file is currently opened for playback (regardless
      * of whether it's playing or paused).
@@ -198,14 +201,14 @@ public class MusicUtils {
         return false;
     }
 
-    private final static long [] sEmptyList = new long[0];
+    private final static long[] sEmptyList = new long[0];
 
-    public static long [] getSongListForCursor(Cursor cursor) {
+    public static long[] getSongListForCursor(Cursor cursor) {
         if (cursor == null) {
             return sEmptyList;
         }
         int len = cursor.getCount();
-        long [] list = new long[len];
+        long[] list = new long[len];
         cursor.moveToFirst();
         int colidx = -1;
         try {
@@ -220,31 +223,31 @@ public class MusicUtils {
         return list;
     }
 
-    public static long [] getSongListForArtist(Context context, long id) {
-        final String[] ccols = new String[] { MediaStore.Audio.Media._ID };
-        String where = MediaStore.Audio.Media.ARTIST_ID + "=" + id + " AND " + 
-        MediaStore.Audio.Media.IS_MUSIC + "=1";
+    public static long[] getSongListForArtist(Context context, long id) {
+        final String[] ccols = new String[]{MediaStore.Audio.Media._ID};
+        String where = MediaStore.Audio.Media.ARTIST_ID + "=" + id + " AND " +
+                MediaStore.Audio.Media.IS_MUSIC + "=1";
         Cursor cursor = query(context, MediaStore.Audio.Media.EXTERNAL_CONTENT_URI,
                 ccols, where, null,
-                MediaStore.Audio.Media.ALBUM_KEY + ","  + MediaStore.Audio.Media.TRACK);
-        
+                MediaStore.Audio.Media.ALBUM_KEY + "," + MediaStore.Audio.Media.TRACK);
+
         if (cursor != null) {
-            long [] list = getSongListForCursor(cursor);
+            long[] list = getSongListForCursor(cursor);
             cursor.close();
             return list;
         }
         return sEmptyList;
     }
 
-    public static long [] getSongListForAlbum(Context context, long id) {
-        final String[] ccols = new String[] { MediaStore.Audio.Media._ID };
-        String where = MediaStore.Audio.Media.ALBUM_ID + "=" + id + " AND " + 
+    public static long[] getSongListForAlbum(Context context, long id) {
+        final String[] ccols = new String[]{MediaStore.Audio.Media._ID};
+        String where = MediaStore.Audio.Media.ALBUM_ID + "=" + id + " AND " +
                 MediaStore.Audio.Media.IS_MUSIC + "=1";
         Cursor cursor = query(context, MediaStore.Audio.Media.EXTERNAL_CONTENT_URI,
                 ccols, where, null, MediaStore.Audio.Media.TRACK);
 
         if (cursor != null) {
-            long [] list = getSongListForCursor(cursor);
+            long[] list = getSongListForCursor(cursor);
             cursor.close();
             return list;
         }
@@ -257,36 +260,36 @@ public class MusicUtils {
             if (resolver == null) {
                 return;
             }
-            resolver.delete(Media.MediaColumns.CONTENT_URI, null,null);
+            resolver.delete(Media.MediaColumns.CONTENT_URI, null, null);
 
         } catch (UnsupportedOperationException ex) {
 
         }
     }
 
-    public static long [] getSongListForPlaylist(Context context, long plid) {
-        final String[] ccols = new String[] { MediaStore.Audio.Playlists.Members.AUDIO_ID };
+    public static long[] getSongListForPlaylist(Context context, long plid) {
+        final String[] ccols = new String[]{MediaStore.Audio.Playlists.Members.AUDIO_ID};
         Cursor cursor = query(context, MediaStore.Audio.Playlists.Members.getContentUri("external", plid),
                 ccols, null, null, MediaStore.Audio.Playlists.Members.DEFAULT_SORT_ORDER);
-        
+
         if (cursor != null) {
-            long [] list = getSongListForCursor(cursor);
+            long[] list = getSongListForCursor(cursor);
             cursor.close();
             return list;
         }
         return sEmptyList;
     }
-    
-    public static long [] getAllSongs(Context context) {
+
+    public static long[] getAllSongs(Context context) {
         Cursor c = query(context, MediaStore.Audio.Media.EXTERNAL_CONTENT_URI,
-                new String[] {MediaStore.Audio.Media._ID}, MediaStore.Audio.Media.IS_MUSIC + "=1",
+                new String[]{MediaStore.Audio.Media._ID}, MediaStore.Audio.Media.IS_MUSIC + "=1",
                 null, null);
         try {
             if (c == null || c.getCount() == 0) {
                 return null;
             }
             int len = c.getCount();
-            long [] list = new long[len];
+            long[] list = new long[len];
             for (int i = 0; i < len; i++) {
                 c.moveToNext();
                 list[i] = c.getLong(0);
@@ -305,17 +308,17 @@ public class MusicUtils {
         if (resolver == null) {
             return -1;
         }
-    	
-    	ContentValues values = new ContentValues();
+
+        ContentValues values = new ContentValues();
         values.put(Media.MediaColumns.URI, uri);
-    		
+
         long id = ContentUris.parseId(resolver.insert(Media.MediaColumns.CONTENT_URI, values));
-        
+
         return id;
     }
-    
+
     public static Cursor query(Context context, Uri uri, String[] projection,
-            String selection, String[] selectionArgs, String sortOrder, int limit) {
+                               String selection, String[] selectionArgs, String sortOrder, int limit) {
         try {
             ContentResolver resolver = context.getContentResolver();
             if (resolver == null) {
@@ -325,31 +328,32 @@ public class MusicUtils {
                 uri = uri.buildUpon().appendQueryParameter("limit", "" + limit).build();
             }
             return resolver.query(uri, projection, selection, selectionArgs, sortOrder);
-         } catch (UnsupportedOperationException ex) {
+        } catch (UnsupportedOperationException ex) {
             return null;
         }
-        
+
     }
+
     public static Cursor query(Context context, Uri uri, String[] projection,
-            String selection, String[] selectionArgs, String sortOrder) {
+                               String selection, String[] selectionArgs, String sortOrder) {
         return query(context, uri, projection, selection, selectionArgs, sortOrder, 0);
     }
-    
+
     public static boolean isMediaScannerScanning(Context context) {
         boolean result = false;
-        Cursor cursor = query(context, MediaStore.getMediaScannerUri(), 
-                new String [] { MediaStore.MEDIA_SCANNER_VOLUME }, null, null, null);
+        Cursor cursor = query(context, MediaStore.getMediaScannerUri(),
+                new String[]{MediaStore.MEDIA_SCANNER_VOLUME}, null, null, null);
         if (cursor != null) {
             if (cursor.getCount() == 1) {
                 cursor.moveToFirst();
                 result = "external".equals(cursor.getString(0));
             }
-            cursor.close(); 
-        } 
+            cursor.close();
+        }
 
         return result;
     }
-    
+
     public static void setSpinnerState(Activity a) {
         if (isMediaScannerScanning(a)) {
             // start the progress spinner
@@ -367,12 +371,12 @@ public class MusicUtils {
                     Window.PROGRESS_VISIBILITY_OFF);
         }
     }
-    
+
     static protected Uri getContentURIForPath(String path) {
         return Uri.fromFile(new File(path));
     }
 
-    
+
     /*  Try to use String.format() as little as possible, because it creates a
      *  new Formatter every time you call it, which is very inefficient.
      *  Reusing an existing Formatter more than tripled the speed of
@@ -401,53 +405,53 @@ public class MusicUtils {
 
         return sFormatter.format(durationformat, timeArgs).toString();
     }
-    
+
     public static void clearQueue() {
         try {
             sService.removeTracks(0, Integer.MAX_VALUE);
         } catch (RemoteException ex) {
         }
     }
-    
+
     public static Bitmap getDefaultArtwork(Context context, int id, int w, int h) {
-    	BitmapFactory.Options sBitmapOptionsCache = new BitmapFactory.Options();
-    	Bitmap b = null;
+        BitmapFactory.Options sBitmapOptionsCache = new BitmapFactory.Options();
+        Bitmap b = null;
         int sampleSize = 1;
-        
+
         sBitmapOptionsCache.inPreferredConfig = Bitmap.Config.ARGB_8888;
-        
+
         // Compute the closest power-of-two scale factor 
         // and pass that to sBitmapOptionsCache.inSampleSize, which will
         // result in faster decoding and better quality
         sBitmapOptionsCache.inJustDecodeBounds = true;
-                
+
         BitmapFactory.decodeResource(context.getResources(), id, sBitmapOptionsCache);
         int nextWidth = sBitmapOptionsCache.outWidth >> 1;
         int nextHeight = sBitmapOptionsCache.outHeight >> 1;
-        while (nextWidth>w && nextHeight>h) {
-        	sampleSize <<= 1;
-        	nextWidth >>= 1;
-        	nextHeight >>= 1;
+        while (nextWidth > w && nextHeight > h) {
+            sampleSize <<= 1;
+            nextWidth >>= 1;
+            nextHeight >>= 1;
         }
 
         sBitmapOptionsCache.inSampleSize = sampleSize;
         sBitmapOptionsCache.inJustDecodeBounds = false;
         b = BitmapFactory.decodeResource(context.getResources(), id, sBitmapOptionsCache);
-            
+
         if (b != null) {
-        	// finally rescale to exactly the size we need
+            // finally rescale to exactly the size we need
             if (sBitmapOptionsCache.outWidth != w || sBitmapOptionsCache.outHeight != h) {
-            	Bitmap tmp = Bitmap.createScaledBitmap(b, w, h, true);
-            	// Bitmap.createScaledBitmap() can return the same bitmap
+                Bitmap tmp = Bitmap.createScaledBitmap(b, w, h, true);
+                // Bitmap.createScaledBitmap() can return the same bitmap
                 if (tmp != b) b.recycle();
-                	b = tmp;
+                b = tmp;
             }
         }
-        
+
         return b;
     }
 
-    
+
     static int getCardId(Context context) {
         ContentResolver res = context.getContentResolver();
         Cursor c = res.query(Uri.parse("content://media/external/fs_id"), null, null, null, null);
@@ -473,7 +477,7 @@ public class MusicUtils {
             sTime.set(time);
             out.print(sTime.toString() + " : ");
             if (item instanceof Exception) {
-                ((Exception)item).printStackTrace(out);
+                ((Exception) item).printStackTrace(out);
             } else {
                 out.println(item);
             }

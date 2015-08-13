@@ -20,6 +20,7 @@ package com.gmail.radioserver2.receiver;
 
 import com.gmail.radioserver2.activity.FMPDemo;
 import com.gmail.radioserver2.service.MediaPlaybackService;
+
 import android.content.BroadcastReceiver;
 import android.content.Context;
 import android.content.Intent;
@@ -29,7 +30,7 @@ import android.os.Message;
 import android.view.KeyEvent;
 
 /**
- * 
+ *
  */
 public class MediaButtonIntentReceiver extends BroadcastReceiver {
 
@@ -46,7 +47,7 @@ public class MediaButtonIntentReceiver extends BroadcastReceiver {
             switch (msg.what) {
                 case MSG_LONGPRESS_TIMEOUT:
                     if (!mLaunched) {
-                        Context context = (Context)msg.obj;
+                        Context context = (Context) msg.obj;
                         Intent i = new Intent();
                         i.putExtra("autoshuffle", "true");
                         i.setClass(context, FMPDemo.class);
@@ -58,7 +59,7 @@ public class MediaButtonIntentReceiver extends BroadcastReceiver {
             }
         }
     };
-    
+
     @Override
     public void onReceive(Context context, Intent intent) {
         String intentAction = intent.getAction();
@@ -70,7 +71,7 @@ public class MediaButtonIntentReceiver extends BroadcastReceiver {
         } else if (Intent.ACTION_MEDIA_BUTTON.equals(intentAction)) {
             KeyEvent event = (KeyEvent)
                     intent.getParcelableExtra(Intent.EXTRA_KEY_EVENT);
-            
+
             if (event == null) {
                 return;
             }
@@ -82,7 +83,7 @@ public class MediaButtonIntentReceiver extends BroadcastReceiver {
             // single quick press: pause/resume. 
             // double press: next track
             // long press: start auto-shuffle mode.
-            
+
             String command = null;
             switch (keycode) {
                 case KeyEvent.KEYCODE_MEDIA_STOP:
@@ -111,7 +112,7 @@ public class MediaButtonIntentReceiver extends BroadcastReceiver {
                     if (mDown) {
                         if ((MediaPlaybackService.CMDTOGGLEPAUSE.equals(command) ||
                                 MediaPlaybackService.CMDPLAY.equals(command))
-                                && mLastClickTime != 0 
+                                && mLastClickTime != 0
                                 && eventtime - mLastClickTime > LONG_PRESS_DELAY) {
                             mHandler.sendMessage(
                                     mHandler.obtainMessage(MSG_LONGPRESS_TIMEOUT, context));

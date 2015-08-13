@@ -40,8 +40,7 @@ public class Lame {
      * Initialize LAME for encoding PCM data
      *
      * @param sampleRate  MP3 output sample rate
-     * @param numChannels  MP3 output channels (stereo, mono)
-     *
+     * @param numChannels MP3 output channels (stereo, mono)
      * @return 0 if encoder initialized successfully, -1 otherwise
      */
     public native int initializeEncoder(int sampleRate, int numChannels);
@@ -49,31 +48,29 @@ public class Lame {
     /**
      * Set the LAME encoding preset to use
      *
-     * @param preset  preset to use, defaults to LAME_PRESET_DEFAULT
+     * @param preset preset to use, defaults to LAME_PRESET_DEFAULT
      */
     public native void setEncoderPreset(int preset);
 
     /**
      * Encode data in left&right channel buffers
      *
-     * @param leftChannel  left channel PCM data
-     * @param rightChannel  right channel PCM data
-     * @param channelSamples  number of samples in each channel
-     * @param mp3Buffer  MP3 output buffer
-     * @param bufferSize  output buffer size in bytes
-     *
+     * @param leftChannel    left channel PCM data
+     * @param rightChannel   right channel PCM data
+     * @param channelSamples number of samples in each channel
+     * @param mp3Buffer      MP3 output buffer
+     * @param bufferSize     output buffer size in bytes
      * @return -1 if error occured, otherwise number of bytes encoded
      */
     public native int encode(short[] leftChannel,
-            short[] rightChannel, int channelSamples, byte[] mp3Buffer,
-            int bufferSize);
+                             short[] rightChannel, int channelSamples, byte[] mp3Buffer,
+                             int bufferSize);
 
     /**
      * Flush LAME internal encoder buffer
      *
      * @param mp3Buffer  MP3 output buffer
-     * @param bufferSize  output buffer size in bytes
-     *
+     * @param bufferSize output buffer size in bytes
      * @return -1 if error occured, otherwise number of bytes flushed
      */
     public native int flushEncoder(byte[] mp3Buffer, int bufferSize);
@@ -144,8 +141,7 @@ public class Lame {
     /**
      * Configure LAME decoder to decode data from an input stream
      *
-     * @param input  InputStream pointing to MP3 input
-     *
+     * @param input InputStream pointing to MP3 input
      * @return -1 if error occurred, 0 on success
      */
     public int configureDecoder(InputStream input) throws IOException {
@@ -183,7 +179,7 @@ public class Lame {
             }
         }
         while (!isMp123SyncWord(buf)) {
-         // search for MP3 syncword one byte at a time
+            // search for MP3 syncword one byte at a time
             for (int i = 0; i < 3; i++) {
                 buf[i] = buf[i + 1];
             }
@@ -199,7 +195,7 @@ public class Lame {
             if (nativeConfigureDecoder(buf, size) == 0) {
                 return 0;
             }
-        } while(size > 0);
+        } while (size > 0);
         return -1;
     }
 
@@ -218,7 +214,7 @@ public class Lame {
 
     private boolean isMp123SyncWord(byte[] buf) {
         // function taken from LAME to identify MP3 syncword
-        char[] abl2 = new char[] { 0, 7, 7, 7, 0, 7, 0, 0, 0, 0, 0, 8, 8, 8, 8, 8 };
+        char[] abl2 = new char[]{0, 7, 7, 7, 0, 7, 0, 0, 0, 0, 0, 8, 8, 8, 8, 8};
         if ((buf[0] & 0xFF) != 0xFF) {
             return false;
         }
@@ -257,14 +253,13 @@ public class Lame {
     /**
      * Decode a single MP3 frame from an input stream
      *
-     * @param input  InputStream pointing to MP3 input
+     * @param input    InputStream pointing to MP3 input
      * @param pcmLeft  output buffer for left channel PCM data
-     * @param pcmRight  output buffer for right channel PCM data
-     *
+     * @param pcmRight output buffer for right channel PCM data
      * @return -1 if error occurred, number of bytes decoded otherwise
      */
     public int decodeFrame(InputStream input,
-            short[] pcmLeft, short[] pcmRight) throws IOException {
+                           short[] pcmLeft, short[] pcmRight) throws IOException {
         int len = 0;
         int samplesRead = 0;
         byte[] buf = new byte[MP3_BUFFER_SIZE];
@@ -289,13 +284,13 @@ public class Lame {
         return samplesRead;
     }
 
-    private  native int nativeDecodeFrame(byte[] inputBuffer, int bufferSize,
-            short[] pcmLeft, short[] pcmRight);
+    private native int nativeDecodeFrame(byte[] inputBuffer, int bufferSize,
+                                         short[] pcmLeft, short[] pcmRight);
 
     /**
      * Close LAME decoder
      *
      * @return -1 if error occurred, 0 on success
      */
-    public  native int closeDecoder();
+    public native int closeDecoder();
 }
