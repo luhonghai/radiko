@@ -56,43 +56,45 @@ public class TimerBroadcastReceiver extends BroadcastReceiver {
     @Override
     public void onReceive(Context context, Intent intent) {
         SimpleAppLog.info("Start timer schedule");
-        mContext = context;
-        String timerObj = intent.getStringExtra(Constants.ARG_OBJECT);
-        String timerList = intent.getStringExtra(Constants.ARG_TIMER_LIST);
-        if (timerList == null || timerList.length() == 0) {
-            Bundle bundle = intent.getExtras();
-            if (bundle != null) {
-                timerList = bundle.getString(Constants.ARG_TIMER_LIST);
-            }
-        }
-
-        if (timerList != null && timerList.length() > 0) {
-            SimpleAppLog.info("Timer object: " + timerObj);
-            try {
-                List<Timer> listTimer;
-                Type mapType = new TypeToken<List<Timer>>() {
-                }.getType();
-                listTimer = gson.fromJson(timerList, mapType);
-                if (listTimer.size() != 0) {
-                    createAlarm(listTimer);
+        synchronized (TimerManagerReceiver.lockObj) {
+            mContext = context;
+            String timerObj = intent.getStringExtra(Constants.ARG_OBJECT);
+            String timerList = intent.getStringExtra(Constants.ARG_TIMER_LIST);
+            if (timerList == null || timerList.length() == 0) {
+                Bundle bundle = intent.getExtras();
+                if (bundle != null) {
+                    timerList = bundle.getString(Constants.ARG_TIMER_LIST);
                 }
-            } catch (Exception e) {
-                SimpleAppLog.error("Could not parse timer object", e);
             }
-        }
 
-        if (timerObj == null || timerObj.length() == 0) {
-            Bundle bundle = intent.getExtras();
-            if (bundle != null) {
-                timerObj = bundle.getString(Constants.ARG_OBJECT);
+            if (timerList != null && timerList.length() > 0) {
+                SimpleAppLog.info("Timer object: " + timerObj);
+                try {
+                    List<Timer> listTimer;
+                    Type mapType = new TypeToken<List<Timer>>() {
+                    }.getType();
+                    listTimer = gson.fromJson(timerList, mapType);
+                    if (listTimer.size() != 0) {
+                        createAlarm(listTimer);
+                    }
+                } catch (Exception e) {
+                    SimpleAppLog.error("Could not parse timer object", e);
+                }
             }
-        }
 
-        Intent serviceIntent = new Intent(mContext, RecordBackgroundService.class);
-        Bundle bd = new Bundle();
-        bd.putString(RecordBackgroundService.PARAM_TIMER, timerObj);
-        serviceIntent.putExtras(bd);
-        mContext.startService(serviceIntent);
+            if (timerObj == null || timerObj.length() == 0) {
+                Bundle bundle = intent.getExtras();
+                if (bundle != null) {
+                    timerObj = bundle.getString(Constants.ARG_OBJECT);
+                }
+            }
+
+            Intent serviceIntent = new Intent(mContext, RecordBackgroundService.class);
+            Bundle bd = new Bundle();
+            bd.putString(RecordBackgroundService.PARAM_TIMER, timerObj);
+            serviceIntent.putExtras(bd);
+            mContext.startService(serviceIntent);
+        }
     }
 
     private void createAlarm(List<Timer> timers) {

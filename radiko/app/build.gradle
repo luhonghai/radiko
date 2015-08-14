@@ -16,17 +16,20 @@ repositories {
 
 }
 
+def versionMajor = 1
+def versionMinor = 0
+def versionPatch = 12
 
 android {
     compileSdkVersion 21
     buildToolsVersion "21.1.2"
 
     defaultConfig {
+	    versionCode versionMajor * 1000 + versionMinor * 100 + versionPatch
+        versionName "${versionMajor}.${versionMinor}.${versionPatch}"
         applicationId "com.gmail.radioserver2"
         minSdkVersion 16
         targetSdkVersion 21
-        versionCode 1011
-        versionName "1.0.12"
     }
 
     buildTypes {

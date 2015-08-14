@@ -169,7 +169,7 @@ public class MediaRecord {
             if (mService.isPlaying()) {
                 mService.stop();
                 writeLogFileRaw("____________________");
-                writeLogFile("Timer stop playing occur: -build: " + BuildConfig.VERSION_CODE);
+                writeLogFile("Timer stop playing occur: -build: " + BuildConfig.VERSION_NAME);
             }
         } catch (RemoteException e) {
             SimpleAppLog.error("Could not stop playing", e);
@@ -186,7 +186,7 @@ public class MediaRecord {
                 }
                 mService.openStream("", channelSrc);
                 writeLogFileRaw("____________________");
-                writeLogFile("Timer start playing occur: -build: " + BuildConfig.VERSION_CODE);
+                writeLogFile("Timer start playing occur: -build: " + BuildConfig.VERSION_NAME);
             }
         } catch (RemoteException e) {
             SimpleAppLog.error("Could not open stream", e);
@@ -209,7 +209,7 @@ public class MediaRecord {
         }
         SimpleAppLog.debug("TIMER TIME: start: " + calStart.toString() + " - " + calFinish.toString());
         writeLogFileRaw("____________________");
-        writeLogFile("Timer recording occur: -build: " + BuildConfig.VERSION_CODE);
+        writeLogFile("Timer recording occur: -build: " + BuildConfig.VERSION_NAME);
         long recordingLength = calFinish.getTimeInMillis() - calStart.getTimeInMillis();
         if (recordingLength <= MIN_RECORDING_LENGTH) {
             writeLogFile("Timer recording: timer length too long");

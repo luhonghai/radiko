@@ -31,7 +31,7 @@ public class TimerManagerReceiver extends BroadcastReceiver {
     private int flag = PendingIntent.FLAG_CANCEL_CURRENT;
     private final int OFFSET_TIME = 5;
     private Context context;
-    private final static Object lockObj = new Object();
+    public final static Object lockObj = new Object();
     private Gson gson = new Gson();
     public static AlarmManager mAlarmManager;
 
@@ -42,13 +42,13 @@ public class TimerManagerReceiver extends BroadcastReceiver {
         SimpleAppLog.info("TimerManagerReceiver starting up ...");
         this.context = context.getApplicationContext();
         // log time (ms) and entering critical section here!
-        SimpleAppLog.debug("Start" + System.currentTimeMillis() + "");
+        SimpleAppLog.debug("Start reset timer" + System.currentTimeMillis() + "");
         synchronized (lockObj) {
             cancel();
             startTimerManager();
             reCalculateTimer();
         }
-        SimpleAppLog.debug("Stop" + System.currentTimeMillis() + "");
+        SimpleAppLog.debug("Stop reset timer" + System.currentTimeMillis() + "");
         // log time (ms) and leaving critical section here!
     }
 
@@ -80,10 +80,11 @@ public class TimerManagerReceiver extends BroadcastReceiver {
         }
         mAlarmManager = (AlarmManager) context.getSystemService(Context.ALARM_SERVICE);
         mAlarmManager.cancel(sender);
-
+        sender.cancel();
         intent = new Intent(context, TimerBroadcastReceiver.class);
         sender = PendingIntent.getBroadcast(context, 0, intent, flag);
         mAlarmManager.cancel(sender);
+        sender.cancel();
     }
 
     private void reCalculateTimer() {
