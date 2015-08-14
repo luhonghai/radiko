@@ -238,13 +238,13 @@ public class RecordBackgroundService extends Service implements OnRecordStateCha
                                 SimpleAppLog.debug("SERVICE: START queue timer - Queue size: " + timerLinkedBlockingQueue.size());
                                 startTimer(timer);
                             } else if (timerLinkedBlockingQueue.size() != 0) {
-                                SimpleAppLog.debug("SERVICE: START queue timer - Queue size: " + timerLinkedBlockingQueue.size());
+                                SimpleAppLog.debug("SERVICE: Queue size: " + timerLinkedBlockingQueue.size());
                                 refresh(true);
                             } else {
-                                SimpleAppLog.debug("SERVICE: START queue timer - Queue size: " + timerLinkedBlockingQueue.size());
+                                SimpleAppLog.debug("SERVICE: Queue size: " + timerLinkedBlockingQueue.size());
                             }
                         } else if (timerLinkedBlockingQueue.size() != 0) {
-                            SimpleAppLog.debug("SERVICE: START queue timer - Queue size: " + timerLinkedBlockingQueue.size());
+                            SimpleAppLog.debug("SERVICE: Queue size: " + timerLinkedBlockingQueue.size());
                             refresh(true);
                         }
                     } catch (InterruptedException e) {

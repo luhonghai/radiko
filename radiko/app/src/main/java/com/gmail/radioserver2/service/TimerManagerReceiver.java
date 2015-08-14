@@ -77,13 +77,12 @@ public class TimerManagerReceiver extends BroadcastReceiver {
         if (mAlarmManager == null) {
             mAlarmManager = (AlarmManager) context.getSystemService(Context.ALARM_SERVICE);
         }
-        mAlarmManager = (AlarmManager) context.getSystemService(Context.ALARM_SERVICE);
         mAlarmManager.cancel(sender);
-        sender.cancel();
+//        sender.cancel();
         intent = new Intent(context, TimerBroadcastReceiver.class);
         sender = PendingIntent.getBroadcast(context, 0, intent, flag);
         mAlarmManager.cancel(sender);
-        sender.cancel();
+//        sender.cancel();
     }
 
     private void reCalculateTimer() {
