@@ -28,8 +28,8 @@ import java.util.List;
 public class TimerManagerReceiver extends BroadcastReceiver {
 
     public static final String ACTION_START_TIMER = "com.gmail.radioserver2.service.TimerManagerReceiver.START_TIMER";
-    private int flag = PendingIntent.FLAG_CANCEL_CURRENT;
-    private final int OFFSET_TIME = 5;
+    private int flag = PendingIntent.FLAG_UPDATE_CURRENT;
+    private final int OFFSET_TIME = 50;
     private Context context;
     public final static Object lockObj = new Object();
     private Gson gson = new Gson();
@@ -62,7 +62,6 @@ public class TimerManagerReceiver extends BroadcastReceiver {
         cal.set(Calendar.MINUTE, 0);
         cal.set(Calendar.SECOND, 1);
 //debug only
-//        cal.add(Calendar.MINUTE, 5);
         Intent intent = new Intent(context, TimerManagerReceiver.class);
         PendingIntent sender = PendingIntent.getBroadcast(context, 0, intent, 0);
         if (mAlarmManager == null) {
@@ -190,18 +189,14 @@ public class TimerManagerReceiver extends BroadcastReceiver {
     }
 
     private long totalRecordTime(Timer t) {
-        Calendar startCal = Calendar.getInstance();
         Calendar finishCal = Calendar.getInstance();
-        startCal.set(Calendar.HOUR_OF_DAY, t.getStartHour());
-        startCal.set(Calendar.MINUTE, t.getStartMinute());
-        startCal.set(Calendar.SECOND, 0);
         finishCal.set(Calendar.HOUR_OF_DAY, t.getFinishHour());
         finishCal.set(Calendar.MINUTE, t.getFinishMinute());
         finishCal.set(Calendar.SECOND, 0);
         if (t.getFinishHour() < t.getStartHour()) {
             finishCal.add(Calendar.DAY_OF_MONTH, 1);
         }
-        return finishCal.getTimeInMillis() - startCal.getTimeInMillis();
+        return finishCal.getTimeInMillis() - t.getNextAlarmTime();
     }
 
     private void createAlarm(List<Timer> timers) {

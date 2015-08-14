@@ -48,7 +48,7 @@ import wseemann.media.FFmpegMediaPlayer;
 public class TimerBroadcastReceiver extends BroadcastReceiver {
 
     public static final String ACTION_START_TIMER = "com.gmail.radioserver2.service.TimerBroadcastReceiver.START_TIMER";
-    private int flag = PendingIntent.FLAG_CANCEL_CURRENT;
+    private int flag = PendingIntent.FLAG_UPDATE_CURRENT;
     private Gson gson = new Gson();
 
     private Context mContext;

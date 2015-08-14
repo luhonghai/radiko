@@ -3,11 +3,9 @@ package com.gmail.radioserver2.service;
 import android.app.Notification;
 import android.app.PendingIntent;
 import android.app.Service;
-import android.content.BroadcastReceiver;
 import android.content.ComponentName;
 import android.content.Context;
 import android.content.Intent;
-import android.content.IntentFilter;
 import android.content.ServiceConnection;
 import android.net.ConnectivityManager;
 import android.net.NetworkInfo;
@@ -37,15 +35,12 @@ import java.text.SimpleDateFormat;
 import java.util.Calendar;
 import java.util.Date;
 import java.util.Locale;
-import java.util.Objects;
 import java.util.concurrent.LinkedBlockingQueue;
-
-import wseemann.media.FFmpegMediaPlayer;
 
 public class RecordBackgroundService extends Service implements OnRecordStateChangeListenner, ServiceConnection {
     private boolean isRecording = false;
     private final int MAX_FILE_SIZE = 2 * 1024 * 1024;
-    public static final int PLAYBACKSERVICE_STATUS = 1;
+    public static final int PLAYBACK_SERVICE_STATUS = 1;
     public static final String ACTION_TAKE_NEXT_TIMER = "com.gmail.radioserver2.service.action.take.next.timer";
     public static final String PARAM_TIMER = "param_timer";
     public static PowerManager.WakeLock mWakeLock;
@@ -53,7 +48,7 @@ public class RecordBackgroundService extends Service implements OnRecordStateCha
     private MusicUtils.ServiceToken mServiceToken;
     private WifiManager.WifiLock wifiLock;
     private MediaRecord mMediaRecord;
-    private static final LinkedBlockingQueue<Timer> timerLinkedBlockingQueque = new LinkedBlockingQueue<>();
+    private static final LinkedBlockingQueue<Timer> timerLinkedBlockingQueue = new LinkedBlockingQueue<>();
 
     @Override
     public void onCreate() {
@@ -155,7 +150,7 @@ public class RecordBackgroundService extends Service implements OnRecordStateCha
     @Override
     public void onDestroy() {
         unboundService();
-        timerLinkedBlockingQueque.clear();
+        timerLinkedBlockingQueue.clear();
         releaseWakeLock();
         stopForeground(true);
         super.onDestroy();
@@ -164,12 +159,12 @@ public class RecordBackgroundService extends Service implements OnRecordStateCha
 
     private void prepareRecord(Timer timer) {
         if (timer.getType() == Timer.TYPE_RECORDING) {
-            synchronized (timerLinkedBlockingQueque) {
+            synchronized (timerLinkedBlockingQueue) {
                 if (!isRecording) {
                     startTimer(timer);
                 } else {
                     SimpleAppLog.debug("add timer to queue");
-                    timerLinkedBlockingQueque.add(timer);
+                    timerLinkedBlockingQueue.add(timer);
                 }
             }
         } else {
@@ -197,7 +192,7 @@ public class RecordBackgroundService extends Service implements OnRecordStateCha
         Intent viewer = new Intent(Constants.PLAYBACK_VIEWER_INTENT);
         viewer.addFlags(Intent.FLAG_ACTIVITY_NEW_TASK);
         status.contentIntent = PendingIntent.getActivity(this, 0, viewer, 0);
-        startForeground(PLAYBACKSERVICE_STATUS, status);
+        startForeground(PLAYBACK_SERVICE_STATUS, status);
     }
 
     @Override
@@ -228,28 +223,28 @@ public class RecordBackgroundService extends Service implements OnRecordStateCha
     public void refresh(boolean isRecord) {
         SimpleAppLog.debug("SERVICE: refresh");
         if (isRecord) {
-            synchronized (timerLinkedBlockingQueque) {
+            synchronized (timerLinkedBlockingQueue) {
                 isRecording = false;
-                if (timerLinkedBlockingQueque.size() != 0) {
+                if (timerLinkedBlockingQueue.size() != 0) {
                     try {
                         Timer timer;
-                        timer = timerLinkedBlockingQueque.take();
+                        timer = timerLinkedBlockingQueue.take();
                         if (timer != null) {
                             Calendar cal = Calendar.getInstance();
                             cal.set(Calendar.HOUR_OF_DAY, timer.getFinishHour());
                             cal.set(Calendar.MINUTE, timer.getFinishMinute());
                             cal.set(Calendar.SECOND, 0);
                             if (System.currentTimeMillis() < cal.getTimeInMillis()) {
-                                SimpleAppLog.debug("SERVICE: START queue timer - Queue size: " + timerLinkedBlockingQueque.size());
+                                SimpleAppLog.debug("SERVICE: START queue timer - Queue size: " + timerLinkedBlockingQueue.size());
                                 startTimer(timer);
-                            } else if (timerLinkedBlockingQueque.size() != 0) {
-                                SimpleAppLog.debug("SERVICE: START queue timer - Queue size: " + timerLinkedBlockingQueque.size());
+                            } else if (timerLinkedBlockingQueue.size() != 0) {
+                                SimpleAppLog.debug("SERVICE: START queue timer - Queue size: " + timerLinkedBlockingQueue.size());
                                 refresh(true);
                             } else {
-                                SimpleAppLog.debug("SERVICE: START queue timer - Queue size: " + timerLinkedBlockingQueque.size());
+                                SimpleAppLog.debug("SERVICE: START queue timer - Queue size: " + timerLinkedBlockingQueue.size());
                             }
-                        } else if (timerLinkedBlockingQueque.size() != 0) {
-                            SimpleAppLog.debug("SERVICE: START queue timer - Queue size: " + timerLinkedBlockingQueque.size());
+                        } else if (timerLinkedBlockingQueue.size() != 0) {
+                            SimpleAppLog.debug("SERVICE: START queue timer - Queue size: " + timerLinkedBlockingQueue.size());
                             refresh(true);
                         }
                     } catch (InterruptedException e) {
