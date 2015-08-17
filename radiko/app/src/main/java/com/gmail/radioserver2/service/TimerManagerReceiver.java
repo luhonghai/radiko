@@ -202,6 +202,7 @@ public class TimerManagerReceiver extends BroadcastReceiver {
     private byte compareTime(long var1, long var2) {
         long offset = var1 - var2;
         return (byte) (Math.abs(offset) < 1000 ? 0 : (offset < 0 ? -1 : 1));
+//        return (byte) (offset < 1000 ? 0 : (offset < 0 ? -1 : 1));
     }
 
     private long totalRecordTime(Timer t) {

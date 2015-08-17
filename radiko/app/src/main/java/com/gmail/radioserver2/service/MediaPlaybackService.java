@@ -40,6 +40,7 @@ import android.media.RemoteControlClient;
 import android.media.audiofx.AudioEffect;
 import android.net.Uri;
 import android.os.AsyncTask;
+import android.os.Build;
 import android.os.Handler;
 import android.os.IBinder;
 import android.os.Message;
@@ -3213,6 +3214,24 @@ public class MediaPlaybackService extends Service {
                 play();
                 setVolume(1.0f);
                 notifyChange(META_CHANGED);
+                /*
+                *
+                gain back hearable volume
+                 *
+                  */
+                if (mAudioManager != null) {
+                    int maxVol = mAudioManager.getStreamMaxVolume(AudioManager.STREAM_MUSIC);
+                    if (mAudioManager.isWiredHeadsetOn()) {
+                        if (mAudioManager.getStreamVolume(AudioManager.STREAM_MUSIC) < Math.round(maxVol * 3f / 8f)) {
+                            mAudioManager.setStreamVolume(AudioManager.STREAM_MUSIC, Math.round(maxVol * 3f / 8f), AudioManager.FLAG_PLAY_SOUND);
+                        }
+                    } else {
+                        if (mAudioManager.getStreamVolume(AudioManager.STREAM_MUSIC) < Math.round(maxVol * 3f / 4f)) {
+                            mAudioManager.setStreamVolume(AudioManager.STREAM_MUSIC, Math.round(maxVol * 3f / 4f), AudioManager.FLAG_PLAY_SOUND);
+                        }
+                    }
+                    SimpleAppLog.debug("Music stream volume is: " + mAudioManager.getStreamVolume(AudioManager.STREAM_MUSIC));
+                }
             }
         };
 
@@ -3553,6 +3572,7 @@ public class MediaPlaybackService extends Service {
         public String getMediaUri() {
             return mService.get().getMediaUri();
         }
+
     }
 
     @Override
