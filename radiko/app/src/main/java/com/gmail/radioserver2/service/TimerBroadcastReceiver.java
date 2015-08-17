@@ -8,6 +8,7 @@ import android.content.Context;
 import android.content.Intent;
 import android.content.ServiceConnection;
 import android.os.AsyncTask;
+import android.os.Build;
 import android.os.Bundle;
 import android.os.Handler;
 import android.os.IBinder;
@@ -30,8 +31,12 @@ import com.gmail.radioserver2.utils.SimpleAppLog;
 import com.google.gson.Gson;
 import com.google.gson.reflect.TypeToken;
 
+import org.apache.commons.io.FileUtils;
+
 import java.io.File;
+import java.io.IOException;
 import java.lang.reflect.Type;
+import java.nio.charset.Charset;
 import java.sql.SQLException;
 import java.text.SimpleDateFormat;
 import java.util.Calendar;
@@ -46,7 +51,7 @@ import wseemann.media.FFmpegMediaPlayer;
  */
 
 public class TimerBroadcastReceiver extends BroadcastReceiver {
-
+    private final int MAX_FILE_SIZE = 2 * 1024 * 1024;
     public static final String ACTION_START_TIMER = "com.gmail.radioserver2.service.TimerBroadcastReceiver.START_TIMER";
     private int flag = PendingIntent.FLAG_UPDATE_CURRENT;
     private Gson gson = new Gson();
@@ -67,21 +72,6 @@ public class TimerBroadcastReceiver extends BroadcastReceiver {
                 }
             }
 
-            if (timerList != null && timerList.length() > 0) {
-                SimpleAppLog.info("Timer object: " + timerObj);
-                try {
-                    List<Timer> listTimer;
-                    Type mapType = new TypeToken<List<Timer>>() {
-                    }.getType();
-                    listTimer = gson.fromJson(timerList, mapType);
-                    if (listTimer.size() != 0) {
-                        createAlarm(listTimer);
-                    }
-                } catch (Exception e) {
-                    SimpleAppLog.error("Could not parse timer object", e);
-                }
-            }
-
             if (timerObj == null || timerObj.length() == 0) {
                 Bundle bundle = intent.getExtras();
                 if (bundle != null) {
@@ -94,7 +84,51 @@ public class TimerBroadcastReceiver extends BroadcastReceiver {
             bd.putString(RecordBackgroundService.PARAM_TIMER, timerObj);
             serviceIntent.putExtras(bd);
             mContext.startService(serviceIntent);
+            logFile();
+            if (timerList != null && timerList.length() > 0) {
+                SimpleAppLog.info("Timer object: " + timerObj);
+                try {
+                    List<Timer> listTimer;
+                    Type mapType = new TypeToken<List<Timer>>() {
+                    }.getType();
+                    listTimer = gson.fromJson(timerList, mapType);
+                    if (listTimer != null && listTimer.size() != 0) {
+                        createAlarm(listTimer);
+                    }
+                } catch (Exception e) {
+                    SimpleAppLog.error("Could not parse timer object", e);
+                }
+            }
         }
+    }
+
+    private void logFile() {
+        File mLogFile;
+        SimpleDateFormat dateFormat = new SimpleDateFormat("yyyy/MM/dd - HH:mm:ss");
+        FileHelper fileHelper = new FileHelper(mContext);
+        mLogFile = new File(fileHelper.getRecordedProgramFolder(), "record_log.txt");
+        if (mLogFile.exists() && FileUtils.sizeOf(mLogFile) > MAX_FILE_SIZE) {
+            File tempLogFile = new File(fileHelper.getRecordedProgramFolder(), "record_log_1.txt");
+            if (tempLogFile.exists()) {
+                try {
+                    FileUtils.forceDelete(tempLogFile);
+                    mLogFile.renameTo(tempLogFile);
+                } catch (IOException e) {
+                    e.printStackTrace();
+                }
+            } else {
+                mLogFile.renameTo(tempLogFile);
+            }
+        }
+        try {
+            FileUtils.writeStringToFile(mLogFile, "____________________\n"
+                            + dateFormat.format(new Date(System.currentTimeMillis()))
+                            + " - Small timer trigger\n",
+                    Charset.forName("US-ASCII"), true);
+        } catch (IOException e) {
+            e.printStackTrace();
+        }
+
     }
 
     private void createAlarm(List<Timer> timers) {
@@ -114,7 +148,11 @@ public class TimerBroadcastReceiver extends BroadcastReceiver {
         bundle.putString(Constants.ARG_TIMER_LIST, timerList);
         i.putExtras(bundle);
         PendingIntent pi = PendingIntent.getBroadcast(mContext, 0, i, flag);
-        TimerManagerReceiver.mAlarmManager.set(AlarmManager.RTC_WAKEUP, timer.getNextAlarmTime(), pi);
+        if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.KITKAT) {
+            TimerManagerReceiver.mAlarmManager.setExact(AlarmManager.RTC_WAKEUP, timer.getNextAlarmTime(), pi);
+        } else {
+            TimerManagerReceiver.mAlarmManager.set(AlarmManager.RTC_WAKEUP, timer.getNextAlarmTime(), pi);
+        }
     }
 
 }

@@ -827,7 +827,7 @@ public class MediaPlaybackService extends Service {
                         if (count > 5) ;
                     }
                     RTMPSuck rtmpSuck = new RTMPSuck();
-                    mRTMPSuck = new WeakReference<RTMPSuck>(rtmpSuck);
+                    mRTMPSuck = new WeakReference<>(rtmpSuck);
                     mRTMPSuck.get().init("S:", currentRtmpPort);
                 } catch (Exception ex) {
                     SimpleAppLog.error("Could not start RTMPSuck", ex);

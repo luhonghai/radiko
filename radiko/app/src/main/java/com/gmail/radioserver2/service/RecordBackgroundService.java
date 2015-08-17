@@ -41,7 +41,6 @@ public class RecordBackgroundService extends Service implements OnRecordStateCha
     private boolean isRecording = false;
     private final int MAX_FILE_SIZE = 2 * 1024 * 1024;
     public static final int PLAYBACK_SERVICE_STATUS = 1;
-    public static final String ACTION_TAKE_NEXT_TIMER = "com.gmail.radioserver2.service.action.take.next.timer";
     public static final String PARAM_TIMER = "param_timer";
     public static PowerManager.WakeLock mWakeLock;
     private IMediaPlaybackService mService;
@@ -94,8 +93,7 @@ public class RecordBackgroundService extends Service implements OnRecordStateCha
                 }
             }
             try {
-                FileUtils.writeStringToFile(mLogFile, "____________________\n"
-                                + dateFormat.format(new Date(System.currentTimeMillis()))
+                FileUtils.writeStringToFile(mLogFile, dateFormat.format(new Date(System.currentTimeMillis()))
                                 + " - No internet connection to do timer task\n",
                         Charset.forName("US-ASCII"), true);
             } catch (IOException e) {
