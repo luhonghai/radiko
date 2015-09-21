@@ -22,6 +22,11 @@ public class Constants {
     /**
      * Application fragment tab
      */
+
+    public static final String SHARE_PREF = "share_pref";
+
+    public static final String SEND_TO_BACK_GROUND = "send_to_back_ground";
+
     public static final String TAB_HOME = "TAB_HOME";
 
     public static final String TAB_PLAY_SCREEN = "TAB_PLAY_SCREEN";

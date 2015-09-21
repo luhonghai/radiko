@@ -1,5 +1,6 @@
 package com.gmail.radioserver2.activity;
 
+import android.app.ActivityManager;
 import android.app.AlertDialog;
 import android.content.BroadcastReceiver;
 import android.content.ComponentName;
@@ -9,6 +10,7 @@ import android.content.DialogInterface;
 import android.content.Intent;
 import android.content.IntentFilter;
 import android.content.ServiceConnection;
+import android.content.SharedPreferences;
 import android.location.Location;
 import android.net.wifi.WifiManager;
 import android.os.AsyncTask;
@@ -49,6 +51,7 @@ import com.google.gson.Gson;
 import io.fabric.sdk.android.Fabric;
 
 import java.util.HashMap;
+import java.util.List;
 import java.util.Stack;
 
 /**
@@ -75,9 +78,11 @@ public class MainActivity extends BaseFragmentActivity implements ServiceConnect
         Fabric.with(this, new Crashlytics());
 
         // Start timer
-        Intent intent = new Intent(TimerManagerReceiver.ACTION_START_TIMER);
-        sendBroadcast(intent);
-
+        SharedPreferences preferences = getSharedPreferences(Constants.SHARE_PREF, MODE_PRIVATE);
+        if (!preferences.getBoolean(Constants.SEND_TO_BACK_GROUND, false)) {
+            Intent intent = new Intent(TimerManagerReceiver.ACTION_START_TIMER);
+            sendBroadcast(intent);
+        }
         setContentView(R.layout.activity_main);
 
         /*
@@ -99,6 +104,27 @@ public class MainActivity extends BaseFragmentActivity implements ServiceConnect
         mServiceToken = MusicUtils.bindToService(this, this);
         registerReceiver(mHandleAction, new IntentFilter(Constants.INTENT_FILTER_FRAGMENT_ACTION));
 
+    }
+
+    @Override
+    protected void onPause() {
+        super.onPause();
+        SharedPreferences sharedPreferences = getSharedPreferences(Constants.SHARE_PREF, Context.MODE_PRIVATE);
+        SharedPreferences.Editor editor = sharedPreferences.edit();
+        editor.putBoolean(Constants.SEND_TO_BACK_GROUND, !isApplicationSentToBackground(getApplicationContext()));
+        editor.apply();
+    }
+
+    public boolean isApplicationSentToBackground(final Context context) {
+        ActivityManager am = (ActivityManager) context.getSystemService(Context.ACTIVITY_SERVICE);
+        List<ActivityManager.RunningTaskInfo> tasks = am.getRunningTasks(1);
+        if (!tasks.isEmpty()) {
+            ComponentName topActivity = tasks.get(0).topActivity;
+            if (!topActivity.getPackageName().equals(context.getPackageName())) {
+                return true;
+            }
+        }
+        return false;
     }
 
     @Override
@@ -432,6 +458,10 @@ public class MainActivity extends BaseFragmentActivity implements ServiceConnect
 
     @Override
     protected void onDestroy() {
+        SharedPreferences sharedPreferences = getSharedPreferences(Constants.SHARE_PREF, Context.MODE_PRIVATE);
+        SharedPreferences.Editor editor = sharedPreferences.edit();
+        editor.putBoolean(Constants.SEND_TO_BACK_GROUND, false);
+        editor.apply();
         try {
             unregisterReceiver(mHandleAction);
         } catch (Exception ex) {

@@ -31,6 +31,7 @@ import java.io.IOException;
 import java.nio.charset.Charset;
 import java.sql.SQLException;
 import java.text.SimpleDateFormat;
+import java.util.ArrayList;
 import java.util.Calendar;
 import java.util.Date;
 import java.util.List;
@@ -61,6 +62,7 @@ public class MediaRecord {
     private int mCurrentRetryCount = 0;
     private RadioProgram mRadioProgram;
     private File mLogFile;
+    private long failedID = -1;
     private final SimpleDateFormat dateFormat = new SimpleDateFormat("yyyy/MM/dd - HH:mm:ss");
 
     public MediaRecord(Context context, IMediaPlaybackService mService, Timer timer, final OnRecordStateChangeListenner mStateChangeListenner) {
@@ -367,6 +369,10 @@ public class MediaRecord {
                                     e.printStackTrace();
                                 }
                             } else {
+                                if (failedID > 0) {
+                                    adapter.delete(failedID);
+                                    failedID = -1;
+                                }
                                 adapter.update(recordedProgram);
                             }
                         }
@@ -409,12 +415,18 @@ public class MediaRecord {
             mCurrentRetryCount++;
             mCurrentRetry++;
             writeLogFile("Timer recording: retry #" + mCurrentRetryCount + " cause " + cause + " - prepare to retry recording");
-            currentTimeout = currentTimeout * 4 > MAX_TIMEOUT ? MAX_TIMEOUT : currentTimeout * 4;
+            currentTimeout = currentTimeout * 4;
             String path = mp.getRecordingPath();
             if (path == null || path.length() == 0 || !(new File(path).exists())) {
-                deleteRecordedProgram(mp.getRecordedID());
-                SimpleAppLog.debug("RECORD : Delete invalid file " + mp.getRecordedID());
-                writeLogFile("Timer recording: delete null file");
+                if (mCurrentRetryCount == 1) {
+                    editRecordedProgram(mp.getRecordedID());
+                    SimpleAppLog.debug("RECORD : Delete invalid file " + mp.getRecordedID());
+                    writeLogFile("Timer recording: null file saved");
+                } else {
+                    deleteRecordedProgram(mp.getRecordedID());
+                    SimpleAppLog.debug("RECORD : Delete invalid file " + mp.getRecordedID());
+                    writeLogFile("Timer recording: delete null file");
+                }
             } else {
                 if (FFmpegMediaPlayer.mRetryPivot != 0 && new File(path).length() == 0) {
                     writeLogFile("Timer recording: delete zero byte file");
@@ -513,8 +525,38 @@ public class MediaRecord {
             dbAdapter.delete(recordedID);
         } catch (SQLException e) {
             e.printStackTrace();
+            return false;
         } catch (Exception e) {
             e.printStackTrace();
+            return false;
+        } finally {
+            dbAdapter.close();
+        }
+        return true;
+    }
+
+    private boolean editRecordedProgram(long recordID) {
+        failedID = recordID;
+        RecordedProgramDBAdapter dbAdapter = new RecordedProgramDBAdapter(mContext);
+        try {
+            dbAdapter.open();
+            long endTime = System.currentTimeMillis();
+            RecordedProgram recordedProgram = dbAdapter.toObject(dbAdapter.get(recordID));
+            if (recordedProgram != null) {
+                recordedProgram.setEndTime(new Date(endTime));
+                if (channel.getCurrentProgram() != null) {
+                    recordedProgram.setName(channel.getCurrentProgram().getTitle() + " (失敗)");
+                } else {
+                    recordedProgram.setName("(失敗)");
+                }
+                dbAdapter.update(recordedProgram);
+            }
+        } catch (SQLException e) {
+            e.printStackTrace();
+            return false;
+        } catch (Exception e) {
+            e.printStackTrace();
+            return false;
         } finally {
             dbAdapter.close();
         }
