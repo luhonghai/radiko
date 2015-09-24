@@ -3222,12 +3222,12 @@ public class MediaPlaybackService extends Service {
                 if (mAudioManager != null) {
                     int maxVol = mAudioManager.getStreamMaxVolume(AudioManager.STREAM_MUSIC);
                     if (mAudioManager.isWiredHeadsetOn()) {
-                        if (mAudioManager.getStreamVolume(AudioManager.STREAM_MUSIC) < Math.round(maxVol * 3f / 8f)) {
-                            mAudioManager.setStreamVolume(AudioManager.STREAM_MUSIC, Math.round(maxVol * 3f / 8f), AudioManager.FLAG_PLAY_SOUND);
+                        if (mAudioManager.getStreamVolume(AudioManager.STREAM_MUSIC) < Math.round(maxVol * 1f / 6f)) {
+                            mAudioManager.setStreamVolume(AudioManager.STREAM_MUSIC, Math.round(maxVol * 1f / 5f), AudioManager.FLAG_PLAY_SOUND);
                         }
                     } else {
-                        if (mAudioManager.getStreamVolume(AudioManager.STREAM_MUSIC) < Math.round(maxVol * 3f / 4f)) {
-                            mAudioManager.setStreamVolume(AudioManager.STREAM_MUSIC, Math.round(maxVol * 3f / 4f), AudioManager.FLAG_PLAY_SOUND);
+                        if (mAudioManager.getStreamVolume(AudioManager.STREAM_MUSIC) < Math.round(maxVol * 1f / 4f)) {
+                            mAudioManager.setStreamVolume(AudioManager.STREAM_MUSIC, Math.round(maxVol * 1f / 3f), AudioManager.FLAG_PLAY_SOUND);
                         }
                     }
                     SimpleAppLog.debug("Music stream volume is: " + mAudioManager.getStreamVolume(AudioManager.STREAM_MUSIC));

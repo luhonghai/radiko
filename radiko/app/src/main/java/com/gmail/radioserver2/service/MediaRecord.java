@@ -355,6 +355,7 @@ public class MediaRecord {
                             } else {
                                 recordedProgram.setName("");
                             }
+                            recordedProgram.setChannelKey(gson.toJson(channel));
                             File newFile = new File(mp3File.getParent(), channel.getRecordedName() + "-" + recordedProgram.getStartTime().getTime() + ".mp3");
                             if (mp3File.renameTo(newFile)) {
                                 recordedProgram.setFilePath(newFile.getAbsolutePath());
@@ -569,7 +570,6 @@ public class MediaRecord {
         try {
             dbAdapter.open();
             RecordedProgram recordedProgram = new RecordedProgram();
-            Gson gson = new Gson();
             recordedProgram.setChannelName(channel.getName() == null ? "" : channel.getName());
             recordedProgram.setChannelKey(gson.toJson(channel));
             if (channel.getCurrentProgram() != null) {
