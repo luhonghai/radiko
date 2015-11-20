@@ -2,8 +2,8 @@ package com.dotohsoft.rtmpdump;
 
 public class RTMPSuck {
     static {
-        // System.loadLibrary("cryptox");
-        // System.loadLibrary("sslx");
+//         System.loadLibrary("crypto");
+//         System.loadLibrary("ssl");
         System.loadLibrary("rtmp");
         System.loadLibrary("rtmpsuck");
     }

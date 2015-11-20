@@ -21,7 +21,7 @@ public abstract class DBAdapter<T> implements IDBAdapter<T> {
 
     private static final String DATABASE_NAME = "main_db";
 
-    private static final int DATABASE_VERSION = 1;
+    private static final int DATABASE_VERSION = 2;
 
     private static final String[] DATABASE_TABLE_CREATE = new String[]{
             "create table " + TABLE_RECORDED_PROGRAM
@@ -69,7 +69,9 @@ public abstract class DBAdapter<T> implements IDBAdapter<T> {
                     + KEY_DESCRIPTION + " text, "
                     + KEY_URL + " text, "
                     + KEY_LAST_PLAYED_TIME + " date, "
-                    + KEY_CREATED_DATE + " date not null"
+                    + KEY_CREATED_DATE + " date not null, "
+                    + KEY_RADIKO_AREA_ID + " text, "
+                    + KEY_REGION_ID + " text"
                     + ");"
             ,
             "create table " + TABLE_RECORDED_PROGRAM_LIBRARY
@@ -113,8 +115,13 @@ public abstract class DBAdapter<T> implements IDBAdapter<T> {
         }
 
         @Override
-        public void onUpgrade(SQLiteDatabase db, int oldVersion,
-                              int newVersion) {
+        public void onUpgrade(SQLiteDatabase db, int oldVersion, int newVersion) {
+            switch (oldVersion) {
+                case 1:
+                    db.execSQL("ALTER TABLE " + TABLE_CHANNEL + " ADD " + KEY_RADIKO_AREA_ID + " text");
+                    db.execSQL("ALTER TABLE " + TABLE_CHANNEL + " ADD " + KEY_REGION_ID + " text");
+                    break;
+            }
             //Log.w(TAG, "Upgrading database from version " + oldVersion
             //        + " to "
             //        + newVersion + ", which will destroy all old data");

@@ -71,11 +71,20 @@ public class Constants {
     public static final int ACTION_RESET_FILTER_RECORDED_PROGRAM = 7;
 
     public static final int ACTION_RELOAD_RECORDED_PROGRAM = 8;
-
+    public static final int ACTION_SHARE_FACEBOOK = 9;
+    public static final int ACTION_LOGIN_FACEBOOK = 10;
     public static final String PARAMETER_SELECTED_TAB_ID = "PARAMETER_SELECTED_TAB_ID";
 
     public static final String PARAMETER_SELECTED_TAB = "PARAMETER_SELECTED_TAB";
 
     public static final String ARG_OBJECT = "ARG_OBJECT";
     public static final String ARG_TIMER_LIST = "ARG_TIMER_LIST";
+
+    public static final String KEY_CHANGE_VOLUME = "key_need_change_volume";
+    public static final String KEY_DEFAULT_VOLUME = "key_default_volume";
+
+
+    public static final String KEY_USERNAME = "radiko_username";
+    public static final String KEY_PASSWORD = "radiko_password";
+    public  static final String KEY_PREMIUM = "is_premium";
 }

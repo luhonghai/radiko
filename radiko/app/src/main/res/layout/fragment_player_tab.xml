@@ -1,17 +1,18 @@
 <?xml version="1.0" encoding="utf-8"?>
 <LinearLayout xmlns:android="http://schemas.android.com/apk/res/android"
-    android:orientation="vertical"
     android:layout_width="match_parent"
     android:layout_height="match_parent"
-    android:background="@color/default_background_color">
+    android:background="@color/default_background_color"
+    android:orientation="vertical"
+    android:weightSum="5">
 
     <LinearLayout
         android:layout_width="match_parent"
         android:layout_height="0dp"
-        android:layout_weight="1"
-        android:orientation="vertical"
+        android:layout_marginTop="@dimen/default_top_margin"
+        android:layout_weight="3"
         android:background="@android:color/white"
-        android:layout_marginTop="@dimen/default_top_margin">
+        android:orientation="vertical">
 
         <RelativeLayout
             android:layout_width="match_parent"
@@ -26,39 +27,104 @@
                 ads:adUnitId="@string/banner_player_ad_unit_id"></com.google.android.gms.ads.AdView>
         </RelativeLayout>
 
-        <TextView
-            android:id="@+id/txtTitle"
-            android:layout_width="match_parent"
-            android:layout_height="wrap_content"
-            android:textSize="@dimen/font_size_title"
-            android:layout_marginTop="@dimen/default_top_margin"
-            android:gravity="center"
-            android:textStyle="bold" />
-
         <ScrollView
             android:layout_width="match_parent"
-            android:layout_height="wrap_content"
-            android:padding="@dimen/tabs_padding">
+            android:layout_height="wrap_content">
 
-            <TextView
-                android:id="@+id/txtDescription"
+            <LinearLayout
                 android:layout_width="match_parent"
                 android:layout_height="wrap_content"
                 android:gravity="center"
-                android:textSize="@dimen/font_size_description" />
+                android:orientation="horizontal">
+
+                <LinearLayout
+                    android:id="@+id/programInfo"
+                    android:layout_width="0dp"
+                    android:layout_height="wrap_content"
+                    android:layout_weight="1"
+                    android:orientation="vertical">
+
+                    <TextView
+                        android:id="@+id/txtTitle"
+                        android:layout_width="match_parent"
+                        android:layout_height="wrap_content"
+                        android:gravity="center"
+                        android:textSize="@dimen/font_size_title"
+                        android:textStyle="bold" />
+
+                    <TextView
+                        android:id="@+id/txtDescription"
+                        android:layout_width="match_parent"
+                        android:layout_height="wrap_content"
+                        android:gravity="center"
+                        android:textSize="@dimen/font_size_description" />
+                </LinearLayout>
+
+                <View
+                    android:layout_width="1dp"
+                    android:layout_height="fill_parent"
+                    android:layout_marginLeft="@dimen/default_screen_padding"
+                    android:layout_marginRight="@dimen/default_screen_padding"
+                    android:background="@color/divider_dark_theme" />
+
+                <LinearLayout
+                    android:id="@+id/btShare"
+                    android:layout_width="wrap_content"
+                    android:layout_height="wrap_content"
+                    android:layout_alignParentRight="true"
+                    android:layout_alignTop="@+id/programInfo"
+                    android:background="@drawable/gray_state_button"
+                    android:gravity="center_vertical"
+                    android:orientation="horizontal"
+                    android:padding="@dimen/default_screen_padding">
+
+                    <ImageView
+                        android:layout_width="30dp"
+                        android:layout_height="30dp"
+                        android:src="@drawable/icon_facebook" />
+
+                    <TextView
+                        android:layout_width="wrap_content"
+                        android:layout_height="wrap_content"
+                        android:layout_marginLeft="@dimen/default_screen_padding"
+                        android:gravity="center"
+                        android:text="@string/button_share_facebook"
+                        android:textColor="@color/text_dark_theme" />
+                </LinearLayout>
+            </LinearLayout>
         </ScrollView>
+
+        <ListView
+            android:id="@+id/lvProgram"
+            android:layout_width="match_parent"
+            android:layout_height="match_parent"
+            android:layout_marginBottom="2dp"
+            android:divider="#0fff"
+            android:listSelector="@android:color/transparent"
+            android:smoothScrollbar="true" />
     </LinearLayout>
+
+    <TextView
+        android:id="@+id/tvWarningVolumeLow"
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:background="#ff0"
+        android:gravity="center"
+        android:padding="5dp"
+        android:text="@string/volume_too_low"
+        android:textColor="#f00"
+        android:visibility="gone" />
 
     <RelativeLayout
         android:layout_width="match_parent"
         android:layout_height="0dp"
-        android:layout_weight="1">
+        android:layout_weight="2">
 
         <LinearLayout
             android:layout_width="match_parent"
             android:layout_height="match_parent"
-            android:orientation="vertical"
-            android:layout_margin="@dimen/button_media_margin">
+            android:layout_margin="@dimen/button_media_margin"
+            android:orientation="vertical">
 
             <RelativeLayout
                 android:layout_width="match_parent"
@@ -71,12 +137,12 @@
 
                     <ImageButton
                         android:id="@+id/btnPrev"
-                        android:background="@null"
                         android:layout_width="@dimen/button_size_prev_next"
                         android:layout_height="@dimen/button_size_prev_next"
-                        android:src="@drawable/btn_prev"
                         android:adjustViewBounds="true"
-                        android:scaleType="fitCenter" />
+                        android:background="@null"
+                        android:scaleType="fitCenter"
+                        android:src="@drawable/btn_prev" />
 
                     <RelativeLayout
                         android:layout_width="0dp"
@@ -86,27 +152,38 @@
 
                         <WebView
                             android:id="@+id/gifView"
-                            android:layout_marginTop="15dp"
                             android:layout_width="match_parent"
-                            android:visibility="gone"
-                            android:layout_height="match_parent" />
+                            android:layout_height="match_parent"
+                            android:layout_marginTop="15dp"
+                            android:visibility="gone" />
+
+                        <TextView
+                            android:id="@+id/tvLoading"
+                            android:layout_width="match_parent"
+                            android:layout_height="match_parent"
+                            android:gravity="center"
+                            android:text="@string/loading"
+                            android:textAppearance="?android:attr/textAppearanceButton"
+                            android:textColor="@color/default_button_color"
+                            android:textStyle="bold"
+                            android:visibility="gone" />
 
                         <com.gmail.radioserver2.view.CustomSeekBar
+                            android:id="@+id/seekBarPlayer"
                             android:layout_width="match_parent"
                             android:layout_height="wrap_content"
-                            android:id="@+id/seekBarPlayer"
-                            android:visibility="gone"
-                            android:indeterminate="false" />
+                            android:indeterminate="false"
+                            android:visibility="gone" />
                     </RelativeLayout>
 
                     <ImageButton
                         android:id="@+id/btnNext"
-                        android:background="@null"
                         android:layout_width="@dimen/button_size_prev_next"
                         android:layout_height="@dimen/button_size_prev_next"
-                        android:src="@drawable/btn_next"
                         android:adjustViewBounds="true"
-                        android:scaleType="fitCenter" />
+                        android:background="@null"
+                        android:scaleType="fitCenter"
+                        android:src="@drawable/btn_next" />
                 </LinearLayout>
             </RelativeLayout>
 
@@ -124,20 +201,20 @@
                         android:id="@+id/btnSlow"
                         android:layout_width="0dp"
                         android:layout_height="match_parent"
+                        android:layout_margin="@dimen/button_media_margin"
                         android:layout_weight="1"
-                        android:visibility="invisible"
-                        android:text="@string/button_slow"
-                        android:textColor="@color/text_color"
                         android:background="@drawable/rounded_corner_button"
+                        android:text="@string/button_slow"
                         android:textAppearance="?android:attr/textAppearanceButton"
-                        android:layout_margin="@dimen/button_media_margin" />
+                        android:textColor="@color/text_color"
+                        android:visibility="invisible" />
 
                     <RelativeLayout
-                        android:layout_weight="2"
                         android:layout_width="0dp"
-                        android:background="@drawable/rounded_corner_button"
                         android:layout_height="match_parent"
-                        android:layout_margin="@dimen/button_media_margin">
+                        android:layout_margin="@dimen/button_media_margin"
+                        android:layout_weight="2"
+                        android:background="@drawable/rounded_corner_button">
 
                         <LinearLayout
                             android:layout_width="match_parent"
@@ -146,43 +223,43 @@
 
                             <ImageButton
                                 android:id="@+id/btnPlay"
-                                android:layout_weight="1"
-                                android:background="@null"
                                 android:layout_width="match_parent"
                                 android:layout_height="0dp"
-                                android:src="@drawable/btn_play"
+                                android:layout_weight="1"
                                 android:adjustViewBounds="true"
-                                android:scaleType="fitCenter" />
+                                android:background="@null"
+                                android:scaleType="fitCenter"
+                                android:src="@drawable/btn_play" />
 
                             <TextView
                                 android:id="@+id/txtPlay"
                                 android:layout_width="match_parent"
                                 android:layout_height="wrap_content"
-                                android:textColor="@color/text_color"
-                                android:textAppearance="?android:attr/textAppearanceButton"
                                 android:gravity="center_horizontal|center_vertical"
-                                android:text="@string/button_play" />
+                                android:text="@string/button_play"
+                                android:textAppearance="?android:attr/textAppearanceButton"
+                                android:textColor="@color/text_color" />
                         </LinearLayout>
                     </RelativeLayout>
 
                     <Button
                         android:id="@+id/btnFast"
-                        android:visibility="invisible"
                         android:layout_width="0dp"
                         android:layout_height="match_parent"
+                        android:layout_margin="@dimen/button_media_margin"
                         android:layout_weight="1"
-                        android:text="@string/button_fast"
                         android:background="@drawable/rounded_corner_button"
-                        android:textColor="@color/text_color"
+                        android:text="@string/button_fast"
                         android:textAppearance="?android:attr/textAppearanceButton"
-                        android:layout_margin="@dimen/button_media_margin" />
+                        android:textColor="@color/text_color"
+                        android:visibility="invisible" />
                 </LinearLayout>
             </RelativeLayout>
 
             <RelativeLayout
-                android:layout_weight="1"
                 android:layout_width="match_parent"
-                android:layout_height="match_parent">
+                android:layout_height="match_parent"
+                android:layout_weight="1">
 
                 <LinearLayout
                     android:layout_width="match_parent"
@@ -190,11 +267,11 @@
                     android:orientation="horizontal">
 
                     <RelativeLayout
-                        android:layout_weight="1"
                         android:layout_width="0dp"
-                        android:background="@drawable/rounded_corner_button"
                         android:layout_height="match_parent"
-                        android:layout_margin="@dimen/button_media_margin">
+                        android:layout_margin="@dimen/button_media_margin"
+                        android:layout_weight="1"
+                        android:background="@drawable/rounded_corner_button">
 
                         <LinearLayout
                             android:layout_width="match_parent"
@@ -203,31 +280,31 @@
 
                             <ImageButton
                                 android:id="@+id/btnBack"
-                                android:layout_weight="1"
-                                android:background="@null"
                                 android:layout_width="match_parent"
                                 android:layout_height="0dp"
-                                android:src="@drawable/btn_back"
+                                android:layout_weight="1"
                                 android:adjustViewBounds="true"
-                                android:scaleType="fitCenter" />
+                                android:background="@null"
+                                android:scaleType="fitCenter"
+                                android:src="@drawable/btn_back" />
 
                             <TextView
                                 android:id="@+id/txtBack"
                                 android:layout_width="match_parent"
                                 android:layout_height="wrap_content"
-                                android:textAppearance="?android:attr/textAppearanceButton"
                                 android:gravity="center_horizontal|center_vertical"
-                                android:textColor="@color/text_color"
-                                android:text="@string/button_back" />
+                                android:text="@string/button_back"
+                                android:textAppearance="?android:attr/textAppearanceButton"
+                                android:textColor="@color/text_color" />
                         </LinearLayout>
                     </RelativeLayout>
 
                     <RelativeLayout
-                        android:layout_weight="1"
                         android:layout_width="0dp"
-                        android:background="@drawable/rounded_corner_button"
                         android:layout_height="match_parent"
-                        android:layout_margin="@dimen/button_media_margin">
+                        android:layout_margin="@dimen/button_media_margin"
+                        android:layout_weight="1"
+                        android:background="@drawable/rounded_corner_button">
 
                         <LinearLayout
                             android:layout_width="match_parent"
@@ -236,31 +313,31 @@
 
                             <ImageButton
                                 android:id="@+id/btnTimer"
-                                android:layout_weight="1"
-                                android:background="@null"
                                 android:layout_width="match_parent"
                                 android:layout_height="0dp"
-                                android:src="@drawable/btn_timer"
+                                android:layout_weight="1"
                                 android:adjustViewBounds="true"
-                                android:scaleType="fitCenter" />
+                                android:background="@null"
+                                android:scaleType="fitCenter"
+                                android:src="@drawable/btn_timer" />
 
                             <TextView
                                 android:id="@+id/txtTimer"
                                 android:layout_width="match_parent"
                                 android:layout_height="wrap_content"
-                                android:textAppearance="?android:attr/textAppearanceButton"
                                 android:gravity="center_horizontal|center_vertical"
-                                android:textColor="@color/text_color"
-                                android:text="@string/button_timer" />
+                                android:text="@string/button_timer"
+                                android:textAppearance="?android:attr/textAppearanceButton"
+                                android:textColor="@color/text_color" />
                         </LinearLayout>
                     </RelativeLayout>
 
                     <RelativeLayout
-                        android:layout_weight="1"
                         android:layout_width="0dp"
-                        android:background="@drawable/rounded_corner_button"
                         android:layout_height="match_parent"
-                        android:layout_margin="@dimen/button_media_margin">
+                        android:layout_margin="@dimen/button_media_margin"
+                        android:layout_weight="1"
+                        android:background="@drawable/rounded_corner_button">
 
                         <LinearLayout
                             android:layout_width="match_parent"
@@ -269,31 +346,31 @@
 
                             <ImageButton
                                 android:id="@+id/btnRecord"
-                                android:layout_weight="1"
-                                android:background="@null"
                                 android:layout_width="match_parent"
                                 android:layout_height="0dp"
-                                android:src="@drawable/btn_record"
+                                android:layout_weight="1"
                                 android:adjustViewBounds="true"
-                                android:scaleType="fitCenter" />
+                                android:background="@null"
+                                android:scaleType="fitCenter"
+                                android:src="@drawable/btn_record" />
 
                             <TextView
                                 android:id="@+id/txtRecord"
                                 android:layout_width="match_parent"
                                 android:layout_height="wrap_content"
-                                android:textAppearance="?android:attr/textAppearanceButton"
                                 android:gravity="center_horizontal|center_vertical"
-                                android:textColor="@color/text_color"
-                                android:text="@string/button_record" />
+                                android:text="@string/button_record"
+                                android:textAppearance="?android:attr/textAppearanceButton"
+                                android:textColor="@color/text_color" />
                         </LinearLayout>
                     </RelativeLayout>
 
                     <RelativeLayout
-                        android:layout_weight="1"
                         android:layout_width="0dp"
-                        android:background="@drawable/rounded_corner_button"
                         android:layout_height="match_parent"
-                        android:layout_margin="@dimen/button_media_margin">
+                        android:layout_margin="@dimen/button_media_margin"
+                        android:layout_weight="1"
+                        android:background="@drawable/rounded_corner_button">
 
                         <LinearLayout
                             android:layout_width="match_parent"
@@ -302,22 +379,22 @@
 
                             <ImageButton
                                 android:id="@+id/btnRepeat"
-                                android:layout_weight="1"
-                                android:background="@null"
                                 android:layout_width="match_parent"
                                 android:layout_height="0dp"
-                                android:src="@drawable/btn_repeat"
+                                android:layout_weight="1"
                                 android:adjustViewBounds="true"
-                                android:scaleType="fitCenter" />
+                                android:background="@null"
+                                android:scaleType="fitCenter"
+                                android:src="@drawable/btn_repeat" />
 
                             <TextView
                                 android:id="@+id/txtRepeat"
                                 android:layout_width="match_parent"
                                 android:layout_height="wrap_content"
-                                android:textAppearance="?android:attr/textAppearanceSmall"
                                 android:gravity="center_horizontal|center_vertical"
-                                android:textColor="@color/text_color"
-                                android:text="@string/button_repeat" />
+                                android:text="@string/button_repeat"
+                                android:textAppearance="?android:attr/textAppearanceSmall"
+                                android:textColor="@color/text_color" />
                         </LinearLayout>
                     </RelativeLayout>
                 </LinearLayout>

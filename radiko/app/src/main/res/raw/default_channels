@@ -4,19 +4,25 @@
       "service": "nhk",
       "serviceChannelId": "r1",
       "name": "ＮＨＫラジオ第1",
-      "streamURL": "http://netradior1p-i.akamaihd.net/hls/live/200452/1-r1/1-r1-01.m3u8"
+      "streamURL": "http://netradior1p-i.akamaihd.net/hls/live/200452/1-r1/1-r1-01.m3u8",
+      "radikoAreaID":"a0",
+      "regionID":"JP13"
     },
     {
       "service": "nhk",
       "serviceChannelId": "r2",
       "name": "ＮＨＫラジオ第2",
-      "streamURL": "http://netradior2p-i.akamaihd.net/hls/live/200454/1-r2/1-r2-01.m3u8"
+      "streamURL": "http://netradior2p-i.akamaihd.net/hls/live/200454/1-r2/1-r2-01.m3u8",
+      "radikoAreaID":"a0",
+      "regionID":"JP13"
     },
     {
       "service": "nhk",
       "serviceChannelId": "r3",
       "name": "ＮＨＫＦＭ",
-      "streamURL": "http://netradiofmp-i.akamaihd.net/hls/live/200456/1-fm/1-fm-01.m3u8"
+      "streamURL": "http://netradiofmp-i.akamaihd.net/hls/live/200456/1-fm/1-fm-01.m3u8",
+      "radikoAreaID":"a0",
+      "regionID":"JP13"
     }
   ]
 }

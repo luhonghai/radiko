@@ -69,9 +69,7 @@ public class MediaButtonIntentReceiver extends BroadcastReceiver {
             i.putExtra(MediaPlaybackService.CMDNAME, MediaPlaybackService.CMDPAUSE);
             context.startService(i);
         } else if (Intent.ACTION_MEDIA_BUTTON.equals(intentAction)) {
-            KeyEvent event = (KeyEvent)
-                    intent.getParcelableExtra(Intent.EXTRA_KEY_EVENT);
-
+            KeyEvent event = intent.getParcelableExtra(Intent.EXTRA_KEY_EVENT);
             if (event == null) {
                 return;
             }
@@ -114,8 +112,7 @@ public class MediaButtonIntentReceiver extends BroadcastReceiver {
                                 MediaPlaybackService.CMDPLAY.equals(command))
                                 && mLastClickTime != 0
                                 && eventtime - mLastClickTime > LONG_PRESS_DELAY) {
-                            mHandler.sendMessage(
-                                    mHandler.obtainMessage(MSG_LONGPRESS_TIMEOUT, context));
+                            mHandler.sendMessage(mHandler.obtainMessage(MSG_LONGPRESS_TIMEOUT, context));
                         }
                     } else if (event.getRepeatCount() == 0) {
                         // only consider the first event in a sequence, not the repeat events,

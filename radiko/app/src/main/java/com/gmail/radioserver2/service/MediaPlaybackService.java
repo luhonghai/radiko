@@ -18,6 +18,7 @@
 
 package com.gmail.radioserver2.service;
 
+import android.Manifest;
 import android.app.Notification;
 import android.app.PendingIntent;
 import android.app.Service;
@@ -49,6 +50,7 @@ import android.os.PowerManager.WakeLock;
 import android.os.RemoteException;
 import android.os.SystemClock;
 import android.provider.BaseColumns;
+import android.support.v4.content.PermissionChecker;
 import android.util.Log;
 import android.widget.RemoteViews;
 import android.widget.Toast;
@@ -68,6 +70,7 @@ import com.gmail.radioserver2.provider.Media;
 import com.gmail.radioserver2.radiko.TokenFetcher;
 import com.gmail.radioserver2.receiver.MediaButtonIntentReceiver;
 import com.gmail.radioserver2.utils.AndroidUtil;
+import com.gmail.radioserver2.utils.AppDelegate;
 import com.gmail.radioserver2.utils.Constants;
 import com.gmail.radioserver2.utils.FileHelper;
 import com.gmail.radioserver2.utils.InetHelper;
@@ -121,6 +124,8 @@ public class MediaPlaybackService extends Service {
 
     public static final String PLAYSTATE_CHANGED = "com.android.music.playstatechanged";
     public static final String META_CHANGED = "com.android.music.metachanged";
+    public static final String META_VOLUME_TOO_SMALL = "com.android.music.volume_small";
+    public static final String META_VOLUME_NORMAL = "com.android.music.volume.normal";
     public static final String QUEUE_CHANGED = "com.android.music.queuechanged";
 
     public static final String SERVICECMD = "com.android.music.musicservicecommand";
@@ -145,6 +150,8 @@ public class MediaPlaybackService extends Service {
     private static final int FADEUP = 6;
     private static final int TRACK_WENT_TO_NEXT = 7;
     private static final int MAX_HISTORY_SIZE = 100;
+
+
     /**
      * FFMpeg streaming player
      */
@@ -153,7 +160,7 @@ public class MediaPlaybackService extends Service {
     private IMultiPlayer mPlayer;
 
     private boolean isStreaming;
-
+    private boolean isSoundPlaying = false;
     private String mFileToPlay;
     private int mShuffleMode = SHUFFLE_NONE;
     private int mRepeatMode = REPEAT_NONE;
@@ -367,6 +374,7 @@ public class MediaPlaybackService extends Service {
     }
 
     public void openStream(String token, String channelObject) {
+        setSoundPlaying(false);
         currentChannel = null;
         isStreaming = true;
         //mStreamingPlayer.setHandler(mMediaplayerHandler);
@@ -394,7 +402,6 @@ public class MediaPlaybackService extends Service {
         mIsSupposedToBePlaying = true;
         notifyChange(META_CHANGED);
         final String playUrl = currentChannel.getUrl();
-
         if (playUrl.toLowerCase().startsWith("rtmpe://f-radiko.smartstream.ne.jp") && mRTMPSuck != null) {
             if (token == null || token.length() == 0) {
                 TokenFetcher tokenFetcher = TokenFetcher.getTokenFetcher(getApplicationContext(), new TokenFetcher.OnTokenListener() {
@@ -410,7 +417,7 @@ public class MediaPlaybackService extends Service {
                         SimpleAppLog.error(message, throwable);
                         isStreaming = false;
                     }
-                });
+                }, AppDelegate.getInstance().getUserName(), AppDelegate.getInstance().getPassword());
                 tokenFetcher.fetch();
             } else {
                 if (!token.startsWith("S:")) {
@@ -514,7 +521,7 @@ public class MediaPlaybackService extends Service {
     public void checkAB() {
         if (isStreaming)
             return;
-        if (mPlayer.isInitialized() && isPlaying()) {
+        if (mPlayer != null && mPlayer.isInitialized() && isPlaying()) {
             if (stateAB == ABState.PLAY) {
                 long currentPos = mPlayer.position();
                 if (currentPos > posB) {
@@ -843,8 +850,7 @@ public class MediaPlaybackService extends Service {
         super.onCreate();
         initRtmpSuck();
         mAudioManager = (AudioManager) getSystemService(Context.AUDIO_SERVICE);
-        ComponentName rec = new ComponentName(getPackageName(),
-                MediaButtonIntentReceiver.class.getName());
+        ComponentName rec = new ComponentName(getPackageName(), MediaButtonIntentReceiver.class.getName());
         mAudioManager.registerMediaButtonEventReceiver(rec);
         // TODO update to new constructor
 //        mRemoteControlClient = new RemoteControlClient(rec);
@@ -860,7 +866,6 @@ public class MediaPlaybackService extends Service {
 
         mPreferences = getSharedPreferences("Music", MODE_WORLD_READABLE | MODE_WORLD_WRITEABLE);
         mCardId = MusicUtils.getCardId(this);
-
         registerExternalStorageListener();
 
         // Needs to be done in this thread, since otherwise ApplicationContext.getPowerManager() crashes.
@@ -874,8 +879,7 @@ public class MediaPlaybackService extends Service {
 
         mStreamingPlayer = new MultiPlayer();
         //mStreamingPlayer.setHandler(mMediaplayerHandler);
-
-        TokenFetcher tokenFetcher = TokenFetcher.getTokenFetcher(getApplicationContext(), onTokenListener);
+        TokenFetcher tokenFetcher = TokenFetcher.getTokenFetcher(getApplicationContext(), onTokenListener, AppDelegate.getInstance().getUserName(), AppDelegate.getInstance().getPassword());
         tokenFetcher.fetch();
 
         reloadQueue();
@@ -1895,6 +1899,7 @@ public class MediaPlaybackService extends Service {
                         rChannel.setService(currentChannel.getType());
                         rChannel.setServiceChannelId(currentChannel.getUrl());
                         rChannel.setServiceChannelId(currentChannel.getKey());
+                        rChannel.setRegionID(currentChannel.getRegionID());
 
                         requester.setRequesterListener(new APIRequester.RequesterListener() {
                             @Override
@@ -1907,19 +1912,13 @@ public class MediaPlaybackService extends Service {
                                 SimpleAppLog.error(error, throwable);
                             }
                         });
-                        DataPrepareService prepareService = new DataPrepareService(getApplicationContext(), null);
-                        String areaId = prepareService.findBestAreaId(rawAreaId);
-
                         done = validateChannelProgram(requester.getPrograms(rChannel,
-                                RadioArea.getArea(areaId, currentChannel.getType()),
                                 AndroidUtil.getAdsId(getApplicationContext())));
-
                         if (!done) {
                             SimpleAppLog.info("Try fetch program again #1");
                             requester.resetDate();
                             requester.addDay(-1);
                             done = validateChannelProgram(requester.getPrograms(rChannel,
-                                    RadioArea.getArea(areaId, currentChannel.getType()),
                                     AndroidUtil.getAdsId(getApplicationContext())));
                         }
 
@@ -1929,7 +1928,6 @@ public class MediaPlaybackService extends Service {
                             if (rChannel.getService().equalsIgnoreCase(RadioProvider.NHK))
                                 requester.addDay(1);
                             done = validateChannelProgram(requester.getPrograms(rChannel,
-                                    RadioArea.getArea(areaId, currentChannel.getType()),
                                     AndroidUtil.getAdsId(getApplicationContext())));
                         }
 
@@ -1977,6 +1975,7 @@ public class MediaPlaybackService extends Service {
                             && calNow.getTimeInMillis() <= calTo.getTimeInMillis()) {
                         SimpleAppLog.info("Current program is: " + program.getTitle());
                         currentChannel.setCurrentProgram(program);
+                        currentChannel.setProgram(radioProgram);
                         programMap.put(currentChannel.getUrl().toLowerCase(), program);
                         SimpleDateFormat sdf = new SimpleDateFormat("HH:mm", Locale.JAPANESE);
                         final StringBuffer sb = new StringBuffer();
@@ -3080,6 +3079,14 @@ public class MediaPlaybackService extends Service {
         }
     }
 
+    private void setSoundPlaying(boolean isPlaying) {
+        this.isSoundPlaying = isPlaying;
+    }
+
+    private boolean isSoundPlaying() {
+        return isSoundPlaying;
+    }
+
     /**
      * Provides a unified interface for dealing with midi files and
      * other media files.
@@ -3210,6 +3217,7 @@ public class MediaPlaybackService extends Service {
                 Intent i = new Intent(AudioEffect.ACTION_OPEN_AUDIO_EFFECT_CONTROL_SESSION);
                 i.putExtra(AudioEffect.EXTRA_AUDIO_SESSION, getAudioSessionId());
                 i.putExtra(AudioEffect.EXTRA_PACKAGE_NAME, getPackageName());
+                setSoundPlaying(true);
                 sendBroadcast(i);
                 play();
                 setVolume(1.0f);
@@ -3220,17 +3228,33 @@ public class MediaPlaybackService extends Service {
                  *
                   */
                 if (mAudioManager != null) {
-                    int maxVol = mAudioManager.getStreamMaxVolume(AudioManager.STREAM_MUSIC);
-                    if (mAudioManager.isWiredHeadsetOn()) {
-                        if (mAudioManager.getStreamVolume(AudioManager.STREAM_MUSIC) < Math.round(maxVol * 1f / 6f)) {
-                            mAudioManager.setStreamVolume(AudioManager.STREAM_MUSIC, Math.round(maxVol * 1f / 5f), AudioManager.FLAG_PLAY_SOUND);
-                        }
-                    } else {
-                        if (mAudioManager.getStreamVolume(AudioManager.STREAM_MUSIC) < Math.round(maxVol * 1f / 4f)) {
-                            mAudioManager.setStreamVolume(AudioManager.STREAM_MUSIC, Math.round(maxVol * 1f / 3f), AudioManager.FLAG_PLAY_SOUND);
+                    SharedPreferences preferences = getSharedPreferences(Constants.SHARE_PREF, MODE_PRIVATE);
+                    int defaultVolume = preferences.getInt(Constants.KEY_DEFAULT_VOLUME, 0);
+                    boolean needToChangeVolume = preferences.getBoolean(Constants.KEY_CHANGE_VOLUME, true);
+                    if (needToChangeVolume) {
+                        if (AndroidUtil.isAndroidM()) {
+                            if (checkSelfPermission(Manifest.permission.MODIFY_AUDIO_SETTINGS) == PermissionChecker.PERMISSION_GRANTED) {
+                                if (mAudioManager.isWiredHeadsetOn()) {
+                                    mAudioManager.setStreamVolume(AudioManager.STREAM_MUSIC, Math.round(defaultVolume / 2f), AudioManager.FLAG_PLAY_SOUND);
+                                } else {
+                                    mAudioManager.setStreamVolume(AudioManager.STREAM_MUSIC, defaultVolume, AudioManager.FLAG_PLAY_SOUND);
+                                }
+                            }
+                        } else {
+                            if (mAudioManager.isWiredHeadsetOn()) {
+                                mAudioManager.setStreamVolume(AudioManager.STREAM_MUSIC, Math.round(defaultVolume / 2f), AudioManager.FLAG_PLAY_SOUND);
+                            } else {
+                                mAudioManager.setStreamVolume(AudioManager.STREAM_MUSIC, defaultVolume, AudioManager.FLAG_PLAY_SOUND);
+                            }
                         }
                     }
-                    SimpleAppLog.debug("Music stream volume is: " + mAudioManager.getStreamVolume(AudioManager.STREAM_MUSIC));
+                    int volume = mAudioManager.getStreamVolume(AudioManager.STREAM_MUSIC);
+                    if (volume == 0) {
+                        notifyChange(META_VOLUME_TOO_SMALL);
+                    } else if (volume >= Math.round(mAudioManager.getStreamMaxVolume(AudioManager.STREAM_MUSIC) * 2 / 5f)) {
+                        notifyChange(META_VOLUME_NORMAL);
+                    }
+                    SimpleAppLog.debug("Music stream volume is: " + volume);
                 }
             }
         };
@@ -3466,10 +3490,12 @@ public class MediaPlaybackService extends Service {
         }
 
         public void stop() {
+            mService.get().setSoundPlaying(false);
             mService.get().stop();
         }
 
         public void pause() {
+            mService.get().setSoundPlaying(false);
             mService.get().pause();
         }
 
@@ -3571,6 +3597,16 @@ public class MediaPlaybackService extends Service {
 
         public String getMediaUri() {
             return mService.get().getMediaUri();
+        }
+
+        @Override
+        public boolean isSoundPlaying() throws RemoteException {
+            return mService.get().isSoundPlaying();
+        }
+
+        @Override
+        public void setSoundPlaying(boolean isPlaying) throws RemoteException {
+            mService.get().setSoundPlaying(isPlaying);
         }
 
     }

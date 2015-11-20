@@ -1,10 +1,10 @@
 <?xml version="1.0" encoding="utf-8"?>
 <LinearLayout xmlns:android="http://schemas.android.com/apk/res/android"
-    android:orientation="vertical"
     android:layout_width="match_parent"
     android:layout_height="match_parent"
-    android:padding="@dimen/default_screen_padding"
-    android:background="@color/default_background_color">
+    android:background="@color/default_background_color"
+    android:orientation="vertical"
+    android:padding="@dimen/default_screen_padding">
 
     <ScrollView
         android:layout_width="match_parent"
@@ -16,30 +16,30 @@
             android:layout_height="wrap_content"
             android:orientation="vertical">
 
-            <LinearLayout
+            <TableLayout
                 android:layout_width="match_parent"
-                android:layout_height="wrap_content"
-                android:layout_marginTop="@dimen/default_top_margin">
+                android:layout_height="wrap_content">
 
-                <TextView
-                    android:layout_width="wrap_content"
-                    android:layout_height="@dimen/layout_item_height"
-                    android:textAppearance="?android:attr/textAppearanceButton"
-                    android:padding="6dp"
-                    android:gravity="center_horizontal|center_vertical"
-                    android:textColor="@android:color/white"
-                    android:background="@color/default_button_color"
-                    android:text="@string/label_slow_play"
-                    android:minWidth="100dp" />
+                <TableRow
+                    android:layout_width="match_parent"
+                    android:layout_height="wrap_content"
+                    android:layout_marginTop="@dimen/default_top_margin">
 
-                <RelativeLayout
-                    android:layout_weight="1"
-                    android:layout_width="0dp"
-                    android:layout_height="wrap_content">
+                    <TextView
+                        android:layout_width="wrap_content"
+                        android:layout_height="@dimen/layout_item_height"
+                        android:background="@color/default_button_color"
+                        android:gravity="center_horizontal|center_vertical"
+                        android:minWidth="100dp"
+                        android:padding="6dp"
+                        android:text="@string/label_slow_play"
+                        android:textAppearance="?android:attr/textAppearanceButton"
+                        android:textColor="@android:color/white" />
 
                     <LinearLayout
-                        android:layout_width="match_parent"
+                        android:layout_width="0dp"
                         android:layout_height="wrap_content"
+                        android:layout_weight="1"
                         android:orientation="vertical">
 
                         <com.gmail.radioserver2.view.CustomSeekBar
@@ -59,35 +59,28 @@
                             android:layout_marginLeft="@dimen/default_top_margin"
                             android:layout_marginRight="@dimen/default_top_margin" />
                     </LinearLayout>
+                </TableRow>
 
-                </RelativeLayout>
+                <TableRow
+                    android:layout_width="match_parent"
+                    android:layout_height="wrap_content"
+                    android:layout_marginTop="@dimen/default_top_margin">
 
-            </LinearLayout>
-
-            <LinearLayout
-                android:layout_width="match_parent"
-                android:layout_height="wrap_content"
-                android:layout_marginTop="@dimen/default_top_margin">
-
-                <TextView
-                    android:layout_width="wrap_content"
-                    android:layout_height="@dimen/layout_item_height"
-                    android:textAppearance="?android:attr/textAppearanceButton"
-                    android:padding="6dp"
-                    android:gravity="center_horizontal|center_vertical"
-                    android:textColor="@android:color/white"
-                    android:background="@color/default_button_color"
-                    android:text="@string/label_fast_play"
-                    android:minWidth="100dp" />
-
-                <RelativeLayout
-                    android:layout_weight="1"
-                    android:layout_width="0dp"
-                    android:layout_height="wrap_content">
+                    <TextView
+                        android:layout_width="wrap_content"
+                        android:layout_height="@dimen/layout_item_height"
+                        android:background="@color/default_button_color"
+                        android:gravity="center_horizontal|center_vertical"
+                        android:minWidth="100dp"
+                        android:padding="6dp"
+                        android:text="@string/label_fast_play"
+                        android:textAppearance="?android:attr/textAppearanceButton"
+                        android:textColor="@android:color/white" />
 
                     <LinearLayout
-                        android:layout_width="match_parent"
+                        android:layout_width="0dp"
                         android:layout_height="wrap_content"
+                        android:layout_weight="1"
                         android:orientation="vertical">
 
                         <com.gmail.radioserver2.view.CustomSeekBar
@@ -107,35 +100,28 @@
                             android:layout_marginLeft="@dimen/default_top_margin"
                             android:layout_marginRight="@dimen/default_top_margin" />
                     </LinearLayout>
+                </TableRow>
 
-                </RelativeLayout>
+                <TableRow
+                    android:layout_width="match_parent"
+                    android:layout_height="wrap_content"
+                    android:layout_marginTop="@dimen/default_top_margin">
 
-            </LinearLayout>
-
-            <LinearLayout
-                android:layout_width="match_parent"
-                android:layout_height="wrap_content"
-                android:layout_marginTop="@dimen/default_top_margin">
-
-                <TextView
-                    android:layout_width="wrap_content"
-                    android:layout_height="@dimen/layout_item_height"
-                    android:textAppearance="?android:attr/textAppearanceButton"
-                    android:padding="6dp"
-                    android:gravity="center_horizontal|center_vertical"
-                    android:textColor="@android:color/white"
-                    android:background="@color/default_button_color"
-                    android:text="@string/label_back"
-                    android:minWidth="100dp" />
-
-                <RelativeLayout
-                    android:layout_weight="1"
-                    android:layout_width="0dp"
-                    android:layout_height="wrap_content">
+                    <TextView
+                        android:layout_width="wrap_content"
+                        android:layout_height="@dimen/layout_item_height"
+                        android:background="@color/default_button_color"
+                        android:gravity="center_horizontal|center_vertical"
+                        android:minWidth="100dp"
+                        android:padding="6dp"
+                        android:text="@string/label_back"
+                        android:textAppearance="?android:attr/textAppearanceButton"
+                        android:textColor="@android:color/white" />
 
                     <LinearLayout
-                        android:layout_width="match_parent"
+                        android:layout_width="0dp"
                         android:layout_height="wrap_content"
+                        android:layout_weight="1"
                         android:orientation="vertical">
 
                         <com.gmail.radioserver2.view.CustomSeekBar
@@ -155,38 +141,70 @@
                             android:layout_marginLeft="@dimen/default_top_margin"
                             android:layout_marginRight="@dimen/default_top_margin" />
                     </LinearLayout>
+                </TableRow>
 
-                </RelativeLayout>
-            </LinearLayout>
+                <TableRow
+                    android:layout_width="match_parent"
+                    android:layout_height="wrap_content"
+                    android:layout_marginTop="@dimen/default_top_margin">
+
+                    <TextView
+                        android:layout_width="wrap_content"
+                        android:layout_height="@dimen/layout_item_height"
+                        android:background="@color/default_button_color"
+                        android:gravity="center_horizontal|center_vertical"
+                        android:minWidth="100dp"
+                        android:padding="6dp"
+                        android:text="@string/label_volume"
+                        android:textAppearance="?android:attr/textAppearanceButton"
+                        android:textColor="@android:color/white" />
+
+                    <LinearLayout
+                        android:layout_width="0dp"
+                        android:layout_height="wrap_content"
+                        android:layout_weight="1"
+                        android:orientation="vertical">
+
+                        <com.gmail.radioserver2.view.CustomSeekBar
+                            android:id="@+id/seekBarDefaultVolume"
+                            android:layout_width="match_parent"
+                            android:layout_height="wrap_content"
+                            android:layout_gravity="center_horizontal|center_vertical"
+                            android:layout_marginLeft="@dimen/default_top_margin"
+                            android:layout_marginRight="@dimen/default_top_margin"
+                            android:indeterminate="false" />
+                    </LinearLayout>
+                </TableRow>
+            </TableLayout>
 
             <LinearLayout
                 android:layout_width="match_parent"
                 android:layout_height="wrap_content"
-                android:visibility="gone"
-                android:layout_marginTop="@dimen/default_top_margin">
+                android:layout_marginTop="@dimen/default_top_margin"
+                android:visibility="gone">
 
                 <TextView
                     android:layout_width="wrap_content"
                     android:layout_height="@dimen/layout_item_height"
-                    android:textAppearance="?android:attr/textAppearanceButton"
-                    android:padding="6dp"
-                    android:gravity="center_horizontal|center_vertical"
-                    android:textColor="@android:color/white"
                     android:background="@color/default_button_color"
+                    android:gravity="center_horizontal|center_vertical"
+                    android:minWidth="100dp"
+                    android:padding="6dp"
                     android:text="@string/label_region"
-                    android:minWidth="100dp" />
+                    android:textAppearance="?android:attr/textAppearanceButton"
+                    android:textColor="@android:color/white" />
 
                 <Switch
+                    android:id="@+id/switchRegion"
                     android:layout_width="wrap_content"
                     android:layout_height="@dimen/layout_item_height"
                     android:layout_marginLeft="@dimen/default_top_margin"
                     android:layout_marginRight="@dimen/default_top_margin"
-                    android:thumb="@drawable/apptheme_switch_inner_holo_light"
-                    android:track="@drawable/apptheme_switch_track_holo_light"
                     android:checked="true"
-                    android:textOn="@string/switch_text_on"
                     android:textOff="@string/switch_text_off"
-                    android:id="@+id/switchRegion" />
+                    android:textOn="@string/switch_text_on"
+                    android:thumb="@drawable/apptheme_switch_inner_holo_light"
+                    android:track="@drawable/apptheme_switch_track_holo_light" />
 
             </LinearLayout>
 
@@ -200,22 +218,22 @@
                     android:id="@+id/lblTokenType"
                     android:layout_width="wrap_content"
                     android:layout_height="@dimen/layout_item_height"
-                    android:textAppearance="?android:attr/textAppearanceButton"
-                    android:padding="6dp"
-                    android:gravity="center_horizontal|center_vertical"
-                    android:textColor="@android:color/white"
                     android:background="@color/default_button_color"
+                    android:gravity="center_horizontal|center_vertical"
+                    android:minWidth="100dp"
+                    android:padding="6dp"
                     android:text="@string/label_token_type"
-                    android:minWidth="100dp" />
+                    android:textAppearance="?android:attr/textAppearanceButton"
+                    android:textColor="@android:color/white" />
 
                 <RelativeLayout
                     android:id="@+id/rlTokenType"
                     android:layout_width="wrap_content"
                     android:layout_height="@dimen/layout_item_height"
+                    android:layout_marginEnd="@dimen/title_margin"
                     android:layout_marginLeft="@dimen/default_top_margin"
                     android:layout_marginRight="@dimen/default_top_margin"
-                    android:background="@android:color/white"
-                    android:layout_marginEnd="@dimen/title_margin">
+                    android:background="@android:color/white">
 
                     <Spinner
                         android:id="@+id/spinnerTokenType"
@@ -229,48 +247,113 @@
             <TextView
                 android:layout_width="wrap_content"
                 android:layout_height="@dimen/layout_item_height"
-                android:textAppearance="?android:attr/textAppearanceButton"
-                android:padding="6dp"
-                android:gravity="center_horizontal|center_vertical"
-                android:textColor="@android:color/white"
-                android:background="@color/default_button_color"
                 android:layout_marginTop="@dimen/default_top_margin"
+                android:background="@color/default_button_color"
+                android:gravity="center_horizontal|center_vertical"
+                android:minWidth="100dp"
+                android:padding="6dp"
+                android:text="@string/label_enter_radiko_user"
+                android:textAppearance="?android:attr/textAppearanceButton"
+                android:textColor="@android:color/white" />
+
+            <LinearLayout
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:gravity="center_vertical"
+                android:orientation="horizontal">
+
+                <RelativeLayout
+                    android:layout_width="0dp"
+                    android:layout_height="wrap_content"
+                    android:layout_weight="1">
+
+                    <EditText
+                        android:id="@+id/txtUserName"
+                        android:layout_width="match_parent"
+                        android:layout_height="@dimen/layout_item_height"
+                        android:layout_marginTop="@dimen/default_top_margin"
+                        android:background="@android:color/white"
+                        android:hint="@string/radiko_email"
+                        android:inputType="textEmailAddress"
+                        android:padding="5dp" />
+
+                    <EditText
+                        android:id="@+id/txtPassword"
+                        android:layout_width="match_parent"
+                        android:layout_height="@dimen/layout_item_height"
+                        android:layout_below="@+id/txtUserName"
+                        android:layout_marginTop="@dimen/default_top_margin"
+                        android:background="@android:color/white"
+                        android:hint="@string/radiko_password"
+                        android:inputType="textPassword"
+                        android:padding="5dp" />
+                </RelativeLayout>
+
+                <Button
+                    android:id="@+id/btCheckLogin"
+                    android:layout_width="wrap_content"
+                    android:layout_height="@dimen/button_big_size"
+                    android:layout_margin="@dimen/title_margin"
+                    android:background="@drawable/rounded_corner_color_button"
+                    android:text="@string/login"
+                    android:textColor="@android:color/white"
+                    android:textSize="@dimen/font_size_description"
+                    android:textStyle="bold" />
+            </LinearLayout>
+
+            <TextView
+                android:layout_width="wrap_content"
+                android:layout_height="@dimen/layout_item_height"
+                android:layout_marginTop="@dimen/default_top_margin"
+                android:background="@color/default_button_color"
+                android:gravity="center_horizontal|center_vertical"
+                android:minWidth="100dp"
+                android:padding="6dp"
                 android:text="@string/label_add_channel"
-                android:minWidth="100dp" />
+                android:textAppearance="?android:attr/textAppearanceButton"
+                android:textColor="@android:color/white" />
 
             <EditText
                 android:id="@+id/txtChannelName"
                 android:layout_width="match_parent"
                 android:layout_height="@dimen/layout_item_height"
                 android:layout_marginTop="@dimen/default_top_margin"
+                android:background="@android:color/white"
                 android:hint="@string/channel_name"
                 android:inputType="text"
-                android:background="@android:color/white" />
+                android:padding="5dp" />
 
             <EditText
                 android:id="@+id/txtChannelURL"
                 android:layout_width="match_parent"
                 android:layout_height="@dimen/layout_item_height"
                 android:layout_marginTop="@dimen/default_top_margin"
+                android:background="@android:color/white"
                 android:hint="@string/url"
                 android:inputType="textUri"
-                android:background="@android:color/white" />
+                android:padding="5dp" />
+
+            <Button
+                android:id="@+id/btnSave"
+                android:layout_width="match_parent"
+                android:layout_height="@dimen/button_big_size"
+                android:layout_margin="@dimen/title_margin"
+                android:background="@drawable/rounded_corner_color_button"
+                android:text="@string/button_save_setting"
+                android:textColor="@android:color/white"
+                android:textSize="@dimen/button_big_font_size"
+                android:textStyle="bold" />
+
+            <Button
+                android:id="@+id/btLoginFacebook"
+                android:layout_width="match_parent"
+                android:layout_height="@dimen/button_big_size"
+                android:layout_margin="@dimen/title_margin"
+                android:background="@drawable/rounded_corner_color_button"
+                android:text="@string/label_login_with_facebook"
+                android:textColor="@android:color/white"
+                android:textSize="@dimen/button_big_font_size"
+                android:textStyle="bold" />
         </LinearLayout>
     </ScrollView>
-
-    <RelativeLayout
-        android:layout_width="match_parent"
-        android:layout_height="wrap_content">
-
-        <Button
-            android:id="@+id/btnSave"
-            android:layout_width="match_parent"
-            android:layout_height="@dimen/button_big_size"
-            android:textStyle="bold"
-            android:text="@string/button_save_setting"
-            android:layout_margin="@dimen/title_margin"
-            android:background="@drawable/rounded_corner_color_button"
-            android:textColor="@android:color/white"
-            android:textSize="@dimen/button_big_font_size" />
-    </RelativeLayout>
 </LinearLayout>

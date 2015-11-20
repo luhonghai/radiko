@@ -1,1 +1,1 @@
-include ':app', ':radioapi', ':radikotoken'
+include ':app', ':radioapi', ':radikotoken', ':jsonsimple'

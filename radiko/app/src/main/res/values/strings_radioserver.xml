@@ -133,4 +133,14 @@
     <string name="debug_library_name">フォルダ %1$d　処理呼び出し</string>
     <string name="debug_channel_name">チャネル %1$d　処理呼び出し</string>
     <string name="debug_recorded_program_name">録音した番組 %1$d　処理呼び出し</string>
+
+    <string name="label_share_facebook_success">Share to Facebook success</string>
+    <string name="label_sharing">Sharing to facebook …</string>
+    <string name="message_not_login_facebook">You must login to share on Facebook</string>
+    <string name="message_not_accept_publish_facebook">You must accept required permission to share on Facebook</string>
+    <string name="message_ask_for_logout_fb">Do you really want to logout Facebook</string>
+    <string name="warning">Warnning</string>
+    <string name="label_no">Cancel</string>
+    <string name="label_yes">Accept</string>
+    <string name="label_cancel">Cancel</string>
 </resources>

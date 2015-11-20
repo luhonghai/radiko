@@ -162,31 +162,31 @@ public abstract class TokenFetcher {
             onTokenListener.onError(message, throwable);
     }
 
-    public static TokenFetcher getTokenFetcher(Context context, OnTokenListener onTokenListener) {
+    public static TokenFetcher getTokenFetcher(Context context, OnTokenListener onTokenListener, String userName, String password) {
         Location location = AndroidUtil.getLastBestLocation(context);
-        return getTokenFetcher(context, onTokenListener, location);
+        return getTokenFetcher(context, onTokenListener, location, userName, password);
     }
 
     public static TokenFetcher getTokenFetcher(Context context, OnTokenListener onTokenListener,
-                                               Location location) {
+                                               Location location, String userName, String password) {
         if (location == null) {
             location = AndroidUtil.getLastBestLocation(context);
         }
         if (location != null) {
-            return getTokenFetcher(context, onTokenListener, location.getLatitude(), location.getLongitude());
+            return getTokenFetcher(context, onTokenListener, location.getLatitude(), location.getLongitude(), userName, password);
         } else {
-            return getTokenFetcher(context, onTokenListener, -1, -1);
+            return getTokenFetcher(context, onTokenListener, -1, -1, userName, password);
         }
     }
 
     public static TokenFetcher getTokenFetcher(Context context, OnTokenListener onTokenListener,
-                                               double latitude, double longitude) {
+                                               double latitude, double longitude, String userName, String password) {
         Setting setting = new Setting(context);
         setting.load();
-        TokenFetcher tokenFetcher = null;
+        TokenFetcher tokenFetcher;
         if (setting.getTokenType() == Setting.TOKEN_TYPE_CLIENT) {
             SimpleAppLog.info("Use client token");
-            tokenFetcher = new ClientTokenFetcher(context, onTokenListener);
+            tokenFetcher = new ClientTokenFetcher(context, onTokenListener, userName, password);
         } else {
             SimpleAppLog.info("Use server token");
             tokenFetcher = new ServerTokenFetcher(context, onTokenListener);

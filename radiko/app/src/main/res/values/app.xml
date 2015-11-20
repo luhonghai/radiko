@@ -1,6 +1,6 @@
 <?xml version="1.0" encoding="utf-8"?>
 <resources>
-    <string name="app_name">Radio Server</string>
+    <string name="app_name">録音ラジオサーバー</string>
     <!-- EN : English -->
     <!-- JA : Japanese -->
     <string name="default_language">JA</string>

@@ -9,6 +9,8 @@ public class Constant {
 
     public static final String ROOT_API_URL = "http://radioserver.mienamthuc.com/api/";
 
+    public static final String ALL_CHANNEL = "http://radioserver.mienamthuc.com/api/channel/all.json";
+
     public static final String API_PROGRAM = "program";
 
     public static final String ARG_PROVIDER = "provider";

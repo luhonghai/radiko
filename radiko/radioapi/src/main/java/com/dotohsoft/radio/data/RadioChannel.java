@@ -12,6 +12,8 @@ public class RadioChannel {
         private String serviceChannelId;
         private String name;
         private String streamURL;
+        private String radikoAreaID;
+        private String regionID;
 
         @Override
         public boolean equals(Object obj) {
@@ -28,6 +30,14 @@ public class RadioChannel {
         public String getService() {
             if (service == null) return "";
             return service;
+        }
+
+        public String getRegionID() {
+            return regionID;
+        }
+
+        public void setRegionID(String regionID) {
+            this.regionID = regionID;
         }
 
         public void setService(String service) {
@@ -56,6 +66,14 @@ public class RadioChannel {
 
         public void setStreamURL(String streamURL) {
             this.streamURL = streamURL;
+        }
+
+        public String getRadikoAreaID() {
+            return radikoAreaID;
+        }
+
+        public void setRadikoAreaID(String area_id) {
+            this.radikoAreaID = area_id;
         }
     }
 

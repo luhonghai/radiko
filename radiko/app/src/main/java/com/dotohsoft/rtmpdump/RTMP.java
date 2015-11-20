@@ -6,8 +6,8 @@ public class RTMP {
     public static int MESSAGE_DEBUG = 2;
 
     static {
-        //  System.loadLibrary("cryptox");
-        //  System.loadLibrary("sslx");
+//        System.loadLibrary("crypto");
+//        System.loadLibrary("ssl");
         System.loadLibrary("rtmp");
         System.loadLibrary("rtmpdump");
     }

@@ -3,6 +3,8 @@ package com.gmail.radioserver2.data;
 import android.content.Context;
 import android.content.SharedPreferences;
 
+import com.gmail.radioserver2.utils.AppDelegate;
+import com.gmail.radioserver2.utils.Constants;
 import com.gmail.radioserver2.utils.SimpleAppLog;
 
 /**
@@ -10,14 +12,14 @@ import com.gmail.radioserver2.utils.SimpleAppLog;
  */
 public class Setting {
 
-    private static final String DEFAULT_SHARED_PREFERENCE = "setting";
-
+    private static final String DEFAULT_SHARED_PREFERENCE = Constants.SHARE_PREF;
     private static final String KEY_SLOW = "slow";
     private static final String KEY_FAST = "fast";
     private static final String KEY_BACK = "back";
     private static final String KEY_REGION = "region";
     private static final String KEY_TOKEN_TYPE = "token_type";
     private static final String KEY_ADS_ID = "ads_id";
+    private static final String KEY_PREMIUM = "is_premium";
 
     public static final float MAX_SLOW_LEVEL = 0.3f;
 
@@ -35,6 +37,7 @@ public class Setting {
 
     public static final int TOKEN_TYPE_SERVER = 1;
 
+
     private final Context context;
 
     private float slowLevel = MIN_SLOW_LEVEL;
@@ -46,6 +49,10 @@ public class Setting {
     private boolean isRegion = true;
 
     private int tokenType;
+    private int defaultVolume;
+    private String radioUser;
+    private String radikoPassword;
+    private boolean isPremium;
 
     public String getAdsId() {
         return adsId;
@@ -66,8 +73,12 @@ public class Setting {
         this.slowLevel = preferences.getFloat(KEY_SLOW, MIN_SLOW_LEVEL);
         this.fastLevel = preferences.getFloat(KEY_FAST, MIN_FAST_LEVEL);
         this.backLength = preferences.getFloat(KEY_BACK, MIN_BACK_LENGTH);
+        this.defaultVolume = preferences.getInt(Constants.KEY_DEFAULT_VOLUME, 0);
         this.isRegion = preferences.getBoolean(KEY_REGION, true);
         this.adsId = preferences.getString(KEY_ADS_ID, "");
+        this.radioUser = preferences.getString(Constants.KEY_USERNAME, "");
+        this.radikoPassword = preferences.getString(Constants.KEY_PASSWORD, "");
+        this.isPremium = preferences.getBoolean(KEY_PREMIUM, false);
         this.setTokenType(preferences.getInt(KEY_TOKEN_TYPE, TOKEN_TYPE_CLIENT));
     }
 
@@ -78,8 +89,14 @@ public class Setting {
         editor.putFloat(KEY_FAST, fastLevel);
         editor.putFloat(KEY_BACK, backLength);
         editor.putBoolean(KEY_REGION, isRegion);
+        editor.putInt(Constants.KEY_DEFAULT_VOLUME, defaultVolume);
         editor.putString(KEY_ADS_ID, adsId);
         editor.putInt(KEY_TOKEN_TYPE, getTokenType());
+        editor.putString(Constants.KEY_USERNAME, radioUser);
+        editor.putString(Constants.KEY_PASSWORD, radikoPassword);
+        editor.putBoolean(KEY_PREMIUM, isPremium);
+        AppDelegate.getInstance().setUserName(radioUser);
+        AppDelegate.getInstance().setPassword(radikoPassword);
         SimpleAppLog.info("slowLevel: " + slowLevel);
         SimpleAppLog.info("fastLevel: " + fastLevel);
         SimpleAppLog.info("backLength: " + backLength);
@@ -150,5 +167,37 @@ public class Setting {
 
     public void setTokenType(int tokenType) {
         this.tokenType = tokenType;
+    }
+
+    public void setDefaultVolume(int defaultVolume) {
+        this.defaultVolume = defaultVolume;
+    }
+
+    public int getDefaultVolume() {
+        return defaultVolume;
+    }
+
+    public void setRadioUser(String radioUser) {
+        this.radioUser = radioUser;
+    }
+
+    public void setRadikoPassword(String radikoPassword) {
+        this.radikoPassword = radikoPassword;
+    }
+
+    public String getRadioUser() {
+        return radioUser;
+    }
+
+    public String getRadikoPassword() {
+        return radikoPassword;
+    }
+
+    public void setPremium(boolean isPremium) {
+        this.isPremium = isPremium;
+    }
+
+    public boolean isPremium() {
+        return isPremium;
     }
 }

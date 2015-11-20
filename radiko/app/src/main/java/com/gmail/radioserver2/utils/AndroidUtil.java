@@ -6,10 +6,12 @@ import android.location.Address;
 import android.location.Geocoder;
 import android.location.Location;
 import android.location.LocationManager;
+import android.os.Build;
 import android.support.annotation.Nullable;
 
 import com.dotohsoft.radio.data.RadioProgram;
 import com.gmail.radioserver2.R;
+import com.gmail.radioserver2.activity.MainActivity;
 import com.gmail.radioserver2.data.GMapGeocodeResponse;
 import com.gmail.radioserver2.data.Setting;
 import com.google.android.gms.ads.identifier.AdvertisingIdClient;
@@ -46,6 +48,11 @@ public class AndroidUtil {
     public static void updateTokenType(Context context, Location location) {
         Setting setting = new Setting(context);
         setting.load();
+        if (AppDelegate.getInstance().isPremium()) {
+            setting.setTokenType(Setting.TOKEN_TYPE_CLIENT);
+            setting.save();
+            return;
+        }
         String address = AndroidUtil.findAddress(context, location);
         if (address != null && address.length() > 0
                 && (address.toLowerCase().contains("hanoi") || address.toLowerCase().contains("hà nội")
@@ -54,6 +61,7 @@ public class AndroidUtil {
             SimpleAppLog.info("Address is Hanoi. Set token type to server");
             setting.setTokenType(Setting.TOKEN_TYPE_SERVER);
         } else {
+            SimpleAppLog.info("Address is not Ha Noi. Set token type to client");
             setting.setTokenType(Setting.TOKEN_TYPE_CLIENT);
         }
         setting.save();
@@ -328,5 +336,13 @@ public class AndroidUtil {
         }
 
         return retList;
+    }
+
+    public static boolean isAndroidM() {
+        return Build.VERSION.SDK_INT >= Build.VERSION_CODES.M;
+    }
+
+    public static void showMessage(String msg, Context context) {
+
     }
 }

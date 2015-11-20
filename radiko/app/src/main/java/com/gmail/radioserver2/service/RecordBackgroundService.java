@@ -42,16 +42,18 @@ public class RecordBackgroundService extends Service implements OnRecordStateCha
     private final int MAX_FILE_SIZE = 2 * 1024 * 1024;
     public static final int PLAYBACK_SERVICE_STATUS = 1;
     public static final String PARAM_TIMER = "param_timer";
-    public static PowerManager.WakeLock mWakeLock;
+    public PowerManager.WakeLock mWakeLock;
     private IMediaPlaybackService mService;
     private MusicUtils.ServiceToken mServiceToken;
-    private WifiManager.WifiLock wifiLock;
+    private WifiManager.WifiLock mWifiLock;
     private MediaRecord mMediaRecord;
+    private IBinder binder;
     private static final LinkedBlockingQueue<Timer> timerLinkedBlockingQueue = new LinkedBlockingQueue<>();
 
     @Override
     public void onCreate() {
         super.onCreate();
+        binder = new RecordServiceBinder();
         mServiceToken = MusicUtils.bindToService(this, this);
     }
 
@@ -61,43 +63,43 @@ public class RecordBackgroundService extends Service implements OnRecordStateCha
 
     @Override
     public int onStartCommand(Intent intent, int flags, int startId) {
-        SimpleAppLog.debug("RECORD: start command");
-        if (isConnectInternet()) {
-            if (intent != null) {
-                Bundle bd = intent.getExtras();
-                if (bd != null) {
+        if (intent != null) {
+            Bundle bd = intent.getExtras();
+            if (bd != null) {
+                SimpleAppLog.debug("RECORD: start command");
+                if (isConnectInternet()) {
                     String strTimer = bd.getString(PARAM_TIMER);
                     Timer selectedTimer = new Gson().fromJson(strTimer, Timer.class);
                     if (selectedTimer != null) {
                         acquireLock();
                         prepareRecord(selectedTimer);
                     }
-                }
-            }
-        } else {
-            File mLogFile;
-            SimpleDateFormat dateFormat = new SimpleDateFormat("yyyy/MM/dd - HH:mm:ss");
-            FileHelper fileHelper = new FileHelper(this);
-            mLogFile = new File(fileHelper.getRecordedProgramFolder(), "record_log.txt");
-            if (mLogFile.exists() && FileUtils.sizeOf(mLogFile) > MAX_FILE_SIZE) {
-                File tempLogFile = new File(fileHelper.getRecordedProgramFolder(), "record_log_1.txt");
-                if (tempLogFile.exists()) {
+                } else {
+                    File mLogFile;
+                    SimpleDateFormat dateFormat = new SimpleDateFormat("yyyy/MM/dd - HH:mm:ss");
+                    FileHelper fileHelper = new FileHelper(this);
+                    mLogFile = new File(fileHelper.getRecordedProgramFolder(), "record_log.txt");
+                    if (mLogFile.exists() && FileUtils.sizeOf(mLogFile) > MAX_FILE_SIZE) {
+                        File tempLogFile = new File(fileHelper.getRecordedProgramFolder(), "record_log_1.txt");
+                        if (tempLogFile.exists()) {
+                            try {
+                                FileUtils.forceDelete(tempLogFile);
+                                mLogFile.renameTo(tempLogFile);
+                            } catch (IOException e) {
+                                e.printStackTrace();
+                            }
+                        } else {
+                            mLogFile.renameTo(tempLogFile);
+                        }
+                    }
                     try {
-                        FileUtils.forceDelete(tempLogFile);
-                        mLogFile.renameTo(tempLogFile);
+                        FileUtils.writeStringToFile(mLogFile, dateFormat.format(new Date(System.currentTimeMillis()))
+                                        + " - No internet connection to do timer task\n",
+                                Charset.forName("US-ASCII"), true);
                     } catch (IOException e) {
                         e.printStackTrace();
                     }
-                } else {
-                    mLogFile.renameTo(tempLogFile);
                 }
-            }
-            try {
-                FileUtils.writeStringToFile(mLogFile, dateFormat.format(new Date(System.currentTimeMillis()))
-                                + " - No internet connection to do timer task\n",
-                        Charset.forName("US-ASCII"), true);
-            } catch (IOException e) {
-                e.printStackTrace();
             }
         }
         return START_STICKY;
@@ -115,11 +117,11 @@ public class RecordBackgroundService extends Service implements OnRecordStateCha
         WifiManager wManager = (WifiManager) getSystemService(Context.WIFI_SERVICE);
         if (wManager.getWifiState() == WifiManager.WIFI_STATE_ENABLED
                 || wManager.getWifiState() == WifiManager.WIFI_STATE_ENABLING) {
-            wifiLock = wManager.createWifiLock(WifiManager.WIFI_MODE_FULL_HIGH_PERF, "record service");
-            wifiLock.setReferenceCounted(true);
+            mWifiLock = wManager.createWifiLock(WifiManager.WIFI_MODE_FULL_HIGH_PERF, "record service");
+            mWifiLock.setReferenceCounted(true);
 
-            if (!wifiLock.isHeld()) {
-                wifiLock.acquire();
+            if (!mWifiLock.isHeld()) {
+                mWifiLock.acquire();
             }
             SimpleAppLog.debug("SERVICE: acquire wifi lock");
         }
@@ -134,24 +136,26 @@ public class RecordBackgroundService extends Service implements OnRecordStateCha
     private void releaseWakeLock() {
         if (mWakeLock != null && mWakeLock.isHeld()) {
             mWakeLock.release();
+            mWakeLock = null;
         }
-        if (wifiLock != null && wifiLock.isHeld()) {
-            wifiLock.release();
+        if (mWifiLock != null && mWifiLock.isHeld()) {
+            mWifiLock.release();
+            mWifiLock = null;
         }
     }
 
     @Override
     public IBinder onBind(Intent intent) {
-        return new RecordServiceBinder();
+        return binder;
     }
 
     @Override
     public void onDestroy() {
+        super.onDestroy();
         unboundService();
         timerLinkedBlockingQueue.clear();
         releaseWakeLock();
         stopForeground(true);
-        super.onDestroy();
         mMediaRecord = null;
     }
 

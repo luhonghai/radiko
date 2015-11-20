@@ -28,7 +28,12 @@ public class Channel extends AbstractData<Channel> {
 
     private String url;
 
+    private String radikoAreaID;
+
+    private String regionID;
+
     private RadioProgram.Program currentProgram;
+    private RadioProgram program;
 
     public String getRecordedName() {
         if (currentProgram == null) {
@@ -59,11 +64,30 @@ public class Channel extends AbstractData<Channel> {
         cv.put(DBAdapter.KEY_TYPE, getType());
         cv.put(DBAdapter.KEY_DESCRIPTION, getDescription());
         cv.put(DBAdapter.KEY_URL, getUrl());
+        cv.put(DBAdapter.KEY_RADIKO_AREA_ID, getRadikoAreaID());
+        cv.put(DBAdapter.KEY_REGION_ID, getRegionID());
         if (getLastPlayedTime() != null)
             cv.put(DBAdapter.KEY_LAST_PLAYED_TIME, DateHelper.convertDateToString(getLastPlayedTime()));
         if (getCreatedDate() != null)
             cv.put(DBAdapter.KEY_CREATED_DATE, DateHelper.convertDateToString(getCreatedDate()));
         return cv;
+    }
+
+    public String getRegionID() {
+        return regionID;
+    }
+
+    public void setRegionID(String regionID) {
+        this.regionID = regionID;
+    }
+
+    public String getRadikoAreaID() {
+        return radikoAreaID;
+    }
+
+    public Channel setRadikoAreaID(String radikoAreaID) {
+        this.radikoAreaID = radikoAreaID;
+        return this;
     }
 
     public String getName() {
@@ -127,5 +151,13 @@ public class Channel extends AbstractData<Channel> {
 
     public void setCurrentProgram(RadioProgram.Program currentProgram) {
         this.currentProgram = currentProgram;
+    }
+
+    public RadioProgram getProgram() {
+        return program;
+    }
+
+    public void setProgram(RadioProgram program) {
+        this.program = program;
     }
 }

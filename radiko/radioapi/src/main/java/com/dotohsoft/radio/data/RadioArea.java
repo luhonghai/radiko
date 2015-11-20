@@ -21,7 +21,8 @@ public class RadioArea {
         return id;
     }
 
-    private RadioArea() {}
+    private RadioArea() {
+    }
 
     public static RadioArea getArea(String rawResponse, String provider) {
         return getArea(rawResponse, provider, null);
@@ -29,8 +30,10 @@ public class RadioArea {
 
     public static RadioArea getArea(String rawResponse, String provider, final APIRequester.RequesterListener requesterListener) {
         RadioArea area = new RadioArea();
-        if (provider == null || rawResponse == null || rawResponse.trim().length() == 0) return null;
-        if (requesterListener != null) requesterListener.onMessage("Validate raw response " + rawResponse + ". Provider: " + provider);
+        if (provider == null || rawResponse == null || rawResponse.trim().length() == 0)
+            return null;
+        if (requesterListener != null)
+            requesterListener.onMessage("Validate raw response " + rawResponse + ". Provider: " + provider);
         area.provider = provider.toLowerCase();
         area.id = AREA_ID_TOKYO;
         if (rawResponse.length() > 0) {
@@ -46,6 +49,10 @@ public class RadioArea {
             if (rAID.length() > 0) {
                 area.id = rAID;
             } else {
+                if (rawResponse.equalsIgnoreCase("JP0")) {
+                    area.id = "JP1";
+                    return area;
+                }
                 if (area.provider.equalsIgnoreCase(RadioProvider.RADIKO))
                     return null;
             }

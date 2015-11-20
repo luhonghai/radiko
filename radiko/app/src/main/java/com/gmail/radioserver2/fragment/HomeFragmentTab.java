@@ -1,132 +1,112 @@
 package com.gmail.radioserver2.fragment;
 
-import android.content.BroadcastReceiver;
-import android.content.Context;
-import android.content.Intent;
-import android.content.IntentFilter;
 import android.os.Bundle;
-import android.os.Handler;
-import android.os.RemoteException;
+import android.support.v4.app.Fragment;
+import android.support.v4.app.FragmentManager;
+import android.text.Editable;
+import android.text.TextWatcher;
 import android.view.LayoutInflater;
 import android.view.View;
 import android.view.ViewGroup;
 import android.widget.Button;
 import android.widget.EditText;
 
-import com.dotohsoft.radio.Constant;
-import com.gmail.radioserver2.adapter.OnListItemActionListener;
-import com.gmail.radioserver2.data.Channel;
-import com.gmail.radioserver2.data.Library;
-import com.gmail.radioserver2.data.sqlite.ext.ChannelDBAdapter;
-import com.gmail.radioserver2.service.TimerBroadcastReceiver;
-import com.gmail.radioserver2.utils.Constants;
-import com.gmail.radioserver2.utils.SimpleAppLog;
-import com.gmail.radioserver2.view.swipelistview.BaseSwipeListViewListener;
-import com.gmail.radioserver2.view.swipelistview.SwipeListView;
 import com.gmail.radioserver2.R;
-import com.gmail.radioserver2.adapter.ChannelAdapter;
+import com.gmail.radioserver2.utils.AppDelegate;
+import com.gmail.radioserver2.view.slidingtab.SlidingTabLayout;
+import com.gmail.radioserver2.view.slidingtab.TabPagerTracking;
 import com.google.android.gms.ads.AdRequest;
 import com.google.android.gms.ads.AdView;
-import com.google.gson.Gson;
 
-import java.util.Collection;
+import java.util.HashMap;
 
 /**
  * Created by luhonghai on 2/18/15.
  */
 
-public class HomeFragmentTab extends FragmentTab implements OnListItemActionListener<Channel>, View.OnClickListener {
-    private SwipeListView listView;
-
+public class HomeFragmentTab extends FragmentTab implements View.OnClickListener, TabPagerTracking.OnTabChange {
     private EditText txtSearch;
     private Button btnSearch;
+    private View btCancelSearch;
+    private FragmentManager mFragmentManager;
+    private AdView mAdView;
+
+    private HashMap<String, ChannelFragmentTab> channelStack;
+    private int mTabPos;
+    private SlidingTabLayout mSlidingTab;
+
 
     @Override
     public void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
-        getActivity().registerReceiver(mHandleAction, new IntentFilter(Constants.INTENT_FILTER_FRAGMENT_ACTION));
+        setRetainInstance(true);
     }
-
-    @Override
-    public void onDestroy() {
-        try {
-            getActivity().unregisterReceiver(mHandleAction);
-        } catch (Exception ex) {
-
-        }
-        super.onDestroy();
-
-    }
-
-    private int openItem = -1;
-    private int lastOpenedItem = -1;
-    private int lastClosedItem = -1;
-
-    private AdView mAdView;
 
     @Override
     public View onCreateView(LayoutInflater inflater, ViewGroup container, Bundle savedInstanceState) {
         super.onCreateView(inflater, container, savedInstanceState);
+        if (savedInstanceState != null) {
+            mTabPos = savedInstanceState.getInt("tabPos");
+        } else {
+            mTabPos = 0;
+        }
         View v = inflater.inflate(R.layout.fragment_home_tab, container, false);
-
         mAdView = (AdView) v.findViewById(R.id.adView);
         if (mAdView != null) {
             AdRequest adRequest = new AdRequest.Builder().build();
             mAdView.loadAd(adRequest);
         }
-
-        listView = (SwipeListView) v.findViewById(R.id.list_channel);
-
-        openItem = -1;
-        lastOpenedItem = -1;
-        lastClosedItem = -1;
-
-        listView.setSwipeListViewListener(new BaseSwipeListViewListener() {
-            @Override
-            public void onOpened(int position, boolean toRight) {
-                lastOpenedItem = position;
-                if (openItem > -1 && lastOpenedItem != lastClosedItem) {
-                    listView.closeAnimate(openItem);
-                }
-                openItem = position;
-            }
-
-            @Override
-            public void onStartClose(int position, boolean right) {
-                lastClosedItem = position;
-            }
-        });
-
         txtSearch = (EditText) v.findViewById(R.id.txtSearch);
+        txtSearch.addTextChangedListener(textSearchChanged);
         btnSearch = (Button) v.findViewById(R.id.btnSearch);
         btnSearch.setOnClickListener(this);
-        loadData();
+        btCancelSearch = v.findViewById(R.id.btCancelSearch);
+        btCancelSearch.setOnClickListener(this);
+        mSlidingTab = (SlidingTabLayout) v.findViewById(R.id.channelTab);
+        View labelSelectChannel = v.findViewById(R.id.labelSelectChannel);
+        TabPagerTracking pagerTracking = new TabPagerTracking();
+        pagerTracking.addTab(new TabPagerTracking.Tab("全て", "all"));
+        if (AppDelegate.getInstance().isPremium()) {
+            labelSelectChannel.setVisibility(View.GONE);
+            mSlidingTab.setVisibility(View.VISIBLE);
+            pagerTracking.addTab(new TabPagerTracking.Tab("全国", "a0"));
+            pagerTracking.addTab(new TabPagerTracking.Tab("北海道・東北", "a1"));
+            pagerTracking.addTab(new TabPagerTracking.Tab("関東", "a2"));
+            pagerTracking.addTab(new TabPagerTracking.Tab("北陸・甲信越", "a3"));
+            pagerTracking.addTab(new TabPagerTracking.Tab("中部", "a4"));
+            pagerTracking.addTab(new TabPagerTracking.Tab("近畿", "a5"));
+            pagerTracking.addTab(new TabPagerTracking.Tab("中国・四国", "a6"));
+            pagerTracking.addTab(new TabPagerTracking.Tab("九州・沖縄", "a7"));
+        } else {
+            labelSelectChannel.setVisibility(View.VISIBLE);
+            mSlidingTab.setVisibility(View.GONE);
+        }
+        channelStack = new HashMap<>();
+        mFragmentManager = getChildFragmentManager();
+        mSlidingTab.setAdapter(pagerTracking);
+        pagerTracking.setTabChange(this);
+        mSlidingTab.selectTab(mTabPos);
         return v;
     }
 
-    private void loadData() {
-        if (listView == null || txtSearch == null) return;
-        ChannelDBAdapter dbAdapter = new ChannelDBAdapter(getActivity());
-        try {
-            dbAdapter.open();
-            Collection<Channel> channels = dbAdapter.search(txtSearch.getText().toString());
-            SimpleAppLog.info("Load " + (channels == null ? 0 : channels.size()) + " channels to listview");
-            Channel[] items;
-            if (channels != null && channels.size() > 0) {
-                items = new Channel[channels.size()];
-                channels.toArray(items);
-            } else {
-                items = new Channel[]{};
-            }
-            ChannelAdapter adapter = new ChannelAdapter(getActivity(), items, this);
-            listView.setAdapter(adapter);
-            listView.dismissSelected();
-            adapter.notifyDataSetChanged();
-        } catch (Exception e) {
-            SimpleAppLog.error("Could not load channel", e);
-        } finally {
-            dbAdapter.close();
+    @Override
+    public void onSaveInstanceState(Bundle outState) {
+        super.onSaveInstanceState(outState);
+        outState.putInt("tabPos", mTabPos);
+    }
+
+    private ChannelFragmentTab getFragment(String tabName) {
+        ChannelFragmentTab frg = channelStack.get(tabName);
+        if (frg == null) {
+            frg = new ChannelFragmentTab();
+            frg.setRadikoRegion(tabName);
+            channelStack.put(tabName, frg);
         }
+        return frg;
+    }
+
+    private void pushFragment(Fragment fragment) {
+        mFragmentManager.beginTransaction().replace(R.id.channelContent, fragment).commit();
     }
 
     @Override
@@ -144,7 +124,6 @@ public class HomeFragmentTab extends FragmentTab implements OnListItemActionList
     @Override
     public void onDestroyView() {
         super.onDestroyView();
-        listView = null;
         btnSearch = null;
         txtSearch = null;
         if (mAdView != null) {
@@ -154,68 +133,62 @@ public class HomeFragmentTab extends FragmentTab implements OnListItemActionList
     }
 
     @Override
-    public void onDeleteItem(Channel obj) {
-        if (openItem > -1 && lastOpenedItem != lastClosedItem) {
-            listView.closeItem(openItem);
-        }
-
-        ChannelDBAdapter adapter = new ChannelDBAdapter(getActivity());
-        try {
-            adapter.open();
-            adapter.delete(obj);
-        } catch (Exception ex) {
-            SimpleAppLog.error("Could not delete channel", ex);
-        } finally {
-            adapter.close();
-        }
-
-        new Handler().postDelayed(new Runnable() {
-            @Override
-            public void run() {
-                loadData();
-            }
-        }, 100);
-    }
-
-    @Override
-    public void onSelectItem(Channel obj) {
-        SimpleAppLog.info("Select item: " + obj.getName());
-        Intent intent = new Intent(Constants.INTENT_FILTER_FRAGMENT_ACTION);
-        intent.putExtra(Constants.FRAGMENT_ACTION_TYPE, Constants.ACTION_SELECT_CHANNEL_ITEM);
-        Gson gson = new Gson();
-        intent.putExtra(Constants.ARG_OBJECT, gson.toJson(obj));
-        getActivity().sendBroadcast(intent);
-    }
-
-    @Override
-    public void onEditItem(Channel obj) {
-
-    }
-
-    @Override
-    public void onSelectIndex(int index) {
-
-    }
-
-    @Override
     public void onClick(View v) {
         switch (v.getId()) {
             case R.id.btnSearch:
-                loadData();
+                SearchFragmentTab searchFragmentTab = new SearchFragmentTab();
+                searchFragmentTab.setSearchStr(txtSearch.getText().toString());
+                searchFragmentTab.setOnSelectedChannelInSearch(onSelectedChannelInSearch);
+                pushFragment(searchFragmentTab);
+                break;
+            case R.id.btCancelSearch:
+                if (txtSearch != null) {
+                    txtSearch.setText("");
+                }
+                if (mSlidingTab != null) {
+                    mSlidingTab.selectTab(mTabPos);
+                }
                 break;
         }
     }
 
-    private final BroadcastReceiver mHandleAction = new BroadcastReceiver() {
+    private SearchFragmentTab.OnSelectedChannelInSearch onSelectedChannelInSearch = new SearchFragmentTab.OnSelectedChannelInSearch() {
         @Override
-        public void onReceive(Context context, Intent intent) {
-            Bundle bundle = intent.getExtras();
-            int type = bundle.getInt(Constants.FRAGMENT_ACTION_TYPE);
-            switch (type) {
-                case Constants.ACTION_RELOAD_LIST:
-                    loadData();
-                    break;
+        public void onSelectedChannel() {
+            if (mSlidingTab != null) {
+                mSlidingTab.selectTab(mTabPos);
             }
+        }
+    };
+
+    @Override
+    public void selectedTab(int pos, TabPagerTracking.Tab tab) {
+        pushFragment(getFragment(tab.getName()));
+        mTabPos = pos;
+    }
+
+    private TextWatcher textSearchChanged = new TextWatcher() {
+        @Override
+        public void beforeTextChanged(CharSequence s, int start, int count, int after) {
+
+        }
+
+        @Override
+        public void onTextChanged(CharSequence s, int start, int before, int count) {
+            if (s.length() == 0) {
+                if (btCancelSearch != null && btCancelSearch.isShown()) {
+                    btCancelSearch.setVisibility(View.GONE);
+                }
+            } else {
+                if (btCancelSearch != null && !btCancelSearch.isShown()) {
+                    btCancelSearch.setVisibility(View.VISIBLE);
+                }
+            }
+        }
+
+        @Override
+        public void afterTextChanged(Editable s) {
+
         }
     };
 }

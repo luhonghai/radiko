@@ -40,7 +40,9 @@ public class ChannelDBAdapter extends DBAdapter<Channel> {
                 KEY_DESCRIPTION,
                 KEY_LAST_PLAYED_TIME,
                 KEY_URL,
-                KEY_CREATED_DATE
+                KEY_CREATED_DATE,
+                KEY_RADIKO_AREA_ID,
+                KEY_REGION_ID
         };
     }
 
@@ -53,6 +55,8 @@ public class ChannelDBAdapter extends DBAdapter<Channel> {
         channel.setType(cursor.getString(cursor.getColumnIndex(KEY_TYPE)));
         channel.setDescription(cursor.getString(cursor.getColumnIndex(KEY_DESCRIPTION)));
         channel.setUrl(cursor.getString(cursor.getColumnIndex(KEY_URL)));
+        channel.setRadikoAreaID(cursor.getString(cursor.getColumnIndex(KEY_RADIKO_AREA_ID)));
+        channel.setRegionID(cursor.getString(cursor.getColumnIndex(KEY_REGION_ID)));
         channel.setLastPlayedTime(DateHelper.convertStringToDate(cursor.getString(cursor.getColumnIndex(KEY_LAST_PLAYED_TIME))));
         channel.setCreatedDate(DateHelper.convertStringToDate(cursor.getString(cursor.getColumnIndex(KEY_CREATED_DATE))));
         return channel;
@@ -115,5 +119,17 @@ public class ChannelDBAdapter extends DBAdapter<Channel> {
             return oldId;
         }
         return super.insert(obj);
+    }
+
+    public Collection<Channel> loadChannelByRadikoRegion(String radikoRegion) throws Exception {
+        if (radikoRegion.equalsIgnoreCase("all")) {
+            return search("");
+        }
+        return toCollection(getDB().query(getTableName(), getAllColumns(),
+                KEY_RADIKO_AREA_ID + " = '" + radikoRegion + "'",
+                null,
+                null,
+                null,
+                KEY_LAST_PLAYED_TIME + " DESC, " + KEY_NAME + " ASC"));
     }
 }

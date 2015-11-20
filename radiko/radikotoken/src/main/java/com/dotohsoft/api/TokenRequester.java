@@ -6,7 +6,10 @@ import org.apache.http.Header;
 import org.apache.http.HttpEntity;
 import org.apache.http.HttpResponse;
 import org.apache.http.HttpVersion;
+import org.apache.http.NameValuePair;
+import org.apache.http.client.ClientProtocolException;
 import org.apache.http.client.HttpClient;
+import org.apache.http.client.entity.UrlEncodedFormEntity;
 import org.apache.http.client.methods.HttpPost;
 import org.apache.http.conn.ClientConnectionManager;
 import org.apache.http.conn.scheme.PlainSocketFactory;
@@ -16,6 +19,7 @@ import org.apache.http.conn.ssl.SSLSocketFactory;
 import org.apache.http.entity.StringEntity;
 import org.apache.http.impl.client.DefaultHttpClient;
 import org.apache.http.impl.conn.tsccm.ThreadSafeClientConnManager;
+import org.apache.http.message.BasicNameValuePair;
 import org.apache.http.params.BasicHttpParams;
 import org.apache.http.params.HttpParams;
 import org.apache.http.params.HttpProtocolParams;
@@ -25,7 +29,10 @@ import java.io.File;
 import java.io.FileInputStream;
 import java.io.IOException;
 import java.io.InputStream;
+import java.io.UnsupportedEncodingException;
 import java.security.KeyStore;
+import java.util.ArrayList;
+import java.util.List;
 
 /**
  * Created by luhonghai on 24/02/2015.
@@ -86,37 +93,35 @@ public class TokenRequester {
 
     private String getHeaderValue(HttpResponse response, String header) {
         Header h = response.getFirstHeader(header);
-        if (h != null) return  h.getValue();
+        if (h != null) return h.getValue();
         return "";
     }
 
 
     public TokenData requestToken() throws IOException {
-        return requestToken(-1, -1);
+        return requestToken(-1, -1, "", "");
     }
 
-    public TokenData requestToken(double lat, double lon) throws IOException {
-        HttpClient httpClient = getNewHttpClient();
+    public TokenData requestToken(double lat, double lon, String username, String password) throws IOException {
+        HttpClient httpClient = loginToRadikoIfNeeded(username, password);
         HttpPost httpPost = new HttpPost("https://radiko.jp/v2/api/auth1_fms");
-        httpPost.setHeader("pragma","no-cache");
+        httpPost.setHeader("pragma", "no-cache");
         httpPost.setHeader("X-Radiko-App", RADIKO_APP);
-        httpPost.setHeader("X-Radiko-App-Version",RADIKO_APP_VERSION);
+        httpPost.setHeader("X-Radiko-App-Version", RADIKO_APP_VERSION);
         httpPost.setHeader("X-Radiko-User", RADIKO_USER);
         httpPost.setHeader("X-Radiko-Device", RADIKO_DEVICE);
-        httpPost.setEntity(new StringEntity("\r\n","UTF-8"));
-
+        httpPost.setEntity(new StringEntity("\r\n", "UTF-8"));
         HttpResponse response = httpClient.execute(httpPost);
-        String authToken =getHeaderValue(response, "x-radiko-authtoken").trim();
+        String authToken = getHeaderValue(response, "x-radiko-authtoken").trim();
         String keyOffset = getHeaderValue(response, "x-radiko-keyoffset").trim();
         String keyLength = getHeaderValue(response, "x-radiko-keylength").trim();
-
         try {
             HttpEntity entity = response.getEntity();
             if (entity != null) {
                 entity.consumeContent();
             }
         } catch (Exception ex) {
-
+            //
         }
         requesterListener.onMessage("authToken: " + authToken);
         requesterListener.onMessage("keyOffset: " + keyOffset);
@@ -132,19 +137,17 @@ public class TokenRequester {
 
             if (partialKey.length() > 0) {
                 httpPost = new HttpPost("https://radiko.jp/v2/api/auth2_fms");
-                httpPost.setHeader("pragma","no-cache");
-                httpPost.setHeader("X-Radiko-App",RADIKO_APP);
-                httpPost.setHeader("X-Radiko-App-Version",RADIKO_APP_VERSION);
-                httpPost.setHeader("X-Radiko-User",RADIKO_USER);
-                httpPost.setHeader("X-Radiko-Device",RADIKO_DEVICE);
-                httpPost.setHeader("X-Radiko-Authtoken",authToken);
-                httpPost.setHeader("X-Radiko-Partialkey",partialKey);
+                httpPost.setHeader("pragma", "no-cache");
+                httpPost.setHeader("X-Radiko-App", RADIKO_APP);
+                httpPost.setHeader("X-Radiko-App-Version", RADIKO_APP_VERSION);
+                httpPost.setHeader("X-Radiko-User", RADIKO_USER);
+                httpPost.setHeader("X-Radiko-Device", RADIKO_DEVICE);
+                httpPost.setHeader("X-Radiko-Authtoken", authToken);
+                httpPost.setHeader("X-Radiko-Partialkey", partialKey);
                 if (lon != -1 && lat != -1) {
                     httpPost.setHeader("X-Radiko-Location", lat + "," + lon + ",gps");
                 }
                 httpPost.setEntity(new StringEntity("\r\n", "UTF-8"));
-
-                httpClient = getNewHttpClient();
                 response = httpClient.execute(httpPost);
                 InputStream is = null;
                 try {
@@ -172,12 +175,46 @@ public class TokenRequester {
                     if (is != null) {
                         try {
                             is.close();
-                        } catch (Exception e) {}
+                        } catch (Exception e) {//}
+                        }
                     }
                 }
             }
         }
         return null;
+    }
+
+    public boolean checkLogin(HttpClient httpClient, String userName, String password) {
+        if (httpClient == null) {
+            httpClient = getNewHttpClient();
+        }
+        if (userName != null && userName.length() != 0
+                && password != null && password.length() != 0) {
+            HttpPost httpPost = new HttpPost("https://radiko.jp/ap/member/login/login");
+            List<NameValuePair> valuePairs = new ArrayList<>();
+            valuePairs.add(new BasicNameValuePair("mail", userName));
+            valuePairs.add(new BasicNameValuePair("pass", password));
+            try {
+                httpPost.setEntity(new UrlEncodedFormEntity(valuePairs, "UTF-8"));
+                HttpResponse response = httpClient.execute(httpPost);
+                HttpEntity entity = response.getEntity();
+                String result = IOUtils.toString(entity.getContent());
+                return !result.contains("/ap/member/login/login");
+            } catch (UnsupportedEncodingException e) {
+                e.printStackTrace();
+            } catch (ClientProtocolException e) {
+                e.printStackTrace();
+            } catch (IOException e) {
+                e.printStackTrace();
+            }
+        }
+        return false;
+    }
+
+    private HttpClient loginToRadikoIfNeeded(String userName, String password) {
+        HttpClient httpClient = getNewHttpClient();
+        checkLogin(httpClient, userName, password);
+        return httpClient;
     }
 
     public String generatePartialKey(int offset, int length) {
@@ -200,21 +237,20 @@ public class TokenRequester {
             return new String(Base64.encodeBase64(bytes), "UTF-8");
         } catch (Exception ex) {
             requesterListener.onError("Could not generate partial key", ex);
-        } finally{
+        } finally {
             if (inputStream != null)
                 try {
                     inputStream.close();
-                } catch (Exception e) {}
+                } catch (Exception e) {
+                }
         }
         return "";
     }
 
     public HttpClient getNewHttpClient() {
         try {
-            KeyStore trustStore = KeyStore.getInstance(KeyStore
-                    .getDefaultType());
+            KeyStore trustStore = KeyStore.getInstance(KeyStore.getDefaultType());
             trustStore.load(null, null);
-
             SSLSocketFactory sf = new MySSLSocketFactory(trustStore);
             sf.setHostnameVerifier(SSLSocketFactory.ALLOW_ALL_HOSTNAME_VERIFIER);
 
@@ -223,13 +259,10 @@ public class TokenRequester {
             HttpProtocolParams.setContentCharset(params, HTTP.UTF_8);
 
             SchemeRegistry registry = new SchemeRegistry();
-            registry.register(new Scheme("http", PlainSocketFactory
-                    .getSocketFactory(), 80));
+            registry.register(new Scheme("http", PlainSocketFactory.getSocketFactory(), 80));
             registry.register(new Scheme("https", sf, 443));
 
-            ClientConnectionManager ccm = new ThreadSafeClientConnManager(
-                    params, registry);
-
+            ClientConnectionManager ccm = new ThreadSafeClientConnManager(params, registry);
             return new DefaultHttpClient(ccm, params);
         } catch (Exception e) {
             return new DefaultHttpClient();
@@ -257,6 +290,6 @@ public class TokenRequester {
                 e.printStackTrace();
             }
         }, new File(keyBin));
-        System.out.println(requester.requestToken(lat, lon));
+        System.out.println(requester.requestToken(lat, lon, "", ""));
     }
 }

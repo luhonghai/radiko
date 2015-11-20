@@ -5,6 +5,7 @@ import android.content.ContentResolver;
 import android.content.Context;
 import android.content.DialogInterface;
 import android.content.Intent;
+import android.content.SharedPreferences;
 import android.location.Location;
 import android.location.LocationListener;
 import android.location.LocationManager;
@@ -19,11 +20,12 @@ import com.gmail.radioserver2.R;
 import com.gmail.radioserver2.analytic.AnalyticHelper;
 import com.gmail.radioserver2.radiko.TokenFetcher;
 import com.gmail.radioserver2.utils.AndroidUtil;
+import com.gmail.radioserver2.utils.AppDelegate;
+import com.gmail.radioserver2.utils.Constants;
 import com.gmail.radioserver2.utils.SimpleAppLog;
 import com.google.android.gms.analytics.ExceptionReporter;
 import com.google.android.gms.analytics.HitBuilders;
 import com.google.android.gms.analytics.Tracker;
-import com.google.android.gms.location.LocationRequest;
 
 import io.fabric.sdk.android.Fabric;
 
@@ -49,12 +51,10 @@ public abstract class BaseFragmentActivity extends SherlockFragmentActivity impl
     };
 
     private Handler handler = new Handler();
-
-    private void updateData() {
+    public void updateData() {
         SimpleAppLog.info("Start update channels");
-        TokenFetcher.getTokenFetcher(this, null, null).clearTokenCache();
-        //updateChannels(AndroidUtil.filterLocation(currentLocation));
-        updateChannels(AndroidUtil.filterLocation(null));
+        TokenFetcher.getTokenFetcher(this, null, null, AppDelegate.getInstance().getUserName(), AppDelegate.getInstance().getPassword()).clearTokenCache();
+        updateChannels(AndroidUtil.filterLocation(currentLocation));
         currentLocation = null;
     }
 
@@ -66,7 +66,6 @@ public abstract class BaseFragmentActivity extends SherlockFragmentActivity impl
         t.send(new HitBuilders.ScreenViewBuilder().build());
         // AndroidUtil.updateLanguage(this);
         Fabric.with(this, new Crashlytics());
-
         Thread.UncaughtExceptionHandler myHandler = new ExceptionReporter(
                 t,
                 Thread.getDefaultUncaughtExceptionHandler(),
@@ -122,10 +121,6 @@ public abstract class BaseFragmentActivity extends SherlockFragmentActivity impl
         SimpleAppLog.info("onLocationChanged " + ((location == null) ? " null" : location.getProvider()));
         handler.removeCallbacks(dataPrepareRunnable);
         handler.postDelayed(dataPrepareRunnable, UPDATE_DATA_TIMEOUT);
-    }
-
-    private void updateSetting() {
-
     }
 
     @Override

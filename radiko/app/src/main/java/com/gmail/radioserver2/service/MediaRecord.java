@@ -2,6 +2,7 @@ package com.gmail.radioserver2.service;
 
 import android.content.Context;
 import android.content.Intent;
+import android.content.SharedPreferences;
 import android.os.AsyncTask;
 import android.os.Handler;
 import android.os.Looper;
@@ -19,6 +20,7 @@ import com.gmail.radioserver2.data.Timer;
 import com.gmail.radioserver2.data.sqlite.ext.RecordedProgramDBAdapter;
 import com.gmail.radioserver2.radiko.TokenFetcher;
 import com.gmail.radioserver2.utils.AndroidUtil;
+import com.gmail.radioserver2.utils.AppDelegate;
 import com.gmail.radioserver2.utils.Constants;
 import com.gmail.radioserver2.utils.FileHelper;
 import com.gmail.radioserver2.utils.SimpleAppLog;
@@ -31,7 +33,6 @@ import java.io.IOException;
 import java.nio.charset.Charset;
 import java.sql.SQLException;
 import java.text.SimpleDateFormat;
-import java.util.ArrayList;
 import java.util.Calendar;
 import java.util.Date;
 import java.util.List;
@@ -219,7 +220,7 @@ public class MediaRecord {
             return;
         }
         timeOutHandler.postDelayed(timeoutRunnable, calFinish.getTimeInMillis() - System.currentTimeMillis());
-        TokenFetcher.getTokenFetcher(mContext, tokenListener).fetch();
+        TokenFetcher.getTokenFetcher(mContext, tokenListener, AppDelegate.getInstance().getUserName(), AppDelegate.getInstance().getPassword()).fetch();
     }
 
     private Runnable timeoutRunnable = new Runnable() {
@@ -287,7 +288,7 @@ public class MediaRecord {
                     for (int i = 0; i < 3; i++) {
                         writeLogFile("Timer recording: try to fetch program #" + (i + 1));
                         try {
-                            radioProgram = requester.getPrograms(rChannel, RadioArea.getArea(rawAreaId, channel.getType()), AndroidUtil.getAdsId(mContext));
+                            radioProgram = requester.getPrograms(rChannel, AndroidUtil.getAdsId(mContext));
                         } catch (IOException e) {
                             SimpleAppLog.error("Could not fetch programs", e);
                             e.printStackTrace();

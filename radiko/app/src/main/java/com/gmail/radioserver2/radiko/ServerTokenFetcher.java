@@ -24,6 +24,7 @@ public class ServerTokenFetcher extends TokenFetcher {
         super(context, onTokenListener);
     }
 
+
     @Override
     public void fetchRemote() {
         final File tmpFile = fileHelper.getTmpTokenFile();
@@ -38,10 +39,7 @@ public class ServerTokenFetcher extends TokenFetcher {
                 token = FileUtils.readFileToString(tmpFile, "UTF-8");
                 SimpleAppLog.info("Found server token: " + token);
                 outpt = RadioArea.AREA_ID_TOKYO;
-            } else {
-
             }
-
         } catch (Exception e) {
             onError("Could not connect to server", e);
         }

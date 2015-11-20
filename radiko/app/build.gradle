@@ -21,10 +21,20 @@ def versionMinor = 0
 def versionPatch = 14
 
 android {
-    compileSdkVersion 21
-    buildToolsVersion "21.1.2"
+//    splits {
+//        abi {
+//            enable true
+//            reset()
+//            include 'x86', 'armeabi-v7a'
+//            universalApk true
+//        }
+//    }
 
+    compileSdkVersion 23
+    buildToolsVersion "23.0.1"
+    useLibrary 'org.apache.http.legacy'
     defaultConfig {
+
 	    versionCode versionMajor * 1000 + versionMinor * 100 + versionPatch
         versionName "${versionMajor}.${versionMinor}.${versionPatch}"
         applicationId "com.gmail.radioserver2"
@@ -42,12 +52,13 @@ android {
 
 dependencies {
     compile 'com.actionbarsherlock:actionbarsherlock:4.4.0@aar'
-    compile 'com.android.support:support-v4:22.0.0'
+    compile 'com.android.support:support-v4:23.1.0'
     compile project(':radikotoken')
     compile project(':radioapi')
     compile 'com.google.code.gson:gson:2.3'
     compile 'com.nineoldandroids:library:2.4.0'
     compile 'com.google.android.gms:play-services:7.0.0'
+    compile 'com.facebook.android:facebook-android-sdk:4.1.0'
     compile('com.crashlytics.sdk.android:crashlytics:2.5.0@aar') {
         transitive = true;
     }

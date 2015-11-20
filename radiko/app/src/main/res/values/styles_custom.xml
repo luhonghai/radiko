@@ -11,4 +11,22 @@
         <item name="android:thumbOffset">6dip</item>
         <item name="android:focusable">true</item>
     </style>
+
+    <style name="text_bold">
+        <item name="android:textStyle">bold</item>
+    </style>
+
+    <style name="text_normal">
+        <item name="android:textStyle">normal</item>
+    </style>
+    <style name="program_list">
+        <item name="android:padding">5dp</item>
+        <item name="android:maxLines">2</item>
+        <item name="android:layout_width">0dp</item>
+        <item name="android:layout_height">wrap_content</item>
+        <item name="android:layout_marginBottom">2dp</item>
+        <item name="android:layout_marginTop">2dp</item>
+        <item name="android:gravity">center_vertical</item>
+        <item name="android:textSize">14sp</item>
+    </style>
 </resources>

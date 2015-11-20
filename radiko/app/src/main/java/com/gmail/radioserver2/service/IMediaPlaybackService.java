@@ -7,6 +7,7 @@ package com.gmail.radioserver2.service;
 import android.os.RemoteException;
 
 public interface IMediaPlaybackService extends android.os.IInterface {
+
     /**
      * Local-side IPC implementation stub class.
      */
@@ -987,6 +988,38 @@ public interface IMediaPlaybackService extends android.os.IInterface {
             }
 
             @Override
+            public boolean isSoundPlaying() throws android.os.RemoteException {
+                android.os.Parcel _data = android.os.Parcel.obtain();
+                android.os.Parcel _reply = android.os.Parcel.obtain();
+                boolean _result;
+                try {
+                    _data.writeInterfaceToken(DESCRIPTOR);
+                    mRemote.transact(Stub.TRANSACTION_getSoundPlaying, _data, _reply, 0);
+                    _reply.readException();
+                    _result = (0 != _reply.readInt());
+                } finally {
+                    _reply.recycle();
+                    _data.recycle();
+                }
+                return _result;
+            }
+
+            @Override
+            public void setSoundPlaying(boolean isPlaying) throws android.os.RemoteException {
+                android.os.Parcel _data = android.os.Parcel.obtain();
+                android.os.Parcel _reply = android.os.Parcel.obtain();
+                try {
+                    _data.writeInterfaceToken(DESCRIPTOR);
+                    _data.writeInt(isPlaying ? 1 : 0);
+                    mRemote.transact(Stub.TRANSACTION_setQueuePosition, _data, _reply, 0);
+                    _reply.readException();
+                } finally {
+                    _reply.recycle();
+                    _data.recycle();
+                }
+            }
+
+            @Override
             public void startRecord(java.lang.String token, java.lang.String filePath) throws android.os.RemoteException {
                 android.os.Parcel _data = android.os.Parcel.obtain();
                 android.os.Parcel _reply = android.os.Parcel.obtain();
@@ -1378,6 +1411,8 @@ public interface IMediaPlaybackService extends android.os.IInterface {
         static final int TRANSACTION_getAudioSessionId = (android.os.IBinder.FIRST_CALL_TRANSACTION + 30);
         static final int TRANSACTION_getMediaUri = (android.os.IBinder.FIRST_CALL_TRANSACTION + 31);
 
+        static final int TRANSACTION_getSoundPlaying = (android.os.IBinder.FIRST_CALL_TRANSACTION + 32);
+        static final int TRANSACTION_setSoundPLaying = (android.os.IBinder.FIRST_CALL_TRANSACTION + 33);
     }
 
     // Added by Hai
@@ -1487,4 +1522,10 @@ public interface IMediaPlaybackService extends android.os.IInterface {
     public int getAudioSessionId() throws android.os.RemoteException;
 
     public java.lang.String getMediaUri() throws android.os.RemoteException;
+
+
+    // add by quan
+    boolean isSoundPlaying() throws android.os.RemoteException;
+
+    void setSoundPlaying(boolean isPlaying) throws android.os.RemoteException;
 }

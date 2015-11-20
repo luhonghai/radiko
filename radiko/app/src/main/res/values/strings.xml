@@ -41,5 +41,22 @@
     <string name="hours"><xliff:g id="hours">%s</xliff:g> hours</string>
     <string name="minute">"1 minute"</string>
     <string name="minutes">"<xliff:g id="minutes">%s</xliff:g> minutes"</string>
+    <string name="label_volume">デフォルト音量</string>
+    <string name="volume_too_low">低音量、聴けない可能性があります</string>
+    <string name="loading">ロード中 &#8230;</string>
+    <string name="choose_program">Choose a program</string>
+    <string name="button_share_facebook">Share</string>
+    <string name="default_program_objId">1665349930372113</string>
+    <string name="label_login_with_facebook">Facebook にログイン</string>
+    <string name="app_id" translatable="false">884488071628837</string>
+    <string name="label_enter_radiko_user">Radikoプレミアム</string>
+    <string name="radiko_email">Radikoユーザ名（メール）</string>
+    <string name="radiko_password">パスワード</string>
+    <string name="got_trouble_while_sharing_facebook">Got some trouble while sharing to facebook</string>
+    <string name="start_check_radiko_account">Radikoプレミアム認証中</string>
+    <string name="login_radiko_success">Radikoプレミアム認証成功しました</string>
+    <string name="login_radiko_failed">Radiko プレミアム認証が失敗しました</string>
+    <string name="log_out">ログアウト</string>
+    <string name="login">ログイン</string>
 
 </resources>

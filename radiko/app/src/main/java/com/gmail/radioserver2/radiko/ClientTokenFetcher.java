@@ -19,8 +19,18 @@ import jp.radiko.k.k;
  */
 public class ClientTokenFetcher extends TokenFetcher {
 
-    public ClientTokenFetcher(Context context, OnTokenListener onTokenListener) {
+
+    private String userName, password;
+
+    public ClientTokenFetcher(Context context, OnTokenListener onTokenListener, String userName, String password) {
         super(context, onTokenListener);
+        this.userName = userName;
+        this.password = password;
+    }
+
+    public boolean checkLogin() {
+        TokenRequester tokenRequester = new TokenRequester(null, null);
+        return tokenRequester.checkLogin(null, userName, password);
     }
 
     @Override
@@ -29,7 +39,6 @@ public class ClientTokenFetcher extends TokenFetcher {
         if (!keyBin.exists()) {
             InputStream is = null;
             try {
-                //is = getContext().getResources().openRawResource(R.raw.key_bin);
                 is = getContext().getResources().openRawResource(R.raw.asmartphone4bin);
                 FileUtils.copyInputStreamToFile(is, keyBin);
             } catch (Exception ex) {
@@ -39,6 +48,7 @@ public class ClientTokenFetcher extends TokenFetcher {
                     if (is != null)
                         is.close();
                 } catch (IOException e) {
+                    //
                 }
             }
         }
@@ -62,13 +72,11 @@ public class ClientTokenFetcher extends TokenFetcher {
         String token = "";
         String output = "";
         try {
-            TokenRequester.TokenData tokenData = requester.requestToken(getLatitude(), getLongitude());
+            TokenRequester.TokenData tokenData = requester.requestToken(getLatitude(), getLongitude(), userName, password);
             if (tokenData != null) {
                 saveToken(tokenData.getToken(), tokenData.getOutput());
                 token = tokenData.getToken();
                 output = tokenData.getOutput();
-            } else {
-
             }
         } catch (Exception e) {
             onError("Could not fetch token", e);

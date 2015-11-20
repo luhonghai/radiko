@@ -55,6 +55,9 @@ public interface IDBAdapter<T> {
 
     public static final String KEY_SECONDARY_MAPPING = "secondary_mapping";
 
+    String KEY_RADIKO_AREA_ID = "radiko_area_id";
+    String KEY_REGION_ID = "region_id";
+
     /**
      * TABLE
      */

@@ -10,11 +10,15 @@ import com.google.gson.Gson;
 import com.google.gson.GsonBuilder;
 
 import org.apache.commons.io.FileUtils;
+import org.json.simple.JSONArray;
+import org.json.simple.JSONObject;
+import org.json.simple.JSONValue;
 import org.jsoup.Jsoup;
 import org.jsoup.nodes.Document;
 import org.jsoup.nodes.Element;
 import org.jsoup.select.Elements;
 
+import java.awt.geom.Area;
 import java.io.File;
 import java.io.IOException;
 import java.net.URL;
@@ -37,10 +41,10 @@ public class APIRequester {
     private Date now;
     private final SimpleDateFormat sdf = new SimpleDateFormat("yyyy-MM-dd-HH", Locale.JAPAN);
 
-    public static interface RequesterListener {
-        public void onMessage(String message);
+    public interface RequesterListener {
+        void onMessage(String message);
 
-        public void onError(String error, Throwable throwable);
+        void onError(String error, Throwable throwable);
     }
 
     private RequesterListener requesterListener;
@@ -71,6 +75,64 @@ public class APIRequester {
         now = cal.getTime();
     }
 
+    public RadioChannel getChannels(String defaultChannelJsonSource) {
+        RadioChannel radioChannel;
+        Gson gson = new Gson();
+        if (defaultChannelJsonSource != null && defaultChannelJsonSource.length() > 0) {
+            radioChannel = gson.fromJson(defaultChannelJsonSource, RadioChannel.class);
+        } else {
+            radioChannel = new RadioChannel();
+        }
+        List<RadioChannel.Channel> channels = radioChannel.getChannels();
+        if (channels == null) {
+            channels = new ArrayList<>();
+        }
+
+        try {
+            File cachedChannelFile = new File(cachedFolder, "channel_all_channel.xml");
+            String cachedJsonString = "";
+            if (requesterListener != null)
+                requesterListener.onMessage("Cached file: " + cachedChannelFile.getAbsolutePath());
+            if (!cachedChannelFile.exists()) {
+                FileUtils.copyURLToFile(new URL(Constant.ALL_CHANNEL), cachedChannelFile);
+                if (cachedChannelFile.exists()) {
+                    cachedJsonString = FileUtils.readFileToString(cachedChannelFile, "UTF-8");
+                    if (cachedJsonString.length() == 0) {
+                        FileUtils.forceDelete(cachedChannelFile);
+                    }
+                }
+            }
+            if (cachedChannelFile.exists()) {
+                if (cachedJsonString.length() == 0) {
+                    cachedJsonString = FileUtils.readFileToString(cachedChannelFile, "UTF-8");
+                }
+                JSONArray jsonArray = (JSONArray) JSONValue.parseWithException(cachedJsonString);
+                if (jsonArray != null && jsonArray.size() > 0) {
+                    if (requesterListener != null)
+                        requesterListener.onMessage("");
+                    for (Object o : jsonArray) {
+                        JSONObject object = (JSONObject) o;
+                        RadioChannel.Channel channel = new RadioChannel.Channel();
+                        channel.setService(RadioProvider.RADIKO);
+                        channel.setServiceChannelId((String) object.get("id"));
+                        channel.setRegionID((String) object.get("pref_id"));
+                        channel.setName((String) object.get("name"));
+                        channel.setStreamURL("rtmpe://f-radiko.smartstream.ne.jp/" + channel.getServiceChannelId() + "/_definst_/simul-stream.stream");
+                        channel.setRadikoAreaID((String) object.get("area_id"));
+                        if (!channels.contains(channel)) {
+                            channels.add(channel);
+                        }
+                    }
+                }
+            }
+        } catch (Exception e) {
+            if (requesterListener != null)
+                requesterListener.onError("Could not fetch channels", e);
+        }
+        radioChannel.setChannels(channels);
+        return radioChannel;
+    }
+
     public RadioChannel getChannels(String rawAreaId, boolean isRegion, String defaultChannelJsonSource) throws IOException {
         RadioChannel radioChannel;
         Gson gson = new Gson();
@@ -82,7 +144,7 @@ public class APIRequester {
 
         List<RadioChannel.Channel> channels = radioChannel.getChannels();
         if (channels == null) {
-            channels = new ArrayList<RadioChannel.Channel>();
+            channels = new ArrayList<>();
         }
 
         getRadikoChannels(channels, RadioArea.getArea(rawAreaId, RadioProvider.RADIKO, requesterListener));
@@ -121,6 +183,8 @@ public class APIRequester {
                             Element station = stations.get(i);
                             RadioChannel.Channel channel = new RadioChannel.Channel();
                             channel.setService(area.getProvider());
+                            channel.setRadikoAreaID("all");
+                            channel.setRegionID(area.getId());
                             channel.setServiceChannelId(station.getElementsByTag("id").text());
                             channel.setName(station.getElementsByTag("name").text());
                             channel.setStreamURL("rtmpe://f-radiko.smartstream.ne.jp/" + channel.getServiceChannelId() + "/_definst_/simul-stream.stream");
@@ -139,19 +203,19 @@ public class APIRequester {
         }
     }
 
-    public RadioProgram getPrograms(RadioChannel.Channel channel, RadioArea area, String adID) throws IOException {
-        if (area == null || area.getId() == null || area.getId().length() == 0 || channel == null)
+    public RadioProgram getPrograms(RadioChannel.Channel channel, String adID) throws IOException {
+        if (channel == null)
             return null;
         SimpleDateFormat simpleDateFormat = new SimpleDateFormat("yyyy-MM-dd");
-        String strCachedFile = "program_" + area.getProvider() + "_" + channel.getServiceChannelId() + "_" + area.getId() + "_" + sdf.format(now) + ".json";
-
+        RadioArea radioArea = RadioArea.getArea(channel.getRegionID(), channel.getService());
+        String strCachedFile = "program_" + radioArea.getProvider() + "_" + channel.getServiceChannelId() + "_" + radioArea.getId() + "_" + sdf.format(now) + ".json";
         File cachedFile = new File(cachedFolder, strCachedFile);
         if (!cachedFile.exists()) {
             String requesturl = Constant.ROOT_API_URL + Constant.API_PROGRAM
-                    + "?" + Constant.ARG_PROVIDER + "=" + area.getProvider()
+                    + "?" + Constant.ARG_PROVIDER + "=" + radioArea.getProvider()
                     + "&" + Constant.ARG_CHANNEL + "=" + URLEncoder.encode(channel.getServiceChannelId(), "UTF-8")
                     + "&" + Constant.ARG_DATE + "=" + URLEncoder.encode(simpleDateFormat.format(now), "UTF-8")
-                    + "&" + Constant.ARG_AREA + "=" + URLEncoder.encode(area.getId(), "UTF-8")
+                    + "&" + Constant.ARG_AREA + "=" + URLEncoder.encode(radioArea.getId(), "UTF-8")
                     + "&AID=" + URLEncoder.encode(adID, "UTF-8");
             URL url = new URL(requesturl);
             if (requesterListener != null)
@@ -163,7 +227,7 @@ public class APIRequester {
                     try {
                         FileUtils.forceDelete(cachedFile);
                     } catch (Exception e) {
-
+//
                     }
                 }
             }
@@ -171,8 +235,7 @@ public class APIRequester {
         if (cachedFile.exists()) {
             String source = FileUtils.readFileToString(cachedFile, "UTF-8");
             Gson gson = new Gson();
-            RadioProgram program = gson.fromJson(source, RadioProgram.class);
-            return program;
+            return gson.fromJson(source, RadioProgram.class);
         } else {
             return null;
         }
@@ -186,7 +249,7 @@ public class APIRequester {
         RadioArea area = RadioArea.getArea("JP13,東京都,tokyo Japan", RadioProvider.RADIKO);
         Gson gson = new GsonBuilder().setPrettyPrinting().create();
 
-        final List<RadioLocation> locations = new ArrayList<RadioLocation>();
+        final List<RadioLocation> locations = new ArrayList<>();
 
         requester.setRequesterListener(new RequesterListener() {
             @Override

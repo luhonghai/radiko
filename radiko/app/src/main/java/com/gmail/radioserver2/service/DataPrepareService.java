@@ -2,10 +2,7 @@ package com.gmail.radioserver2.service;
 
 import android.content.Context;
 import android.content.Intent;
-import android.location.Address;
-import android.location.Geocoder;
 import android.location.Location;
-import android.location.LocationManager;
 
 import com.dotohsoft.radio.api.APIRequester;
 import com.dotohsoft.radio.data.RadioArea;
@@ -15,40 +12,28 @@ import com.dotohsoft.radio.data.RadioProvider;
 import com.gmail.radioserver2.R;
 import com.gmail.radioserver2.analytic.AnalyticHelper;
 import com.gmail.radioserver2.data.Channel;
-import com.gmail.radioserver2.data.GMapGeocodeResponse;
 import com.gmail.radioserver2.data.Setting;
 import com.gmail.radioserver2.data.sqlite.ext.ChannelDBAdapter;
 import com.gmail.radioserver2.radiko.TokenFetcher;
 import com.gmail.radioserver2.utils.AndroidUtil;
+import com.gmail.radioserver2.utils.AppDelegate;
 import com.gmail.radioserver2.utils.Constants;
 import com.gmail.radioserver2.utils.FileHelper;
 import com.gmail.radioserver2.utils.SimpleAppLog;
 import com.google.android.gms.analytics.HitBuilders;
 import com.google.android.gms.analytics.Tracker;
 import com.google.gson.Gson;
-import com.google.gson.GsonBuilder;
 
 import org.apache.commons.io.FileUtils;
 import org.apache.commons.io.IOUtils;
-import org.apache.http.HttpEntity;
-import org.apache.http.HttpResponse;
-import org.apache.http.client.ClientProtocolException;
-import org.apache.http.client.HttpClient;
-import org.apache.http.client.methods.HttpGet;
-import org.apache.http.impl.client.DefaultHttpClient;
-import org.json.JSONArray;
-import org.json.JSONException;
-import org.json.JSONObject;
 
 import java.io.File;
 import java.io.IOException;
 import java.io.InputStream;
 import java.net.URL;
 import java.net.URLEncoder;
-import java.util.ArrayList;
 import java.util.Collection;
 import java.util.List;
-import java.util.Locale;
 
 /**
  * Created by luhonghai on 3/11/15.
@@ -93,7 +78,7 @@ public class DataPrepareService {
             @Override
             public void onTokenFound(String token, String rawAreaId) {
                 SimpleAppLog.info("On token found. Token: " + token + ". Area ID: " + rawAreaId);
-                requestChannels(rawAreaId);
+                requestChannels(token, rawAreaId);
                 t.send(new HitBuilders.EventBuilder()
                         .setCategory(AnalyticHelper.CATEGORY_AREA_ID)
                         .setAction(rawAreaId)
@@ -110,7 +95,7 @@ public class DataPrepareService {
                         .setAction(AnalyticHelper.ACTION_ERROR)
                         .build());
             }
-        }, location);
+        }, location, AppDelegate.getInstance().getUserName(), AppDelegate.getInstance().getPassword());
         tokenFetcher.fetch();
     }
 
@@ -184,7 +169,7 @@ public class DataPrepareService {
         }
     }
 
-    private void requestChannels(String rawAreaId) {
+    private void requestChannels(String token, String rawAreaId) {
         APIRequester apiRequester = new APIRequester(fileHelper.getApiCachedFolder());
         apiRequester.setRequesterListener(new APIRequester.RequesterListener() {
             @Override
@@ -218,8 +203,13 @@ public class DataPrepareService {
         try {
             SimpleAppLog.info("Load default channel: " + defaultChannel);
             SimpleAppLog.info("Raw area ID: " + rawAreaId);
+            SimpleAppLog.info("Token: " + token);
             //rawAreaId = findBestAreaId(rawAreaId);
-            radioChannel = apiRequester.getChannels(rawAreaId, setting.isRegion(), defaultChannel);
+            if (AppDelegate.getInstance().isPremium()) {
+                radioChannel = apiRequester.getChannels(defaultChannel);
+            } else {
+                radioChannel = apiRequester.getChannels(rawAreaId, setting.isRegion(), defaultChannel);
+            }
             submitLocationToRadioServer(rawAreaId);
         } catch (IOException e) {
             SimpleAppLog.error("Could not get channel", e);
@@ -239,6 +229,8 @@ public class DataPrepareService {
                         dbChannel.setType(channel.getService());
                         dbChannel.setUrl(channel.getStreamURL());
                         dbChannel.setKey(channel.getServiceChannelId());
+                        dbChannel.setRadikoAreaID(channel.getRadikoAreaID());
+                        dbChannel.setRegionID(channel.getRegionID());
                         SimpleAppLog.info("Start insert channel " + dbChannel.getName());
                         dbAdapter.insert(dbChannel);
                         if (channels != null && channels.contains(dbChannel)) {
@@ -262,6 +254,5 @@ public class DataPrepareService {
         } finally {
             dbAdapter.close();
         }
-
     }
 }

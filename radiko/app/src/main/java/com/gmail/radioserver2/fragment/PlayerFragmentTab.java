@@ -8,31 +8,31 @@ import android.content.DialogInterface;
 import android.content.Intent;
 import android.content.IntentFilter;
 import android.content.ServiceConnection;
-import android.os.AsyncTask;
 import android.os.Bundle;
 import android.os.Handler;
 import android.os.IBinder;
 import android.os.Message;
 import android.os.RemoteException;
 import android.os.SystemClock;
+import android.util.Log;
 import android.view.LayoutInflater;
 import android.view.View;
 import android.view.ViewGroup;
 import android.webkit.WebView;
 import android.widget.Button;
 import android.widget.ImageButton;
+import android.widget.LinearLayout;
+import android.widget.ListAdapter;
+import android.widget.ListView;
 import android.widget.SeekBar;
 import android.widget.TextView;
 
-import com.dotohsoft.radio.api.APIRequester;
-import com.dotohsoft.radio.data.RadioArea;
-import com.dotohsoft.radio.data.RadioChannel;
 import com.dotohsoft.radio.data.RadioProgram;
 import com.gmail.radioserver2.R;
 import com.gmail.radioserver2.activity.TimerSettingsActivity;
+import com.gmail.radioserver2.adapter.ProgramListAdapter;
 import com.gmail.radioserver2.data.Channel;
 import com.gmail.radioserver2.data.Setting;
-import com.gmail.radioserver2.radiko.TokenFetcher;
 import com.gmail.radioserver2.service.IMediaPlaybackService;
 import com.gmail.radioserver2.service.MediaPlaybackService;
 import com.gmail.radioserver2.service.MusicUtils;
@@ -49,8 +49,11 @@ import org.apache.commons.io.FileUtils;
 import java.io.File;
 import java.io.IOException;
 import java.text.SimpleDateFormat;
+import java.util.ArrayList;
+import java.util.Calendar;
 import java.util.Date;
 import java.util.List;
+import java.util.TimeZone;
 
 /**
  * Created by luhonghai on 2/16/15.
@@ -87,8 +90,7 @@ public class PlayerFragmentTab extends FragmentTab implements ServiceConnection,
     private Button btnSlow;
 
     private Button btnFast;
-
-
+    private View volumeLowIndicator;
     private ImageButton btnPrev;
 
     private ImageButton btnNext;
@@ -101,9 +103,12 @@ public class PlayerFragmentTab extends FragmentTab implements ServiceConnection,
 
     private MusicUtils.ServiceToken mServiceToken;
 
-    private boolean isLoading = false;
-
     private Setting setting;
+    private ListView lvProgramList;
+    private ProgramListAdapter programListAdapter;
+    private LinearLayout btShare;
+    private RadioProgram.Program currentProgram;
+    private View tvLoading;
 
     @Override
     public void onDestroyView() {
@@ -120,6 +125,8 @@ public class PlayerFragmentTab extends FragmentTab implements ServiceConnection,
         btnPrev = null;
         btnNext = null;
         seekBarPlayer = null;
+        lvProgramList = null;
+        btShare = null;
         destroyWebView(gifView);
         gifView = null;
         if (mAdView != null) {
@@ -148,8 +155,9 @@ public class PlayerFragmentTab extends FragmentTab implements ServiceConnection,
         IntentFilter f = new IntentFilter();
         f.addAction(MediaPlaybackService.PLAYSTATE_CHANGED);
         f.addAction(MediaPlaybackService.META_CHANGED);
+        f.addAction(MediaPlaybackService.META_VOLUME_TOO_SMALL);
+        f.addAction(MediaPlaybackService.META_VOLUME_NORMAL);
         getActivity().registerReceiver(mStatusListener, new IntentFilter(f));
-
     }
 
     @Override
@@ -177,12 +185,12 @@ public class PlayerFragmentTab extends FragmentTab implements ServiceConnection,
         }
         setting = new Setting(getActivity());
         setting.load();
+        tvLoading = v.findViewById(R.id.tvLoading);
 
-        isLoading = false;
         gifView = (WebView) v.findViewById(R.id.gifView);
         gifView.setVisibility(View.INVISIBLE);
         loadGifLoader();
-
+        volumeLowIndicator = v.findViewById(R.id.tvWarningVolumeLow);
         btnBack = (ImageButton) v.findViewById(R.id.btnBack);
         btnBack.setOnClickListener(this);
 
@@ -225,6 +233,11 @@ public class PlayerFragmentTab extends FragmentTab implements ServiceConnection,
         txtTitle = (TextView) v.findViewById(R.id.txtTitle);
         txtDescription = (TextView) v.findViewById(R.id.txtDescription);
 
+        lvProgramList = (ListView) v.findViewById(R.id.lvProgram);
+        programListAdapter = new ProgramListAdapter(getActivity());
+        lvProgramList.setAdapter(programListAdapter);
+        btShare = (LinearLayout) v.findViewById(R.id.btShare);
+        btShare.setOnClickListener(this);
         seekBarPlayer = (CustomSeekBar) v.findViewById(R.id.seekBarPlayer);
         seekBarPlayer.setMax(1000);
         seekBarPlayer.setOnSeekBarChangeListener(mSeekListener);
@@ -267,11 +280,75 @@ public class PlayerFragmentTab extends FragmentTab implements ServiceConnection,
         }
     }
 
+    private void showProgramList(RadioProgram programs, boolean refresh) {
+        if (programs != null) {
+            if (programListAdapter.getCount() == 0 || refresh) {
+                List<RadioProgram.Program> list = programs.getPrograms();
+                List<RadioProgram.Program> programList = new ArrayList<>();
+                for (int i = 0; i < 3; i++) {
+                    RadioProgram.Program fake = new RadioProgram.Program();
+                    programList.add(fake);
+                }
+                for (RadioProgram.Program item : list) {
+                    programList.add(item);
+                }
+                for (int i = 0; i < 3; i++) {
+                    RadioProgram.Program fake = new RadioProgram.Program();
+                    programList.add(fake);
+                }
+                programListAdapter.setList(programList);
+                programListAdapter.notifyDataSetChanged();
+                TimeZone tz = TimeZone.getTimeZone("GTM+9");
+                Calendar calNow = Calendar.getInstance(tz);
+                Calendar calFrom = Calendar.getInstance(tz);
+                Calendar calTo = Calendar.getInstance(tz);
+                int index = 0;
+                for (RadioProgram.Program item : programList) {
+                    calFrom.setTimeInMillis(item.getFromTime());
+                    calTo.setTimeInMillis(item.getToTime());
+                    if (calNow.getTimeInMillis() >= calFrom.getTimeInMillis() && calNow.getTimeInMillis() <= calTo.getTimeInMillis()) {
+                        currentProgram = (RadioProgram.Program) programListAdapter.getItem(index);
+                        lvProgramList.setSelection(index);
+                        int height = lvProgramList.getHeight();
+                        int viewHeight = getItemHeightOfListView(lvProgramList, index);
+                        Log.d("View height", height + " " + viewHeight);
+                        lvProgramList.setSelectionFromTop(index + 1, height / 2 - viewHeight / 2);
+                        break;
+                    }
+                    index++;
+                }
+            }
+        }
+    }
+
+    public int getItemHeightOfListView(ListView listView, int items) {
+        ListAdapter mAdapter = listView.getAdapter();
+        int listviewElementsHeight = 0;
+        View childView = mAdapter.getView(items, null, listView);
+        childView.measure(View.MeasureSpec.makeMeasureSpec(0, View.MeasureSpec.UNSPECIFIED),
+                View.MeasureSpec.makeMeasureSpec(0, View.MeasureSpec.UNSPECIFIED));
+        listviewElementsHeight += childView.getMeasuredHeight();
+        return listviewElementsHeight;
+    }
+
     private void showProgramInfo(RadioProgram.Program program) {
         if (program != null) {
             SimpleDateFormat sdf = new SimpleDateFormat("HH:mm");
+            try {
+                if (currentProgram != null) {
+                    if (currentProgram.getFromTime() != program.getFromTime()) {
+                        showProgramList(selectedChannel.getProgram(), true);
+                        SimpleAppLog.info("Change program " + currentProgram.getFromTime()
+                                + " " + sdf.format(new Date(currentProgram.getFromTime()))
+                                + " " + program.getFromTime() + " " + sdf.format(new Date(program.getFromTime())));
+                    }
+                } else {
+                    showProgramList(selectedChannel.getProgram(), true);
+                }
+            } catch (Exception e) {
+                //
+            }
             final StringBuffer sb = new StringBuffer();
-
             sb.append(getString(R.string.current_program)).append(":\n");
             sb.append(program.getTitle()).append("\n");
 
@@ -340,6 +417,20 @@ public class PlayerFragmentTab extends FragmentTab implements ServiceConnection,
             if (txtTitle != null)
                 txtTitle.setText(selectedChannel.getName());
             showProgramInfo(selectedChannel.getCurrentProgram());
+            try {
+                if (mService != null && mService.isStreaming()) {
+                    if (lvProgramList != null) {
+                        lvProgramList.setVisibility(View.VISIBLE);
+                        showProgramList(selectedChannel.getProgram(), false);
+                    }
+                } else {
+                    if (lvProgramList != null) {
+                        lvProgramList.setVisibility(View.GONE);
+                    }
+                }
+            } catch (RemoteException e) {
+                e.printStackTrace();
+            }
         } else {
             if (txtTitle != null)
                 txtTitle.setText("");
@@ -355,6 +446,7 @@ public class PlayerFragmentTab extends FragmentTab implements ServiceConnection,
             btnPlay.setEnabled(false);
             txtPlay.setEnabled(false);
         } catch (Exception e) {
+            //
         }
     }
 
@@ -387,38 +479,40 @@ public class PlayerFragmentTab extends FragmentTab implements ServiceConnection,
             btnNext.setVisibility(View.INVISIBLE);
             btnPrev.setVisibility(View.INVISIBLE);
             seekBarPlayer.setVisibility(View.GONE);
-            gifView.setVisibility(View.GONE);
             seekBarPlayer.setEnabled(false);
-
             if (mService != null) {
                 btnPlay.setEnabled(true);
                 txtPlay.setEnabled(true);
-
                 txtRecord.setText(R.string.button_record);
                 if (mService.isPlaying()) {
-                    isLoading = true;
-
                     if (mService.isStreaming()) {
+                        btnRepeat.setEnabled(!mService.isStreaming());
+                        txtRepeat.setEnabled(!mService.isStreaming());
+                        btnBack.setEnabled(!mService.isStreaming());
+                        txtBack.setEnabled(!mService.isStreaming());
+                        btnFast.setEnabled(!mService.isStreaming());
+                        btnSlow.setEnabled(!mService.isStreaming());
+                        btnPlay.setImageResource(R.drawable.btn_pause);
+                        txtPlay.setText(R.string.button_pause);
+
+                        if (mService.isSoundPlaying()) {
+                            if (tvLoading.isShown()) {
+                                tvLoading.setVisibility(View.GONE);
+                            }
+                            if (!gifView.isShown()) {
+                                gifView.setVisibility(View.VISIBLE);
+                            }
+                        } else {
+                            if (!tvLoading.isShown()) {
+                                tvLoading.setVisibility(View.VISIBLE);
+                            }
+                            if (gifView.isShown()) {
+                                gifView.setVisibility(View.GONE);
+                            }
+                        }
                         btnRepeat.setImageResource(R.drawable.btn_repeat_gray);
                         btnRecord.setImageResource(R.drawable.btn_record);
                         btnBack.setImageResource(R.drawable.btn_back_gray);
-                    } else {
-                        btnRepeat.setImageResource(R.drawable.btn_repeat);
-                        btnBack.setImageResource(R.drawable.btn_back);
-                        btnRecord.setImageResource(R.drawable.btn_record_gray);
-                    }
-
-                    btnRepeat.setEnabled(!mService.isStreaming());
-                    txtRepeat.setEnabled(!mService.isStreaming());
-                    btnBack.setEnabled(!mService.isStreaming());
-                    txtBack.setEnabled(!mService.isStreaming());
-                    btnFast.setEnabled(!mService.isStreaming());
-                    btnSlow.setEnabled(!mService.isStreaming());
-
-                    btnPlay.setImageResource(R.drawable.btn_pause);
-                    txtPlay.setText(R.string.button_pause);
-                    if (mService.isStreaming()) {
-                        gifView.setVisibility(View.VISIBLE);
                         btnRecord.setEnabled(true);
                         txtRecord.setEnabled(true);
                         if (mService.isRecording()) {
@@ -426,12 +520,27 @@ public class PlayerFragmentTab extends FragmentTab implements ServiceConnection,
                             txtRecord.setText(R.string.button_stop);
                         }
                     } else {
+                        if (tvLoading.isShown()) {
+                            tvLoading.setVisibility(View.GONE);
+                        }
+                        if (gifView.isShown()) {
+                            gifView.setVisibility(View.GONE);
+                        }
+                        btnRepeat.setImageResource(R.drawable.btn_repeat);
+                        btnBack.setImageResource(R.drawable.btn_back);
+                        btnRecord.setImageResource(R.drawable.btn_record_gray);
                         seekBarPlayer.setVisibility(View.VISIBLE);
                         seekBarPlayer.setEnabled(true);
                         btnPrev.setVisibility(View.VISIBLE);
                         btnNext.setVisibility(View.VISIBLE);
                     }
                 } else {
+                    if (tvLoading.isShown()) {
+                        tvLoading.setVisibility(View.GONE);
+                    }
+                    if (gifView.isShown()) {
+                        gifView.setVisibility(View.GONE);
+                    }
                     if (mService.getChannelObject() == null || mService.getChannelObject().length() == 0) {
                         btnPlay.setImageResource(R.drawable.btn_pause_gray);
                         txtPlay.setText(R.string.button_pause);
@@ -745,7 +854,17 @@ public class PlayerFragmentTab extends FragmentTab implements ServiceConnection,
                     }
                 }
                 break;
+            case R.id.btShare: {
+                shareProgram();
+            }
+            break;
         }
+    }
+
+    private void shareProgram() {
+        Intent intent = new Intent(Constants.INTENT_FILTER_FRAGMENT_ACTION);
+        intent.putExtra(Constants.FRAGMENT_ACTION_TYPE, Constants.ACTION_SHARE_FACEBOOK);
+        getActivity().sendBroadcast(intent);
     }
 
     @Override
@@ -774,6 +893,16 @@ public class PlayerFragmentTab extends FragmentTab implements ServiceConnection,
                 SimpleAppLog.info("On playstate changed");
                 showPlayer();
                 updateInformation();
+            } else if (action.equals(MediaPlaybackService.META_VOLUME_TOO_SMALL)) {
+                if (volumeLowIndicator != null && !volumeLowIndicator.isShown()) {
+                    volumeLowIndicator.setVisibility(View.VISIBLE);
+                }
+                getActivity().removeStickyBroadcast(intent);
+            } else if (action.equals(MediaPlaybackService.META_VOLUME_NORMAL)) {
+                if (volumeLowIndicator != null && volumeLowIndicator.isShown()) {
+                    volumeLowIndicator.setVisibility(View.GONE);
+                }
+                getActivity().removeStickyBroadcast(intent);
             }
         }
     };
@@ -893,6 +1022,7 @@ public class PlayerFragmentTab extends FragmentTab implements ServiceConnection,
                 try {
                     mService.seek(mPosOverride);
                 } catch (RemoteException ex) {
+                    //
                 }
                 // trackball event, allow progress updates
                 if (!mFromTouch) {
