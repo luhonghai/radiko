@@ -9,6 +9,8 @@ import android.view.ViewGroup;
 import android.widget.Button;
 import android.widget.EditText;
 
+import com.gmail.radioserver2.R;
+import com.gmail.radioserver2.adapter.LibraryAdater;
 import com.gmail.radioserver2.adapter.OnListItemActionListener;
 import com.gmail.radioserver2.data.Library;
 import com.gmail.radioserver2.data.sqlite.ext.LibraryDBAdapter;
@@ -16,8 +18,6 @@ import com.gmail.radioserver2.utils.Constants;
 import com.gmail.radioserver2.utils.SimpleAppLog;
 import com.gmail.radioserver2.view.swipelistview.BaseSwipeListViewListener;
 import com.gmail.radioserver2.view.swipelistview.SwipeListView;
-import com.gmail.radioserver2.R;
-import com.gmail.radioserver2.adapter.LibraryAdapter;
 import com.google.android.gms.ads.AdRequest;
 import com.google.android.gms.ads.AdView;
 import com.google.gson.Gson;
@@ -97,16 +97,10 @@ public class LibraryFragmentTab extends FragmentTab implements OnListItemActionL
         try {
             dbAdapter.open();
             Collection<Library> libraries = dbAdapter.search(txtSearch.getText().toString());
-            Library[] items;
-            if (libraries != null && libraries.size() > 0) {
-                items = new Library[libraries.size()];
-                libraries.toArray(items);
-            } else {
-                items = new Library[]{};
-            }
-            LibraryAdapter adapter = new LibraryAdapter(getActivity(), items, this);
+            LibraryAdater adapter = new LibraryAdater(getActivity());
             listView.setAdapter(adapter);
-            adapter.notifyDataSetChanged();
+            adapter.setOnListItemActionListener(this);
+            adapter.setDataList(libraries);
         } catch (Exception e) {
             SimpleAppLog.error("Could not load library", e);
         } finally {

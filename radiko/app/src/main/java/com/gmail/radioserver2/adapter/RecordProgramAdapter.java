@@ -1,49 +1,46 @@
 package com.gmail.radioserver2.adapter;
 
 import android.content.Context;
-import android.support.annotation.Nullable;
 import android.view.LayoutInflater;
 import android.view.View;
 import android.view.ViewGroup;
 import android.widget.Button;
-import android.widget.CheckBox;
 import android.widget.TextView;
 
 import com.gmail.radioserver2.R;
-import com.gmail.radioserver2.data.Library;
+import com.gmail.radioserver2.data.RecordedProgram;
 import com.gmail.radioserver2.view.swipelistview.SwipeListView;
 
 /**
  * Copyright
  */
-public class LibraryPickerAdapter extends CallBackAdapter<Library> {
-
+public class RecordProgramAdapter extends CallBackAdapter<RecordedProgram> {
     private View.OnClickListener mSelectClick;
     private View.OnClickListener mDeleteClick;
-    private long mSelectedID;
+    private View.OnClickListener mEditClick;
 
-    public LibraryPickerAdapter(Context context) {
+    public RecordProgramAdapter(Context context) {
         super(context);
         initComponent();
     }
 
     private void initComponent() {
-        mSelectedID = -1;
         mSelectClick = new View.OnClickListener() {
             @Override
             public void onClick(View v) {
-                setLastSelected((Long) v.getTag());
+                getListItemActionListener().onSelectItem((RecordedProgram) v.getTag());
             }
         };
-
+        mEditClick = new View.OnClickListener() {
+            @Override
+            public void onClick(View v) {
+                getListItemActionListener().onEditItem((RecordedProgram) v.getTag());
+            }
+        };
         mDeleteClick = new View.OnClickListener() {
             @Override
             public void onClick(View v) {
-                long itemID = (long) v.getTag();
-                if (itemID == mSelectedID) {
-                    mSelectedID = -1;
-                }
-                removeItemAtID(itemID);
+                getListItemActionListener().onDeleteItem((RecordedProgram) v.getTag());
             }
         };
     }
@@ -53,11 +50,11 @@ public class LibraryPickerAdapter extends CallBackAdapter<Library> {
         ViewHolder holder;
         if (convertView == null) {
             LayoutInflater li = (LayoutInflater) getContext().getSystemService(Context.LAYOUT_INFLATER_SERVICE);
-            convertView = li.inflate(R.layout.list_item_library_picker, parent, false);
+            convertView = li.inflate(R.layout.list_item_recorded_program, parent, false);
             holder = new ViewHolder();
             holder.txtTitle = (TextView) convertView.findViewById(R.id.txtTitle);
             holder.btnDelete = (Button) convertView.findViewById(R.id.btnDelete);
-            holder.cbxSelectLib = (CheckBox) convertView.findViewById(R.id.cbxSelectLib);
+            holder.btnEdit = (Button) convertView.findViewById(R.id.btnEdit);
             convertView.setTag(holder);
         } else {
             holder = (ViewHolder) convertView.getTag();
@@ -65,34 +62,20 @@ public class LibraryPickerAdapter extends CallBackAdapter<Library> {
         if (parent instanceof SwipeListView) {
             ((SwipeListView) parent).recycle(convertView, position);
         }
-        if (mSelectedID == -1) {
-            mSelectedID = getItemId(0);
-        }
-        Library object = getItem(position);
+        RecordedProgram object = getItem(position);
         holder.txtTitle.setText(object.toPrettyString(getContext()));
-        holder.txtTitle.setTag(object.getId());
-        holder.btnDelete.setTag(object.getId());
-        holder.cbxSelectLib.setTag(object.getId());
-        holder.cbxSelectLib.setChecked(mSelectedID == getItemId(position));
-        holder.txtTitle.setOnClickListener(mSelectClick);
-        holder.cbxSelectLib.setOnClickListener(mSelectClick);
+        holder.txtTitle.setTag(object);
+        holder.btnDelete.setTag(object);
+        holder.btnEdit.setTag(object);
         holder.btnDelete.setOnClickListener(mDeleteClick);
+        holder.txtTitle.setOnClickListener(mSelectClick);
+        holder.btnEdit.setOnClickListener(mEditClick);
         return convertView;
-    }
-
-    public void setLastSelected(long selected) {
-        mSelectedID = selected;
-        notifyDataSetChanged();
-    }
-
-    @Nullable
-    public Library getLastSelected() {
-        return getItemWidthID(mSelectedID);
     }
 
     class ViewHolder {
         TextView txtTitle;
         Button btnDelete;
-        CheckBox cbxSelectLib;
+        Button btnEdit;
     }
 }

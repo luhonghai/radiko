@@ -2,7 +2,6 @@ package com.gmail.radioserver2.service;
 
 import android.content.Context;
 import android.content.Intent;
-import android.content.SharedPreferences;
 import android.os.AsyncTask;
 import android.os.Handler;
 import android.os.Looper;
@@ -10,7 +9,6 @@ import android.os.RemoteException;
 import android.support.annotation.Nullable;
 
 import com.dotohsoft.radio.api.APIRequester;
-import com.dotohsoft.radio.data.RadioArea;
 import com.dotohsoft.radio.data.RadioChannel;
 import com.dotohsoft.radio.data.RadioProgram;
 import com.gmail.radioserver2.BuildConfig;
@@ -20,7 +18,6 @@ import com.gmail.radioserver2.data.Timer;
 import com.gmail.radioserver2.data.sqlite.ext.RecordedProgramDBAdapter;
 import com.gmail.radioserver2.radiko.TokenFetcher;
 import com.gmail.radioserver2.utils.AndroidUtil;
-import com.gmail.radioserver2.utils.AppDelegate;
 import com.gmail.radioserver2.utils.Constants;
 import com.gmail.radioserver2.utils.FileHelper;
 import com.gmail.radioserver2.utils.SimpleAppLog;
@@ -220,7 +217,7 @@ public class MediaRecord {
             return;
         }
         timeOutHandler.postDelayed(timeoutRunnable, calFinish.getTimeInMillis() - System.currentTimeMillis());
-        TokenFetcher.getTokenFetcher(mContext, tokenListener, AppDelegate.getInstance().getUserName(), AppDelegate.getInstance().getPassword()).fetch();
+        TokenFetcher.getTokenFetcher(mContext, tokenListener).fetch();
     }
 
     private Runnable timeoutRunnable = new Runnable() {
@@ -282,8 +279,9 @@ public class MediaRecord {
                     RadioChannel.Channel rChannel = new RadioChannel.Channel();
                     rChannel.setName(channel.getName());
                     rChannel.setService(channel.getType());
-                    rChannel.setServiceChannelId(channel.getUrl());
+                    rChannel.setStreamURL(channel.getUrl());
                     rChannel.setServiceChannelId(channel.getKey());
+                    rChannel.setRegionID(channel.getRegionID());
                     RadioProgram radioProgram = null;
                     for (int i = 0; i < 3; i++) {
                         writeLogFile("Timer recording: try to fetch program #" + (i + 1));

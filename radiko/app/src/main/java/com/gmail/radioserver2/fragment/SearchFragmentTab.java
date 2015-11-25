@@ -24,15 +24,10 @@ public class SearchFragmentTab extends ChannelFragmentTab {
             dbAdapter.open();
             Collection<Channel> channels = dbAdapter.search(searchStr);
             SimpleAppLog.info("Load " + (channels == null ? 0 : channels.size()) + " channels to listview");
-            Channel[] items;
-            if (channels != null && channels.size() > 0) {
-                items = new Channel[channels.size()];
-                channels.toArray(items);
-            } else {
-                items = new Channel[]{};
-            }
-            ChannelAdapter adapter = new ChannelAdapter(getActivity(), items, this);
+            ChannelAdapter adapter = new ChannelAdapter(getContext());
             listView.setAdapter(adapter);
+            adapter.setDataList(channels);
+            adapter.setOnListItemActionListener(this);
             listView.dismissSelected();
             adapter.notifyDataSetChanged();
         } catch (Exception e) {

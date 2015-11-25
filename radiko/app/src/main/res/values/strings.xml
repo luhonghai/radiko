@@ -42,7 +42,7 @@
     <string name="minute">"1 minute"</string>
     <string name="minutes">"<xliff:g id="minutes">%s</xliff:g> minutes"</string>
     <string name="label_volume">デフォルト音量</string>
-    <string name="volume_too_low">低音量、聴けない可能性があります</string>
+    <string name="volume_too_low">デフォルト音量が設定されています。音量を上げてみてください。</string>
     <string name="loading">ロード中 &#8230;</string>
     <string name="choose_program">Choose a program</string>
     <string name="button_share_facebook">Share</string>
@@ -58,5 +58,8 @@
     <string name="login_radiko_failed">Radiko プレミアム認証が失敗しました</string>
     <string name="log_out">ログアウト</string>
     <string name="login">ログイン</string>
+    <string name="radiko_premium_support_warning">録音ラジオサーバーでは、Radikoプレミアムへの対応を
+開始しました。\n\nRadikoプレミアムに加入されている方は、下記からログインして下さい。</string>
+    <string name="dont_ask_again">次回から、この画面を表示しない。</string>
 
 </resources>

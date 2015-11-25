@@ -60,33 +60,28 @@
                         android:textSize="@dimen/font_size_description" />
                 </LinearLayout>
 
-                <View
-                    android:layout_width="1dp"
-                    android:layout_height="fill_parent"
-                    android:layout_marginLeft="@dimen/default_screen_padding"
-                    android:layout_marginRight="@dimen/default_screen_padding"
-                    android:background="@color/divider_dark_theme" />
-
                 <LinearLayout
                     android:id="@+id/btShare"
                     android:layout_width="wrap_content"
                     android:layout_height="wrap_content"
-                    android:layout_alignParentRight="true"
-                    android:layout_alignTop="@+id/programInfo"
+                    android:layout_marginLeft="@dimen/default_screen_padding"
+                    android:layout_marginStart="@dimen/default_screen_padding"
                     android:background="@drawable/gray_state_button"
                     android:gravity="center_vertical"
                     android:orientation="horizontal"
-                    android:padding="@dimen/default_screen_padding">
+                    android:padding="@dimen/default_screen_padding"
+                    android:visibility="gone">
 
                     <ImageView
                         android:layout_width="30dp"
                         android:layout_height="30dp"
-                        android:src="@drawable/icon_facebook" />
+                        android:src="@drawable/ic_action_share" />
 
                     <TextView
                         android:layout_width="wrap_content"
                         android:layout_height="wrap_content"
                         android:layout_marginLeft="@dimen/default_screen_padding"
+                        android:layout_marginStart="@dimen/default_screen_padding"
                         android:gravity="center"
                         android:text="@string/button_share_facebook"
                         android:textColor="@color/text_dark_theme" />

@@ -1,10 +1,6 @@
 package com.gmail.radioserver2.fragment;
 
-import android.app.Activity;
-import android.content.Context;
 import android.content.Intent;
-import android.media.AudioManager;
-import android.os.AsyncTask;
 import android.os.Bundle;
 import android.view.LayoutInflater;
 import android.view.View;
@@ -14,19 +10,15 @@ import android.widget.SeekBar;
 import android.widget.Spinner;
 import android.widget.Switch;
 import android.widget.TextView;
-import android.widget.Toast;
 
 import com.facebook.AccessToken;
 import com.facebook.Profile;
 import com.facebook.ProfileTracker;
 import com.gmail.radioserver2.R;
-import com.gmail.radioserver2.activity.BaseFragmentActivity;
 import com.gmail.radioserver2.activity.MainActivity;
 import com.gmail.radioserver2.data.Channel;
 import com.gmail.radioserver2.data.Setting;
 import com.gmail.radioserver2.data.sqlite.ext.ChannelDBAdapter;
-import com.gmail.radioserver2.radiko.ClientTokenFetcher;
-import com.gmail.radioserver2.utils.AppDelegate;
 import com.gmail.radioserver2.utils.Constants;
 import com.gmail.radioserver2.utils.SimpleAppLog;
 import com.gmail.radioserver2.view.CustomSeekBar;
@@ -40,7 +32,6 @@ import java.util.Date;
 public class SettingFragmentTab extends FragmentTab implements View.OnClickListener {
 
     private static final int MAX_PROCESS = 100;
-    private int MAX_VOLUME = 0;
 
     private CustomSeekBar seekBarFastLevel;
     private CustomSubSeekBar subSeekBarFastLevel;
@@ -52,18 +43,18 @@ public class SettingFragmentTab extends FragmentTab implements View.OnClickListe
     private CustomSubSeekBar subSeekBarLength;
 
     private CustomSeekBar seekBarDefaultVolume;
+    private CustomSubSeekBar subSeekBarDefaultVolume;
 
     private EditText txtChannelName;
     private EditText txtChannelURL;
-    private EditText txtRadikoUser;
-    private EditText txtRadikoPassword;
-    private TextView btLogInLogOutPremium;
+//    private EditText txtRadikoUser;
+//    private EditText txtRadikoPassword;
+//    private TextView btLogInLogOutPremium;
 
     private Spinner spinnerTokenType;
 
     private Switch switchRegion;
 
-    private AudioManager audioManager;
     private TextView btLoginFacebook;
 
     @Override
@@ -71,8 +62,6 @@ public class SettingFragmentTab extends FragmentTab implements View.OnClickListe
         super.onCreateView(inflater, container, savedInstanceState);
         View v = inflater.inflate(R.layout.fragment_setting, container, false);
         v.findViewById(R.id.btnSave).setOnClickListener(this);
-        audioManager = (AudioManager) getActivity().getSystemService(Context.AUDIO_SERVICE);
-        MAX_VOLUME = audioManager.getStreamMaxVolume(AudioManager.STREAM_MUSIC);
         seekBarFastLevel = (CustomSeekBar) v.findViewById(R.id.seekBarFastLevel);
         seekBarSlowLevel = (CustomSeekBar) v.findViewById(R.id.seekBarSlowLevel);
         seekBarBackLength = (CustomSeekBar) v.findViewById(R.id.seekBarBackLength);
@@ -82,16 +71,17 @@ public class SettingFragmentTab extends FragmentTab implements View.OnClickListe
         subSeekBarLength = (CustomSubSeekBar) v.findViewById(R.id.subSeekBarBackLength);
 
         seekBarDefaultVolume = (CustomSeekBar) v.findViewById(R.id.seekBarDefaultVolume);
+        subSeekBarDefaultVolume = (CustomSubSeekBar) v.findViewById(R.id.subSeekBarDefaultVolume);
         txtChannelName = (EditText) v.findViewById(R.id.txtChannelName);
         txtChannelURL = (EditText) v.findViewById(R.id.txtChannelURL);
-        txtRadikoUser = (EditText) v.findViewById(R.id.txtUserName);
-        txtRadikoPassword = (EditText) v.findViewById(R.id.txtPassword);
-        btLogInLogOutPremium = (TextView) v.findViewById(R.id.btCheckLogin);
+//        txtRadikoUser = (EditText) v.findViewById(R.id.txtUserName);
+//        txtRadikoPassword = (EditText) v.findViewById(R.id.txtPassword);
+//        btLogInLogOutPremium = (TextView) v.findViewById(R.id.btCheckLogin);
         switchRegion = (Switch) v.findViewById(R.id.switchRegion);
         spinnerTokenType = (Spinner) v.findViewById(R.id.spinnerTokenType);
         v.findViewById(R.id.lblTokenType).setVisibility(getResources().getBoolean(R.bool.is_debug_mode) ? View.VISIBLE : View.GONE);
         v.findViewById(R.id.rlTokenType).setVisibility(getResources().getBoolean(R.bool.is_debug_mode) ? View.VISIBLE : View.GONE);
-        v.findViewById(R.id.btCheckLogin).setOnClickListener(this);
+//        v.findViewById(R.id.btCheckLogin).setOnClickListener(this);
         initSeekbar();
         loadData();
         btLoginFacebook = (TextView) v.findViewById(R.id.btLoginFacebook);
@@ -131,6 +121,7 @@ public class SettingFragmentTab extends FragmentTab implements View.OnClickListe
         String[] slowStep = new String[]{"x0.9", "x0.7", "x0.5", "x0.3"};
         String[] fastStep = new String[]{"x1.3", "x1.5", "x1.7", "x2.0"};
         String[] backStep = new String[]{"10s", "7s", "5s", "3s"};
+        String[] volumeStep = new String[]{"0%", "33%", "66%", "100%"};
         seekBarSlowLevel.setMax(MAX_PROCESS);
         seekBarSlowLevel.setItems(slowStep);
         seekBarSlowLevel.setOnSeekBarChangeListener(mSeekListener);
@@ -151,7 +142,13 @@ public class SettingFragmentTab extends FragmentTab implements View.OnClickListe
         seekBarBackLength.invalidate();
         subSeekBarLength.setItems(backStep);
         subSeekBarLength.invalidate();
-        seekBarDefaultVolume.setMax(MAX_VOLUME);
+
+        seekBarDefaultVolume.setMax(MAX_PROCESS);
+        seekBarDefaultVolume.setItems(volumeStep);
+        seekBarDefaultVolume.setOnSeekBarChangeListener(mSeekListener);
+        seekBarDefaultVolume.invalidate();
+        subSeekBarDefaultVolume.setItems(volumeStep);
+        subSeekBarDefaultVolume.invalidate();
     }
 
     private void loadData() {
@@ -163,21 +160,21 @@ public class SettingFragmentTab extends FragmentTab implements View.OnClickListe
         seekBarDefaultVolume.setProgress(setting.getDefaultVolume());
         switchRegion.setChecked(setting.isRegion());
         spinnerTokenType.setSelection(setting.getTokenType());
-        txtRadikoUser.setText(setting.getRadioUser());
-        txtRadikoPassword.setText(setting.getRadikoPassword());
-        if (setting.isPremium()) {
-            AppDelegate.getInstance().setPremium(true);
-            txtRadikoUser.setClickable(false);
-            txtRadikoUser.setEnabled(false);
-            txtRadikoPassword.setVisibility(View.GONE);
-            btLogInLogOutPremium.setText(R.string.log_out);
-        } else {
-            AppDelegate.getInstance().setPremium(false);
-            txtRadikoUser.setClickable(true);
-            txtRadikoUser.setEnabled(true);
-            txtRadikoPassword.setVisibility(View.VISIBLE);
-            btLogInLogOutPremium.setText(R.string.login);
-        }
+//        txtRadikoUser.setText(setting.getRadioUser());
+//        txtRadikoPassword.setText(setting.getRadikoPassword());
+//        if (setting.isPremium()) {
+//            AppDelegate.getInstance().setPremium(true);
+//            txtRadikoUser.setClickable(false);
+//            txtRadikoUser.setEnabled(false);
+//            txtRadikoPassword.setVisibility(View.GONE);
+//            btLogInLogOutPremium.setText(R.string.log_out);
+//        } else {
+//            AppDelegate.getInstance().setPremium(false);
+//            txtRadikoUser.setClickable(true);
+//            txtRadikoUser.setEnabled(true);
+//            txtRadikoPassword.setVisibility(View.VISIBLE);
+//            btLogInLogOutPremium.setText(R.string.login);
+//        }
     }
 
     private void saveData() {
@@ -188,8 +185,8 @@ public class SettingFragmentTab extends FragmentTab implements View.OnClickListe
         setting.setRegion(switchRegion.isChecked());
         setting.setTokenType(spinnerTokenType.getSelectedItemPosition());
         setting.setDefaultVolume(seekBarDefaultVolume.getProgress());
-        setting.setRadioUser(txtRadikoUser.getText().toString());
-        setting.setRadikoPassword(txtRadikoPassword.getText().toString());
+//        setting.setRadioUser(txtRadikoUser.getText().toString());
+//        setting.setRadikoPassword(txtRadikoPassword.getText().toString());
         setting.save();
         String channelName = txtChannelName.getText().toString().trim();
         String channelURL = txtChannelURL.getText().toString().trim();
@@ -244,77 +241,77 @@ public class SettingFragmentTab extends FragmentTab implements View.OnClickListe
                 getActivity().sendBroadcast(intent1);
                 break;
             case R.id.btCheckLogin: {
-                final Setting setting = new Setting(getContext());
-                setting.load();
-                if (setting.isPremium()) {
-                    AppDelegate.getInstance().setPremium(false);
-                    AppDelegate.getInstance().setPassword("");
-                    AppDelegate.getInstance().setUserName("");
-                    txtRadikoUser.setClickable(true);
-                    txtRadikoUser.setEnabled(true);
-                    txtRadikoPassword.setVisibility(View.VISIBLE);
-                    btLogInLogOutPremium.setText(R.string.login);
-                    setting.setRadikoPassword("");
-                    setting.setRadioUser("");
-                    setting.setPremium(false);
-                    setting.save();
-                    Activity activity = getActivity();
-                    if (activity instanceof BaseFragmentActivity) {
-                        try {
-                            ((BaseFragmentActivity) activity).updateData();
-                        } catch (Exception e) {
-                            e.printStackTrace();
-                        }
-                    }
-                } else {
-                    final ClientTokenFetcher tokenFetcher = new ClientTokenFetcher(null, null, txtRadikoUser.getText().toString(), txtRadikoPassword.getText().toString());
-                    new AsyncTask<Void, Void, Boolean>() {
-                        @Override
-                        protected void onPreExecute() {
-                            Toast.makeText(getContext(), R.string.start_check_radiko_account, Toast.LENGTH_LONG).show();
-                        }
-
-                        @Override
-                        protected Boolean doInBackground(Void... params) {
-                            return tokenFetcher.checkLogin();
-                        }
-
-                        @Override
-                        protected void onPostExecute(Boolean aBoolean) {
-                            if (aBoolean != null) {
-                                setting.load();
-                                if (aBoolean) {
-                                    AppDelegate.getInstance().setPremium(true);
-                                    AppDelegate.getInstance().setUserName(txtRadikoUser.getText().toString());
-                                    AppDelegate.getInstance().setPassword(txtRadikoPassword.getText().toString());
-                                    Toast.makeText(getContext(), R.string.login_radiko_success, Toast.LENGTH_LONG).show();
-                                    setting.setRadioUser(txtRadikoUser.getText().toString());
-                                    setting.setRadikoPassword(txtRadikoPassword.getText().toString());
-                                    setting.setPremium(true);
-                                    setting.save();
-                                    txtRadikoUser.setClickable(false);
-                                    txtRadikoUser.setEnabled(false);
-                                    txtRadikoPassword.setVisibility(View.GONE);
-                                    btLogInLogOutPremium.setText(R.string.log_out);
-                                    Activity activity = getActivity();
-                                    if (activity instanceof BaseFragmentActivity) {
-                                        try {
-                                            ((BaseFragmentActivity) activity).updateData();
-                                        } catch (Exception e) {
-                                            e.printStackTrace();
-                                        }
-                                    }
-                                } else {
-                                    Toast.makeText(getContext(), R.string.login_radiko_failed, Toast.LENGTH_LONG).show();
-                                    setting.setRadioUser("");
-                                    setting.setRadikoPassword("");
-                                    setting.setPremium(false);
-                                    setting.save();
-                                }
-                            }
-                        }
-                    }.execute();
-                }
+//                final Setting setting = new Setting(getContext());
+//                setting.load();
+//                if (setting.isPremium()) {
+//                    AppDelegate.getInstance().setPremium(false);
+//                    AppDelegate.getInstance().setPassword("");
+//                    AppDelegate.getInstance().setUserName("");
+//                    txtRadikoUser.setClickable(true);
+//                    txtRadikoUser.setEnabled(true);
+//                    txtRadikoPassword.setVisibility(View.VISIBLE);
+//                    btLogInLogOutPremium.setText(R.string.login);
+//                    setting.setRadikoPassword("");
+//                    setting.setRadioUser("");
+//                    setting.setPremium(false);
+//                    setting.save();
+//                    Activity activity = getActivity();
+//                    if (activity instanceof BaseFragmentActivity) {
+//                        try {
+//                            ((BaseFragmentActivity) activity).updateData();
+//                        } catch (Exception e) {
+//                            e.printStackTrace();
+//                        }
+//                    }
+//                } else {
+//                    final ClientTokenFetcher tokenFetcher = new ClientTokenFetcher(null, null, txtRadikoUser.getText().toString(), txtRadikoPassword.getText().toString());
+//                    new AsyncTask<Void, Void, Boolean>() {
+//                        @Override
+//                        protected void onPreExecute() {
+//                            Toast.makeText(getContext(), R.string.start_check_radiko_account, Toast.LENGTH_LONG).show();
+//                        }
+//
+//                        @Override
+//                        protected Boolean doInBackground(Void... params) {
+//                            return tokenFetcher.checkLogin();
+//                        }
+//
+//                        @Override
+//                        protected void onPostExecute(Boolean aBoolean) {
+//                            if (aBoolean != null) {
+//                                setting.load();
+//                                if (aBoolean) {
+//                                    AppDelegate.getInstance().setPremium(true);
+//                                    AppDelegate.getInstance().setUserName(txtRadikoUser.getText().toString());
+//                                    AppDelegate.getInstance().setPassword(txtRadikoPassword.getText().toString());
+//                                    Toast.makeText(getContext(), R.string.login_radiko_success, Toast.LENGTH_LONG).show();
+//                                    setting.setRadioUser(txtRadikoUser.getText().toString());
+//                                    setting.setRadikoPassword(txtRadikoPassword.getText().toString());
+//                                    setting.setPremium(true);
+//                                    setting.save();
+//                                    txtRadikoUser.setClickable(false);
+//                                    txtRadikoUser.setEnabled(false);
+//                                    txtRadikoPassword.setVisibility(View.GONE);
+//                                    btLogInLogOutPremium.setText(R.string.log_out);
+//                                    Activity activity = getActivity();
+//                                    if (activity instanceof BaseFragmentActivity) {
+//                                        try {
+//                                            ((BaseFragmentActivity) activity).updateData();
+//                                        } catch (Exception e) {
+//                                            e.printStackTrace();
+//                                        }
+//                                    }
+//                                } else {
+//                                    Toast.makeText(getContext(), R.string.login_radiko_failed, Toast.LENGTH_LONG).show();
+//                                    setting.setRadioUser("");
+//                                    setting.setRadikoPassword("");
+//                                    setting.setPremium(false);
+//                                    setting.save();
+//                                }
+//                            }
+//                        }
+//                    }.execute();
+//                }
             }
             break;
         }
@@ -329,13 +326,11 @@ public class SettingFragmentTab extends FragmentTab implements View.OnClickListe
 
         public void onProgressChanged(SeekBar bar, int progress, boolean fromuser) {
             if (fromuser) {
-                if (bar.getId() != R.id.seekBarDefaultVolume) {
-                    int pos = progress % (MAX_PROCESS / 3);
-                    int desPros = (pos > MAX_PROCESS / 6) ? progress + ((MAX_PROCESS / 3) - pos) : progress - pos;
-                    if (desPros < 0) desPros = 0;
-                    if (desPros > MAX_PROCESS) desPros = MAX_PROCESS;
-                    bar.setProgress(desPros);
-                }
+                int pos = progress % (MAX_PROCESS / 3);
+                int desPros = (pos > MAX_PROCESS / 6) ? progress + ((MAX_PROCESS / 3) - pos) : progress - pos;
+                if (desPros < 0) desPros = 0;
+                if (desPros > MAX_PROCESS) desPros = MAX_PROCESS;
+                bar.setProgress(desPros);
             }
         }
 

@@ -21,25 +21,14 @@ def versionMinor = 0
 def versionPatch = 14
 
 android {
-//    splits {
-//        abi {
-//            enable true
-//            reset()
-//            include 'x86', 'armeabi-v7a'
-//            universalApk true
-//        }
-//    }
-
     compileSdkVersion 23
-    buildToolsVersion "23.0.1"
-    useLibrary 'org.apache.http.legacy'
+    buildToolsVersion "22.0.1"
     defaultConfig {
-
 	    versionCode versionMajor * 1000 + versionMinor * 100 + versionPatch
         versionName "${versionMajor}.${versionMinor}.${versionPatch}"
         applicationId "com.gmail.radioserver2"
         minSdkVersion 16
-        targetSdkVersion 21
+        targetSdkVersion 23
     }
 
     buildTypes {
@@ -48,14 +37,18 @@ android {
             proguardFiles getDefaultProguardFile('proguard-android.txt'), 'proguard-rules.txt'
         }
     }
+    packagingOptions {
+        exclude 'META-INF/LICENSE.txt'
+        exclude 'META-INF/NOTICE.txt'
+    }
 }
 
 dependencies {
     compile 'com.actionbarsherlock:actionbarsherlock:4.4.0@aar'
-    compile 'com.android.support:support-v4:23.1.0'
+    compile 'com.android.support:support-v4:23.1.1'
     compile project(':radikotoken')
     compile project(':radioapi')
-    compile 'com.google.code.gson:gson:2.3'
+    compile 'com.google.code.gson:gson:2.4'
     compile 'com.nineoldandroids:library:2.4.0'
     compile 'com.google.android.gms:play-services:7.0.0'
     compile 'com.facebook.android:facebook-android-sdk:4.1.0'

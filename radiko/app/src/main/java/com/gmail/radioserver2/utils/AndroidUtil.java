@@ -1,36 +1,54 @@
 package com.gmail.radioserver2.utils;
 
+import android.Manifest;
 import android.content.Context;
+import android.content.Intent;
+import android.content.pm.PackageManager;
 import android.content.res.Configuration;
 import android.location.Address;
 import android.location.Geocoder;
 import android.location.Location;
 import android.location.LocationManager;
+import android.net.Uri;
 import android.os.Build;
 import android.support.annotation.Nullable;
+import android.support.v4.app.ActivityCompat;
 
 import com.dotohsoft.radio.data.RadioProgram;
 import com.gmail.radioserver2.R;
-import com.gmail.radioserver2.activity.MainActivity;
 import com.gmail.radioserver2.data.GMapGeocodeResponse;
+import com.gmail.radioserver2.data.RecordedProgram;
 import com.gmail.radioserver2.data.Setting;
 import com.google.android.gms.ads.identifier.AdvertisingIdClient;
 import com.google.gson.Gson;
 import com.google.gson.GsonBuilder;
 
 import org.apache.commons.io.IOUtils;
-import org.apache.http.HttpEntity;
-import org.apache.http.HttpResponse;
-import org.apache.http.client.ClientProtocolException;
-import org.apache.http.client.HttpClient;
-import org.apache.http.client.methods.HttpGet;
-import org.apache.http.impl.client.DefaultHttpClient;
 
+import java.io.File;
 import java.io.IOException;
 import java.io.InputStream;
+import java.net.HttpURLConnection;
+import java.net.MalformedURLException;
+import java.net.URL;
+import java.security.KeyManagementException;
+import java.security.KeyStore;
+import java.security.KeyStoreException;
+import java.security.NoSuchAlgorithmException;
+import java.security.UnrecoverableKeyException;
+import java.security.cert.CertificateException;
+import java.security.cert.X509Certificate;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.Locale;
+import java.util.Map;
+import java.util.Set;
+
+import javax.net.ssl.HttpsURLConnection;
+import javax.net.ssl.KeyManagerFactory;
+import javax.net.ssl.SSLContext;
+import javax.net.ssl.TrustManager;
+import javax.net.ssl.X509TrustManager;
 
 /**
  * Created by luhonghai on 26/02/2015.
@@ -185,9 +203,6 @@ public class AndroidUtil {
     }
 
     public static Location filterLocation(Location location) {
-//        if (DEBUG) {
-//            return getFakeLocation();
-//        }
         return location;
     }
 
@@ -196,15 +211,15 @@ public class AndroidUtil {
      * @return the last know best location
      */
     public static Location getLastBestLocation(Context context) {
-//        if (DEBUG) {
-//            return getFakeLocation();
-//        }
         LocationManager mLocationManager = (LocationManager)
                 context.getSystemService(Context.LOCATION_SERVICE);
         try {
             if (mLocationManager.isProviderEnabled(LocationManager.GPS_PROVIDER)) {
-                Location locationGPS = mLocationManager.getLastKnownLocation(LocationManager.GPS_PROVIDER);
-                if (locationGPS != null) return locationGPS;
+                if (ActivityCompat.checkSelfPermission(context, Manifest.permission.ACCESS_FINE_LOCATION) != PackageManager.PERMISSION_GRANTED
+                        && ActivityCompat.checkSelfPermission(context, Manifest.permission.ACCESS_COARSE_LOCATION) != PackageManager.PERMISSION_GRANTED) {
+                    Location locationGPS = mLocationManager.getLastKnownLocation(LocationManager.GPS_PROVIDER);
+                    if (locationGPS != null) return locationGPS;
+                }
             }
         } catch (Exception e) {
             SimpleAppLog.error("Could not get last known GPS location", e);
@@ -217,26 +232,7 @@ public class AndroidUtil {
         } catch (Exception e) {
             SimpleAppLog.error("Could not get last known Network location", e);
         }
-//        Location locationPassive = mLocationManager.getLastKnownLocation(LocationManager.PASSIVE_PROVIDER);
-//        if (locationPassive != null) return  locationPassive;
         return null;
-//
-//        Location location;
-//        long GPSLocationTime = 0;
-//        if (null != locationGPS) { GPSLocationTime = locationGPS.getTime(); }
-//        long NetLocationTime = 0;
-//        if (null != locationNet) {
-//            NetLocationTime = locationNet.getTime();
-//        }
-//        if ( 0 < GPSLocationTime - NetLocationTime ) {
-//            location =  locationGPS != null ? locationGPS : locationNet;
-//        }
-//        else {
-//            location = locationNet != null ? locationNet : locationGPS;
-//        }
-//        if (location == null)
-//            return locationPassive;
-//        return location;
     }
 
     public static String findAddress(Context context, Location prettyLocation) {
@@ -283,66 +279,120 @@ public class AndroidUtil {
         return "";
     }
 
-
     public static List<Address> getFromLocation(double lat, double lng, int maxResult) {
         String address = String.format(Locale.ENGLISH, "http://maps.googleapis.com/maps/api/geocode/json?latlng=%1$f,%2$f&sensor=true&language=" + Locale.ENGLISH.getCountry(), lat, lng);
-        HttpGet httpGet = new HttpGet(address);
-        HttpClient client = new DefaultHttpClient();
-        HttpResponse response;
         List<Address> retList = null;
-
-        try {
-            response = client.execute(httpGet);
-            HttpEntity entity = response.getEntity();
-            InputStream stream = entity.getContent();
-            String rawData = IOUtils.toString(stream, "UTF-8");
-
-            SimpleAppLog.info("Raw address data: " + rawData);
-            if (rawData != null && rawData.length() > 0) {
-                Gson gson = new Gson();
-                GMapGeocodeResponse gmapRes = gson.fromJson(rawData, GMapGeocodeResponse.class);
-                retList = new ArrayList<Address>();
-                if (gmapRes.isOk()) {
-                    List<GMapGeocodeResponse.Result> results = gmapRes.getResults();
-                    if (results != null && results.size() > 0) {
-                        for (int i = 0; i < maxResult; i++) {
-                            GMapGeocodeResponse.Result result = results.get(i);
-                            Address addr = new Address(Locale.ENGLISH);
-                            addr.setAddressLine(0, result.getFormatted_address());
-                            List<GMapGeocodeResponse.AddressComponent> addressComponents = result.getAddress_components();
-                            if (addressComponents != null && addressComponents.size() > 0) {
-                                for (GMapGeocodeResponse.AddressComponent addressComponent : addressComponents) {
-                                    if (addressComponent.isType(GMapGeocodeResponse.AddressComponent.TYPE_ADMIN_AREA)) {
-                                        addr.setAdminArea(addressComponent.getLong_name());
-                                    } else if (addressComponent.isType(GMapGeocodeResponse.AddressComponent.TYPE_COUNTRY)) {
-                                        addr.setCountryName(addressComponent.getLong_name());
-                                    } else if (addressComponent.isType(GMapGeocodeResponse.AddressComponent.TYPE_LOCALITY)) {
-                                        addr.setLocality(addressComponent.getLong_name());
+        HttpURLConnection httpURLConnection = getNewHttpConnection(address);
+        if (httpURLConnection != null) {
+            try {
+                InputStream stream = httpURLConnection.getInputStream();
+                String rawData = IOUtils.toString(stream, "UTF-8");
+                SimpleAppLog.info("Raw address data: " + rawData);
+                if (rawData != null && rawData.length() > 0) {
+                    Gson gson = new Gson();
+                    GMapGeocodeResponse gmapRes = gson.fromJson(rawData, GMapGeocodeResponse.class);
+                    retList = new ArrayList<>();
+                    if (gmapRes.isOk()) {
+                        List<GMapGeocodeResponse.Result> results = gmapRes.getResults();
+                        if (results != null && results.size() > 0) {
+                            for (int i = 0; i < maxResult; i++) {
+                                GMapGeocodeResponse.Result result = results.get(i);
+                                Address addr = new Address(Locale.ENGLISH);
+                                addr.setAddressLine(0, result.getFormatted_address());
+                                List<GMapGeocodeResponse.AddressComponent> addressComponents = result.getAddress_components();
+                                if (addressComponents != null && addressComponents.size() > 0) {
+                                    for (GMapGeocodeResponse.AddressComponent addressComponent : addressComponents) {
+                                        if (addressComponent.isType(GMapGeocodeResponse.AddressComponent.TYPE_ADMIN_AREA)) {
+                                            addr.setAdminArea(addressComponent.getLong_name());
+                                        } else if (addressComponent.isType(GMapGeocodeResponse.AddressComponent.TYPE_COUNTRY)) {
+                                            addr.setCountryName(addressComponent.getLong_name());
+                                        } else if (addressComponent.isType(GMapGeocodeResponse.AddressComponent.TYPE_LOCALITY)) {
+                                            addr.setLocality(addressComponent.getLong_name());
+                                        }
                                     }
                                 }
+                                retList.add(addr);
                             }
-                            retList.add(addr);
                         }
                     }
                 }
+            } catch (IOException e) {
+                e.printStackTrace();
+            } finally {
+                httpURLConnection.disconnect();
             }
-
-        } catch (ClientProtocolException e) {
-            SimpleAppLog.error("Error calling Google geocode webservice.", e);
-        } catch (IOException e) {
-            SimpleAppLog.error("Error calling Google geocode webservice.", e);
-        } catch (Exception e) {
-            SimpleAppLog.error("Error parsing Google geocode webservice response.", e);
         }
-
         return retList;
     }
+
 
     public static boolean isAndroidM() {
         return Build.VERSION.SDK_INT >= Build.VERSION_CODES.M;
     }
 
-    public static void showMessage(String msg, Context context) {
+    @Nullable
+    public static HttpURLConnection getNewHttpConnection(String urlString) {
+        try {
+            URL url = new URL(urlString);
+            try {
+                if (urlString.startsWith("http://")) {
+                    HttpURLConnection httpURLConnection = (HttpURLConnection) url.openConnection();
+                    httpURLConnection.setRequestProperty("Accept-Encoding", "identity");
+                    return httpURLConnection;
+                }
+                KeyStore trustStore = KeyStore.getInstance(KeyStore.getDefaultType());
+                trustStore.load(null, null);
+                String algorithm = KeyManagerFactory.getDefaultAlgorithm();
+                KeyManagerFactory kmf = KeyManagerFactory.getInstance(algorithm);
+                kmf.init(trustStore, null);
+                SSLContext context = SSLContext.getInstance("TLS");
+                context.init(kmf.getKeyManagers(), trustAllCerts, null);
+                HttpsURLConnection urlConnection = (HttpsURLConnection) url.openConnection();
+                urlConnection.setRequestProperty("Accept-Encoding", "identity");
+                urlConnection.setSSLSocketFactory(context.getSocketFactory());
+                return urlConnection;
+            } catch (IOException | CertificateException | NoSuchAlgorithmException | UnrecoverableKeyException | KeyStoreException | KeyManagementException e) {
+                e.printStackTrace();
+                try {
+                    HttpURLConnection httpURLConnection = (HttpURLConnection) url.openConnection();
+                    httpURLConnection.setRequestProperty("Accept-Encoding", "identity");
+                    return httpURLConnection;
+                } catch (IOException e1) {
+                    e1.printStackTrace();
+                }
+            }
+        } catch (MalformedURLException e) {
+            e.printStackTrace();
+        }
+        return null;
+    }
 
+    private static TrustManager[] trustAllCerts = new TrustManager[]{new X509TrustManager() {
+        public java.security.cert.X509Certificate[] getAcceptedIssuers() {
+            return new java.security.cert.X509Certificate[]{};
+        }
+
+        public void checkClientTrusted(X509Certificate[] chain, String authType) throws CertificateException {
+        }
+
+        public void checkServerTrusted(X509Certificate[] chain, String authType) throws CertificateException {
+        }
+    }};
+
+    public static void shareProgram(Context context, Map<Integer, RecordedProgram> selectedList) {
+        Intent sharingIntent = new Intent(Intent.ACTION_SEND_MULTIPLE);
+        sharingIntent.setType("audio/mpeg");
+        if (selectedList.size() != 0) {
+            Set<Integer> keySet = selectedList.keySet();
+            ArrayList<Uri> files = new ArrayList<>();
+            for (Integer pos : keySet) {
+                File file = new File(selectedList.get(pos).getFilePath());
+                if (file.exists()) {
+                    files.add(Uri.fromFile(file));
+                }
+            }
+            sharingIntent.putParcelableArrayListExtra(Intent.EXTRA_STREAM, files);
+            context.startActivity(Intent.createChooser(sharingIntent, "Choose a program"));
+        }
     }
 }

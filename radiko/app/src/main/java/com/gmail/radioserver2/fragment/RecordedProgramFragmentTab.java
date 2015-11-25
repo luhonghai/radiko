@@ -17,11 +17,12 @@ import android.widget.Button;
 import android.widget.EditText;
 import android.widget.TextView;
 
+import com.gmail.radioserver2.R;
 import com.gmail.radioserver2.activity.LibraryPickerActivity;
 import com.gmail.radioserver2.adapter.OnListItemActionListener;
+import com.gmail.radioserver2.adapter.RecordProgramAdapter;
 import com.gmail.radioserver2.data.Library;
 import com.gmail.radioserver2.data.RecordedProgram;
-import com.gmail.radioserver2.data.sqlite.ext.LibraryDBAdapter;
 import com.gmail.radioserver2.data.sqlite.ext.RecordedProgramDBAdapter;
 import com.gmail.radioserver2.service.IMediaPlaybackService;
 import com.gmail.radioserver2.service.MediaPlaybackService;
@@ -30,13 +31,9 @@ import com.gmail.radioserver2.utils.Constants;
 import com.gmail.radioserver2.utils.SimpleAppLog;
 import com.gmail.radioserver2.view.swipelistview.BaseSwipeListViewListener;
 import com.gmail.radioserver2.view.swipelistview.SwipeListView;
-import com.gmail.radioserver2.R;
-import com.gmail.radioserver2.adapter.RecordedProgramAdapter;
 import com.google.android.gms.ads.AdRequest;
 import com.google.android.gms.ads.AdView;
 import com.google.gson.Gson;
-
-import junit.runner.BaseTestRunner;
 
 import org.apache.commons.io.FileUtils;
 
@@ -142,15 +139,13 @@ public class RecordedProgramFragmentTab extends FragmentTab implements OnListIte
                     }
                 }
             }
-            if (programs != null && programs.size() > 0) {
-                objects = new RecordedProgram[programs.size()];
-                programs.toArray(objects);
-            } else {
-                objects = new RecordedProgram[]{};
+            if (programs == null) {
+                programs = new ArrayList<>();
             }
-            RecordedProgramAdapter adapter = new RecordedProgramAdapter(getActivity(), objects, this);
+            RecordProgramAdapter adapter = new RecordProgramAdapter(getActivity());
             listView.setAdapter(adapter);
-            adapter.notifyDataSetChanged();
+            adapter.setDataList(programs);
+            adapter.setOnListItemActionListener(this);
         } catch (Exception e) {
             SimpleAppLog.error("Could not load recorded program", e);
         } finally {

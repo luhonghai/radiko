@@ -4,7 +4,6 @@ import android.content.Context;
 import android.location.Location;
 import android.os.AsyncTask;
 
-import com.dotohsoft.api.TokenRequester;
 import com.gmail.radioserver2.data.Setting;
 import com.gmail.radioserver2.utils.AndroidUtil;
 import com.gmail.radioserver2.utils.FileHelper;
@@ -162,31 +161,30 @@ public abstract class TokenFetcher {
             onTokenListener.onError(message, throwable);
     }
 
-    public static TokenFetcher getTokenFetcher(Context context, OnTokenListener onTokenListener, String userName, String password) {
+    public static TokenFetcher getTokenFetcher(Context context, OnTokenListener onTokenListener) {
         Location location = AndroidUtil.getLastBestLocation(context);
-        return getTokenFetcher(context, onTokenListener, location, userName, password);
+        return getTokenFetcher(context, onTokenListener, location);
     }
 
     public static TokenFetcher getTokenFetcher(Context context, OnTokenListener onTokenListener,
-                                               Location location, String userName, String password) {
+                                               Location location) {
         if (location == null) {
             location = AndroidUtil.getLastBestLocation(context);
         }
         if (location != null) {
-            return getTokenFetcher(context, onTokenListener, location.getLatitude(), location.getLongitude(), userName, password);
+            return getTokenFetcher(context, onTokenListener, location.getLatitude(), location.getLongitude());
         } else {
-            return getTokenFetcher(context, onTokenListener, -1, -1, userName, password);
+            return getTokenFetcher(context, onTokenListener, -1, -1);
         }
     }
 
-    public static TokenFetcher getTokenFetcher(Context context, OnTokenListener onTokenListener,
-                                               double latitude, double longitude, String userName, String password) {
+    public static TokenFetcher getTokenFetcher(Context context, OnTokenListener onTokenListener, double latitude, double longitude) {
         Setting setting = new Setting(context);
         setting.load();
         TokenFetcher tokenFetcher;
         if (setting.getTokenType() == Setting.TOKEN_TYPE_CLIENT) {
             SimpleAppLog.info("Use client token");
-            tokenFetcher = new ClientTokenFetcher(context, onTokenListener, userName, password);
+            tokenFetcher = new ClientTokenFetcher(context, onTokenListener);
         } else {
             SimpleAppLog.info("Use server token");
             tokenFetcher = new ServerTokenFetcher(context, onTokenListener);

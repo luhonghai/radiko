@@ -73,7 +73,6 @@ public class DataPrepareService {
         // Get tracker.
         final Tracker t = AnalyticHelper.getTracker(context);
         AndroidUtil.updateTokenType(context, location);
-
         TokenFetcher tokenFetcher = TokenFetcher.getTokenFetcher(context, new TokenFetcher.OnTokenListener() {
             @Override
             public void onTokenFound(String token, String rawAreaId) {
@@ -95,7 +94,7 @@ public class DataPrepareService {
                         .setAction(AnalyticHelper.ACTION_ERROR)
                         .build());
             }
-        }, location, AppDelegate.getInstance().getUserName(), AppDelegate.getInstance().getPassword());
+        }, location);
         tokenFetcher.fetch();
     }
 
@@ -223,6 +222,7 @@ public class DataPrepareService {
                 SimpleAppLog.info("Current Radiko channels: " + (channels == null ? "0" : channels.size()));
                 SimpleAppLog.info("Found channels size: " + (channelList == null ? "0" : channelList.size()));
                 if (channelList != null && channelList.size() > 0) {
+                    dbAdapter.getDB().beginTransaction();
                     for (RadioChannel.Channel channel : channelList) {
                         Channel dbChannel = new Channel();
                         dbChannel.setName(channel.getName());
@@ -238,6 +238,8 @@ public class DataPrepareService {
                             channels.remove(dbChannel);
                         }
                     }
+                    dbAdapter.getDB().setTransactionSuccessful();
+                    dbAdapter.getDB().endTransaction();
                 }
             }
             if (channels != null && channels.size() > 0) {

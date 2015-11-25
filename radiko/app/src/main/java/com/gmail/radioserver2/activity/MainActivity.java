@@ -43,6 +43,7 @@ import com.facebook.share.widget.ShareDialog;
 import com.gmail.radioserver2.R;
 import com.gmail.radioserver2.data.Channel;
 import com.gmail.radioserver2.data.Library;
+import com.gmail.radioserver2.dialog.RadikoDialogFragment;
 import com.gmail.radioserver2.fragment.HomeFragmentTab;
 import com.gmail.radioserver2.fragment.LibraryFragmentTab;
 import com.gmail.radioserver2.fragment.PlayerFragmentTab;
@@ -53,6 +54,7 @@ import com.gmail.radioserver2.service.IMediaPlaybackService;
 import com.gmail.radioserver2.service.MediaPlaybackService;
 import com.gmail.radioserver2.service.MusicUtils;
 import com.gmail.radioserver2.service.TimerManagerReceiver;
+import com.gmail.radioserver2.utils.AppDelegate;
 import com.gmail.radioserver2.utils.Constants;
 import com.gmail.radioserver2.utils.SimpleAppLog;
 import com.gmail.radioserver2.view.ReclickableTabHost;
@@ -84,6 +86,7 @@ public class MainActivity extends BaseFragmentActivity implements ServiceConnect
     private MusicUtils.ServiceToken mServiceToken;
     private AudioManager mAudioManager;
     private CallbackManager mCallback;
+    private RadikoDialogFragment radikoDialogFragment;
 
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
@@ -118,6 +121,21 @@ public class MainActivity extends BaseFragmentActivity implements ServiceConnect
         registerReceiver(mHandleAction, new IntentFilter(Constants.INTENT_FILTER_FRAGMENT_ACTION));
     }
 
+    private void didShowLoginRadikoPremiumDialog() {
+        if (!AppDelegate.getInstance().isPremium() && AppDelegate.getInstance().isShowDialog()) {
+            if (radikoDialogFragment == null) {
+                radikoDialogFragment = new RadikoDialogFragment();
+            }
+            try {
+                if (!radikoDialogFragment.isAdded()) {
+                    radikoDialogFragment.show(getSupportFragmentManager(), "radiko dialog");
+                }
+            } catch (Exception e) {
+                e.printStackTrace();
+            }
+        }
+    }
+
     @Override
     protected void onResume() {
         super.onResume();
@@ -130,6 +148,7 @@ public class MainActivity extends BaseFragmentActivity implements ServiceConnect
                 sendStickyBroadcast(intent);
             }
         }
+        didShowLoginRadikoPremiumDialog();
     }
 
     @Override

@@ -8,6 +8,7 @@ import android.content.DialogInterface;
 import android.content.Intent;
 import android.content.IntentFilter;
 import android.content.ServiceConnection;
+import android.net.Uri;
 import android.os.Bundle;
 import android.os.Handler;
 import android.os.IBinder;
@@ -136,16 +137,16 @@ public class PlayerFragmentTab extends FragmentTab implements ServiceConnection,
     }
 
     void destroyWebView(WebView wv) {
-//        wv.stopLoading();
-//
-//        wv.clearFormData();
-//        wv.clearAnimation();
-//        wv.clearDisappearingChildren();
-//        wv.clearView();
-//        wv.clearHistory();
-//        wv.destroyDrawingCache();
-//        wv.freeMemory();
-//        wv.destroy();
+        wv.stopLoading();
+
+        wv.clearFormData();
+        wv.clearAnimation();
+        wv.clearDisappearingChildren();
+        wv.clearView();
+        wv.clearHistory();
+        wv.destroyDrawingCache();
+        wv.freeMemory();
+        wv.destroy();
     }
 
     @Override
@@ -243,7 +244,6 @@ public class PlayerFragmentTab extends FragmentTab implements ServiceConnection,
         seekBarPlayer.setOnSeekBarChangeListener(mSeekListener);
         switchButtonStage(ButtonStage.DISABLED);
         showPlayerInit();
-
         return v;
     }
 
@@ -485,16 +485,15 @@ public class PlayerFragmentTab extends FragmentTab implements ServiceConnection,
                 txtPlay.setEnabled(true);
                 txtRecord.setText(R.string.button_record);
                 if (mService.isPlaying()) {
+                    btnPlay.setImageResource(R.drawable.btn_pause);
+                    btnRepeat.setEnabled(!mService.isStreaming());
+                    txtRepeat.setEnabled(!mService.isStreaming());
+                    btnBack.setEnabled(!mService.isStreaming());
+                    txtBack.setEnabled(!mService.isStreaming());
+                    btnFast.setEnabled(!mService.isStreaming());
+                    btnSlow.setEnabled(!mService.isStreaming());
                     if (mService.isStreaming()) {
-                        btnRepeat.setEnabled(!mService.isStreaming());
-                        txtRepeat.setEnabled(!mService.isStreaming());
-                        btnBack.setEnabled(!mService.isStreaming());
-                        txtBack.setEnabled(!mService.isStreaming());
-                        btnFast.setEnabled(!mService.isStreaming());
-                        btnSlow.setEnabled(!mService.isStreaming());
-                        btnPlay.setImageResource(R.drawable.btn_pause);
                         txtPlay.setText(R.string.button_pause);
-
                         if (mService.isSoundPlaying()) {
                             if (tvLoading.isShown()) {
                                 tvLoading.setVisibility(View.GONE);
@@ -520,6 +519,9 @@ public class PlayerFragmentTab extends FragmentTab implements ServiceConnection,
                             txtRecord.setText(R.string.button_stop);
                         }
                     } else {
+                        if (!btShare.isShown()) {
+                            btShare.setVisibility(View.VISIBLE);
+                        }
                         if (tvLoading.isShown()) {
                             tvLoading.setVisibility(View.GONE);
                         }
@@ -862,9 +864,21 @@ public class PlayerFragmentTab extends FragmentTab implements ServiceConnection,
     }
 
     private void shareProgram() {
-        Intent intent = new Intent(Constants.INTENT_FILTER_FRAGMENT_ACTION);
-        intent.putExtra(Constants.FRAGMENT_ACTION_TYPE, Constants.ACTION_SHARE_FACEBOOK);
-        getActivity().sendBroadcast(intent);
+        if (mService != null) {
+            try {
+                File file = new File(mService.getMediaUri());
+                if (file.exists()) {
+                    Intent sharingIntent = new Intent(android.content.Intent.ACTION_SEND);
+                    sharingIntent.setType("audio/mpeg");
+                    sharingIntent.putExtra(Intent.EXTRA_STREAM, Uri.fromFile(file));
+                    startActivity(Intent.createChooser(sharingIntent,
+                            getActivity().getString(R.string.choose_program)));
+                }
+            } catch (RemoteException e) {
+                e.printStackTrace();
+            }
+
+        }
     }
 
     @Override

@@ -4,27 +4,39 @@ import android.content.Context;
 import android.view.LayoutInflater;
 import android.view.View;
 import android.view.ViewGroup;
-import android.widget.ArrayAdapter;
 import android.widget.Button;
 import android.widget.TextView;
-import android.widget.Toast;
 
-import com.gmail.radioserver2.data.Channel;
+import com.gmail.radioserver2.R;
 import com.gmail.radioserver2.data.Library;
 import com.gmail.radioserver2.view.swipelistview.SwipeListView;
-import com.gmail.radioserver2.R;
 
 /**
- * Created by luhonghai on 2/17/15.
+ * Copyright
  */
-public class LibraryAdapter extends DefaultAdapter<Library> {
-    static class ViewHolder {
-        TextView txtTitle;
-        Button btnDelete;
+public class LibraryAdater extends CallBackAdapter<Library> {
+
+
+    private View.OnClickListener mDeleteClick;
+    private View.OnClickListener mSelectClick;
+    public LibraryAdater(Context context) {
+        super(context);
+        initComponent();
     }
 
-    public LibraryAdapter(Context context, Library[] objects, OnListItemActionListener<Library> onListItemActionListener) {
-        super(context, R.layout.list_item_library, objects, onListItemActionListener);
+    private void initComponent() {
+        mDeleteClick = new View.OnClickListener() {
+            @Override
+            public void onClick(View v) {
+                getListItemActionListener().onDeleteItem((Library) v.getTag());
+            }
+        };
+        mSelectClick = new View.OnClickListener() {
+            @Override
+            public void onClick(View v) {
+                getListItemActionListener().onSelectItem((Library) v.getTag());
+            }
+        };
     }
 
     @Override
@@ -36,18 +48,6 @@ public class LibraryAdapter extends DefaultAdapter<Library> {
             holder = new ViewHolder();
             holder.txtTitle = (TextView) convertView.findViewById(R.id.txtTitle);
             holder.btnDelete = (Button) convertView.findViewById(R.id.btnDelete);
-            holder.btnDelete.setOnClickListener(new View.OnClickListener() {
-                @Override
-                public void onClick(View v) {
-                    getListItemAction().onDeleteItem((Library) v.getTag());
-                }
-            });
-            holder.txtTitle.setOnClickListener(new View.OnClickListener() {
-                @Override
-                public void onClick(View v) {
-                    getListItemAction().onSelectItem((Library) v.getTag());
-                }
-            });
             convertView.setTag(holder);
         } else {
             holder = (ViewHolder) convertView.getTag();
@@ -55,12 +55,17 @@ public class LibraryAdapter extends DefaultAdapter<Library> {
         if (parent instanceof SwipeListView) {
             ((SwipeListView) parent).recycle(convertView, position);
         }
-        Library object = getObjects()[position];
+        Library object = getItem(position);
         holder.txtTitle.setText(object.toPrettyString(getContext()));
         holder.txtTitle.setTag(object);
-
         holder.btnDelete.setTag(object);
-
+        holder.btnDelete.setOnClickListener(mDeleteClick);
+        holder.txtTitle.setOnClickListener(mSelectClick);
         return convertView;
+    }
+
+    class ViewHolder {
+        TextView txtTitle;
+        Button btnDelete;
     }
 }

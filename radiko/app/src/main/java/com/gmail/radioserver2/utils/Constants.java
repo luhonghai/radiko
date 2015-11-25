@@ -87,4 +87,5 @@ public class Constants {
     public static final String KEY_USERNAME = "radiko_username";
     public static final String KEY_PASSWORD = "radiko_password";
     public  static final String KEY_PREMIUM = "is_premium";
+    public static final String KEY_NOT_SHOW_DIALOG = "is_not_show_radiko_premium";
 }

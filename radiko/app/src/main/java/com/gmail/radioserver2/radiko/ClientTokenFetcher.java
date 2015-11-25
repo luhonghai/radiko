@@ -19,18 +19,8 @@ import jp.radiko.k.k;
  */
 public class ClientTokenFetcher extends TokenFetcher {
 
-
-    private String userName, password;
-
-    public ClientTokenFetcher(Context context, OnTokenListener onTokenListener, String userName, String password) {
+    public ClientTokenFetcher(Context context, OnTokenListener onTokenListener) {
         super(context, onTokenListener);
-        this.userName = userName;
-        this.password = password;
-    }
-
-    public boolean checkLogin() {
-        TokenRequester tokenRequester = new TokenRequester(null, null);
-        return tokenRequester.checkLogin(null, userName, password);
     }
 
     @Override
@@ -72,7 +62,7 @@ public class ClientTokenFetcher extends TokenFetcher {
         String token = "";
         String output = "";
         try {
-            TokenRequester.TokenData tokenData = requester.requestToken(getLatitude(), getLongitude(), userName, password);
+            TokenRequester.TokenData tokenData = requester.requestToken(getLatitude(), getLongitude());
             if (tokenData != null) {
                 saveToken(tokenData.getToken(), tokenData.getOutput());
                 token = tokenData.getToken();

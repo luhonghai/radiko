@@ -1,0 +1,89 @@
+<?xml version="1.0" encoding="utf-8"?>
+<LinearLayout xmlns:android="http://schemas.android.com/apk/res/android"
+    android:layout_width="match_parent"
+    android:layout_height="wrap_content"
+    android:background="#fff"
+    android:orientation="vertical">
+
+    <LinearLayout
+        android:layout_width="match_parent"
+        android:layout_height="48dp"
+        android:orientation="horizontal">
+
+        <TextView
+            android:layout_width="0dp"
+            android:layout_height="match_parent"
+            android:layout_weight="1"
+            android:gravity="center_vertical"
+            android:padding="8dp"
+            android:text="お知らせ"
+            android:textColor="@color/default_button_color"
+            android:textSize="20sp"
+            android:textStyle="bold" />
+
+        <ImageView
+            android:id="@+id/btClose"
+            android:layout_width="wrap_content"
+            android:layout_height="match_parent"
+            android:background="@drawable/gray_state_button"
+            android:contentDescription="no img"
+            android:src="@drawable/close" />
+    </LinearLayout>
+
+    <View
+        android:layout_width="match_parent"
+        android:layout_height="1dp"
+        android:background="@color/default_button_color" />
+
+    <LinearLayout
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:orientation="vertical"
+        android:padding="6dp">
+
+        <TextView
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:padding="6dp"
+            android:text="@string/radiko_premium_support_warning"
+            android:textColor="#000"
+            android:textSize="16sp" />
+
+        <EditText
+            android:id="@+id/txtUserName"
+            android:layout_width="match_parent"
+            android:layout_height="44dp"
+            android:layout_marginTop="@dimen/default_top_margin"
+            android:hint="@string/radiko_email"
+            android:inputType="textEmailAddress"
+            android:padding="5dp" />
+
+        <EditText
+            android:id="@+id/txtPassword"
+            android:layout_width="match_parent"
+            android:layout_height="44dp"
+            android:layout_marginTop="6dp"
+            android:hint="@string/radiko_password"
+            android:inputType="textPassword"
+            android:padding="5dp" />
+
+        <Button
+            android:id="@+id/btCheckLogin"
+            android:layout_width="match_parent"
+            android:layout_height="44dp"
+            android:layout_marginTop="6dp"
+            android:background="@drawable/rounded_corner_color_button"
+            android:text="@string/login"
+            android:textColor="@android:color/white"
+            android:textSize="@dimen/font_size_description"
+            android:textStyle="bold" />
+
+        <CheckBox
+            android:id="@+id/cbDontDisplayAgain"
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:layout_marginTop="@dimen/default_top_margin"
+            android:text="@string/dont_ask_again" />
+    </LinearLayout>
+
+</LinearLayout>

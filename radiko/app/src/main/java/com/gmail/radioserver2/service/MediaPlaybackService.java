@@ -28,7 +28,6 @@ import android.content.ContentResolver;
 import android.content.Context;
 import android.content.Intent;
 import android.content.IntentFilter;
-import android.content.ServiceConnection;
 import android.content.SharedPreferences;
 import android.content.SharedPreferences.Editor;
 import android.database.Cursor;
@@ -41,7 +40,6 @@ import android.media.RemoteControlClient;
 import android.media.audiofx.AudioEffect;
 import android.net.Uri;
 import android.os.AsyncTask;
-import android.os.Build;
 import android.os.Handler;
 import android.os.IBinder;
 import android.os.Message;
@@ -56,7 +54,6 @@ import android.widget.RemoteViews;
 import android.widget.Toast;
 
 import com.dotohsoft.radio.api.APIRequester;
-import com.dotohsoft.radio.data.RadioArea;
 import com.dotohsoft.radio.data.RadioChannel;
 import com.dotohsoft.radio.data.RadioProgram;
 import com.dotohsoft.radio.data.RadioProvider;
@@ -70,13 +67,11 @@ import com.gmail.radioserver2.provider.Media;
 import com.gmail.radioserver2.radiko.TokenFetcher;
 import com.gmail.radioserver2.receiver.MediaButtonIntentReceiver;
 import com.gmail.radioserver2.utils.AndroidUtil;
-import com.gmail.radioserver2.utils.AppDelegate;
 import com.gmail.radioserver2.utils.Constants;
 import com.gmail.radioserver2.utils.FileHelper;
 import com.gmail.radioserver2.utils.InetHelper;
 import com.gmail.radioserver2.utils.SimpleAppLog;
 import com.google.gson.Gson;
-
 
 import java.io.File;
 import java.io.FileDescriptor;
@@ -417,7 +412,7 @@ public class MediaPlaybackService extends Service {
                         SimpleAppLog.error(message, throwable);
                         isStreaming = false;
                     }
-                }, AppDelegate.getInstance().getUserName(), AppDelegate.getInstance().getPassword());
+                });
                 tokenFetcher.fetch();
             } else {
                 if (!token.startsWith("S:")) {
@@ -879,7 +874,7 @@ public class MediaPlaybackService extends Service {
 
         mStreamingPlayer = new MultiPlayer();
         //mStreamingPlayer.setHandler(mMediaplayerHandler);
-        TokenFetcher tokenFetcher = TokenFetcher.getTokenFetcher(getApplicationContext(), onTokenListener, AppDelegate.getInstance().getUserName(), AppDelegate.getInstance().getPassword());
+        TokenFetcher tokenFetcher = TokenFetcher.getTokenFetcher(getApplicationContext(), onTokenListener);
         tokenFetcher.fetch();
 
         reloadQueue();
@@ -1897,7 +1892,7 @@ public class MediaPlaybackService extends Service {
                         RadioChannel.Channel rChannel = new RadioChannel.Channel();
                         rChannel.setName(currentChannel.getName());
                         rChannel.setService(currentChannel.getType());
-                        rChannel.setServiceChannelId(currentChannel.getUrl());
+                        rChannel.setStreamURL(currentChannel.getUrl());
                         rChannel.setServiceChannelId(currentChannel.getKey());
                         rChannel.setRegionID(currentChannel.getRegionID());
 
@@ -3229,22 +3224,23 @@ public class MediaPlaybackService extends Service {
                   */
                 if (mAudioManager != null) {
                     SharedPreferences preferences = getSharedPreferences(Constants.SHARE_PREF, MODE_PRIVATE);
-                    int defaultVolume = preferences.getInt(Constants.KEY_DEFAULT_VOLUME, 0);
+                    int defaultVolume = preferences.getInt(Constants.KEY_DEFAULT_VOLUME, 100);
                     boolean needToChangeVolume = preferences.getBoolean(Constants.KEY_CHANGE_VOLUME, true);
                     if (needToChangeVolume) {
+                        int maxVolume = mAudioManager.getStreamMaxVolume(AudioManager.STREAM_MUSIC);
                         if (AndroidUtil.isAndroidM()) {
                             if (checkSelfPermission(Manifest.permission.MODIFY_AUDIO_SETTINGS) == PermissionChecker.PERMISSION_GRANTED) {
                                 if (mAudioManager.isWiredHeadsetOn()) {
-                                    mAudioManager.setStreamVolume(AudioManager.STREAM_MUSIC, Math.round(defaultVolume / 2f), AudioManager.FLAG_PLAY_SOUND);
+                                    mAudioManager.setStreamVolume(AudioManager.STREAM_MUSIC, Math.round(defaultVolume * maxVolume / 200f), AudioManager.FLAG_PLAY_SOUND);
                                 } else {
-                                    mAudioManager.setStreamVolume(AudioManager.STREAM_MUSIC, defaultVolume, AudioManager.FLAG_PLAY_SOUND);
+                                    mAudioManager.setStreamVolume(AudioManager.STREAM_MUSIC, Math.round(defaultVolume * maxVolume / 100f), AudioManager.FLAG_PLAY_SOUND);
                                 }
                             }
                         } else {
                             if (mAudioManager.isWiredHeadsetOn()) {
-                                mAudioManager.setStreamVolume(AudioManager.STREAM_MUSIC, Math.round(defaultVolume / 2f), AudioManager.FLAG_PLAY_SOUND);
+                                mAudioManager.setStreamVolume(AudioManager.STREAM_MUSIC, Math.round(defaultVolume * maxVolume / 200f), AudioManager.FLAG_PLAY_SOUND);
                             } else {
-                                mAudioManager.setStreamVolume(AudioManager.STREAM_MUSIC, defaultVolume, AudioManager.FLAG_PLAY_SOUND);
+                                mAudioManager.setStreamVolume(AudioManager.STREAM_MUSIC, Math.round(defaultVolume * maxVolume / 100f), AudioManager.FLAG_PLAY_SOUND);
                             }
                         }
                     }

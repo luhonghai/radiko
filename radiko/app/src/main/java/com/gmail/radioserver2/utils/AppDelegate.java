@@ -1,7 +1,5 @@
 package com.gmail.radioserver2.utils;
 
-/*Copyright*/
-
 import android.app.Activity;
 import android.content.Context;
 import android.content.pm.PackageManager;
@@ -12,8 +10,8 @@ import android.support.v4.content.PermissionChecker;
 public class AppDelegate {
     private static AppDelegate instance;
 
-    private String userName, password;
     private boolean isPremium = false;
+    private String cookie;
 
     private AppDelegate() {
 
@@ -26,20 +24,12 @@ public class AppDelegate {
         return instance;
     }
 
-    public String getUserName() {
-        return userName;
+    public String getCookie() {
+        return cookie;
     }
 
-    public void setUserName(String userName) {
-        this.userName = userName;
-    }
-
-    public String getPassword() {
-        return password;
-    }
-
-    public void setPassword(String password) {
-        this.password = password;
+    public void setCookie(String cookie) {
+        this.cookie = cookie;
     }
 
     public void setPremium(boolean isPremium) {
@@ -88,5 +78,14 @@ public class AppDelegate {
         }
     }
 
+    private boolean isShowDialog = true;
+
+    public void setShowDialog(boolean showDialog) {
+        isShowDialog = showDialog;
+    }
+
+    public boolean isShowDialog() {
+        return isShowDialog;
+    }
 
 }

@@ -8,7 +8,6 @@ import com.gmail.radioserver2.data.sqlite.DBAdapter;
 import com.gmail.radioserver2.utils.DateHelper;
 import com.gmail.radioserver2.utils.StringUtil;
 
-import java.text.SimpleDateFormat;
 import java.util.Date;
 
 /**

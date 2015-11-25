@@ -1,29 +1,20 @@
 package com.gmail.radioserver2.activity;
 
-import android.app.DatePickerDialog;
-import android.app.Dialog;
-import android.app.DialogFragment;
-import android.content.Intent;
 import android.os.Bundle;
 import android.os.Handler;
 import android.view.View;
 import android.widget.Button;
-import android.widget.DatePicker;
-import android.widget.Toast;
 
+import com.gmail.radioserver2.R;
 import com.gmail.radioserver2.adapter.OnListItemActionListener;
+import com.gmail.radioserver2.adapter.TimerAdapter;
 import com.gmail.radioserver2.data.Timer;
 import com.gmail.radioserver2.data.sqlite.ext.TimerDBAdapter;
-import com.gmail.radioserver2.service.TimerManagerReceiver;
 import com.gmail.radioserver2.utils.SimpleAppLog;
 import com.gmail.radioserver2.view.swipelistview.BaseSwipeListViewListener;
 import com.gmail.radioserver2.view.swipelistview.SwipeListView;
-import com.gmail.radioserver2.R;
-import com.gmail.radioserver2.adapter.TimerAdapter;
 
-import java.util.Calendar;
 import java.util.Collection;
-import java.util.Date;
 
 /**
  * Created by luhonghai on 2/21/15.
@@ -76,17 +67,11 @@ public class TimerListActivity extends BaseActivity implements View.OnClickListe
         try {
             dbAdapter.open();
             Collection<Timer> timers = dbAdapter.findAll();
-            Timer[] items;
-            if (timers != null && timers.size() > 0) {
-                items = new Timer[timers.size()];
-                timers.toArray(items);
-            } else {
-                items = new Timer[]{};
-            }
-            TimerAdapter adapter = new TimerAdapter(this, items, this);
+            TimerAdapter adapter = new TimerAdapter(this);
             listView.setAdapter(adapter);
+            adapter.setDataList(timers);
+            adapter.setOnListItemActionListener(this);
             listView.dismissSelected();
-            adapter.notifyDataSetChanged();
         } catch (Exception e) {
             SimpleAppLog.error("Could not load timer", e);
         } finally {

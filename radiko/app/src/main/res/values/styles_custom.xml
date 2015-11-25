@@ -19,6 +19,7 @@
     <style name="text_normal">
         <item name="android:textStyle">normal</item>
     </style>
+
     <style name="program_list">
         <item name="android:padding">5dp</item>
         <item name="android:maxLines">2</item>
@@ -28,5 +29,8 @@
         <item name="android:layout_marginTop">2dp</item>
         <item name="android:gravity">center_vertical</item>
         <item name="android:textSize">14sp</item>
+    </style>
+
+    <style name="dialog_style" parent="android:Theme.Holo.Dialog.NoActionBar">
     </style>
 </resources>

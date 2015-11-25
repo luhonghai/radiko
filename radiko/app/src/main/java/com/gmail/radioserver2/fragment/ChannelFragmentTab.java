@@ -89,17 +89,11 @@ public class ChannelFragmentTab extends FragmentTab implements OnListItemActionL
             dbAdapter.open();
             Collection<Channel> channels = dbAdapter.loadChannelByRadikoRegion(radikoRegion);
             SimpleAppLog.info("Load " + (channels == null ? 0 : channels.size()) + " channels to listview");
-            Channel[] items;
-            if (channels != null && channels.size() > 0) {
-                items = new Channel[channels.size()];
-                channels.toArray(items);
-            } else {
-                items = new Channel[]{};
-            }
-            ChannelAdapter adapter = new ChannelAdapter(getActivity(), items, this);
+            ChannelAdapter adapter = new ChannelAdapter(getActivity());
             listView.setAdapter(adapter);
+            adapter.setDataList(channels);
+            adapter.setOnListItemActionListener(this);
             listView.dismissSelected();
-            adapter.notifyDataSetChanged();
         } catch (Exception e) {
             SimpleAppLog.error("Could not load channel", e);
         } finally {

@@ -1,5 +1,9 @@
 package com.gmail.radioserver2.fragment;
 
+import android.content.BroadcastReceiver;
+import android.content.Context;
+import android.content.Intent;
+import android.content.IntentFilter;
 import android.os.Bundle;
 import android.support.v4.app.Fragment;
 import android.support.v4.app.FragmentManager;
@@ -34,12 +38,16 @@ public class HomeFragmentTab extends FragmentTab implements View.OnClickListener
     private HashMap<String, ChannelFragmentTab> channelStack;
     private int mTabPos;
     private SlidingTabLayout mSlidingTab;
+    private View labelSelectChannel;
 
 
     @Override
     public void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
         setRetainInstance(true);
+        IntentFilter filter = new IntentFilter();
+        filter.addAction("sadhkahd.recreate_ui");
+        getActivity().registerReceiver(reCreateUI, filter);
     }
 
     @Override
@@ -63,7 +71,12 @@ public class HomeFragmentTab extends FragmentTab implements View.OnClickListener
         btCancelSearch = v.findViewById(R.id.btCancelSearch);
         btCancelSearch.setOnClickListener(this);
         mSlidingTab = (SlidingTabLayout) v.findViewById(R.id.channelTab);
-        View labelSelectChannel = v.findViewById(R.id.labelSelectChannel);
+        labelSelectChannel = v.findViewById(R.id.labelSelectChannel);
+        setupUI();
+        return v;
+    }
+
+    private void setupUI() {
         TabPagerTracking pagerTracking = new TabPagerTracking();
         pagerTracking.addTab(new TabPagerTracking.Tab("全て", "all"));
         if (AppDelegate.getInstance().isPremium()) {
@@ -86,7 +99,6 @@ public class HomeFragmentTab extends FragmentTab implements View.OnClickListener
         mSlidingTab.setAdapter(pagerTracking);
         pagerTracking.setTabChange(this);
         mSlidingTab.selectTab(mTabPos);
-        return v;
     }
 
     @Override
@@ -129,6 +141,16 @@ public class HomeFragmentTab extends FragmentTab implements View.OnClickListener
         if (mAdView != null) {
             mAdView.destroy();
             mAdView = null;
+        }
+    }
+
+    @Override
+    public void onDestroy() {
+        super.onDestroy();
+        try {
+            getActivity().unregisterReceiver(reCreateUI);
+        } catch (Exception e) {
+            e.printStackTrace();
         }
     }
 
@@ -189,6 +211,13 @@ public class HomeFragmentTab extends FragmentTab implements View.OnClickListener
         @Override
         public void afterTextChanged(Editable s) {
 
+        }
+    };
+
+    private BroadcastReceiver reCreateUI = new BroadcastReceiver() {
+        @Override
+        public void onReceive(Context context, Intent intent) {
+            setupUI();
         }
     };
 }

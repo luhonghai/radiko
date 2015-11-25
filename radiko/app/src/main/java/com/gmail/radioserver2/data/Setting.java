@@ -3,7 +3,6 @@ package com.gmail.radioserver2.data;
 import android.content.Context;
 import android.content.SharedPreferences;
 
-import com.gmail.radioserver2.utils.AppDelegate;
 import com.gmail.radioserver2.utils.Constants;
 import com.gmail.radioserver2.utils.SimpleAppLog;
 
@@ -73,7 +72,7 @@ public class Setting {
         this.slowLevel = preferences.getFloat(KEY_SLOW, MIN_SLOW_LEVEL);
         this.fastLevel = preferences.getFloat(KEY_FAST, MIN_FAST_LEVEL);
         this.backLength = preferences.getFloat(KEY_BACK, MIN_BACK_LENGTH);
-        this.defaultVolume = preferences.getInt(Constants.KEY_DEFAULT_VOLUME, 0);
+        this.defaultVolume = preferences.getInt(Constants.KEY_DEFAULT_VOLUME, 100);
         this.isRegion = preferences.getBoolean(KEY_REGION, true);
         this.adsId = preferences.getString(KEY_ADS_ID, "");
         this.radioUser = preferences.getString(Constants.KEY_USERNAME, "");
@@ -95,8 +94,6 @@ public class Setting {
         editor.putString(Constants.KEY_USERNAME, radioUser);
         editor.putString(Constants.KEY_PASSWORD, radikoPassword);
         editor.putBoolean(KEY_PREMIUM, isPremium);
-        AppDelegate.getInstance().setUserName(radioUser);
-        AppDelegate.getInstance().setPassword(radikoPassword);
         SimpleAppLog.info("slowLevel: " + slowLevel);
         SimpleAppLog.info("fastLevel: " + fastLevel);
         SimpleAppLog.info("backLength: " + backLength);

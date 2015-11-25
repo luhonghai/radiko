@@ -1,5 +1,7 @@
 package com.gmail.radioserver2.adapter;
 
+import java.util.Map;
+
 /**
  * Created by luhonghai on 27/2/2015.
  */

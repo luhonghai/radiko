@@ -2,14 +2,13 @@ package com.gmail.radioserver2.data;
 
 import android.content.ContentValues;
 import android.content.Context;
-import android.database.Cursor;
 
 import java.util.Date;
 
 /**
  * Created by luhonghai on 25/02/2015.
  */
-public abstract class AbstractData<T> {
+public abstract class AbstractData<R> implements Indexable {
 
     private long id;
 
@@ -33,5 +32,10 @@ public abstract class AbstractData<T> {
 
     public void setCreatedDate(Date createdDate) {
         this.createdDate = createdDate;
+    }
+
+    @Override
+    public long getUniqueID() {
+        return getId();
     }
 }

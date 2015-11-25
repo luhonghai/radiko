@@ -5,6 +5,7 @@ import android.database.Cursor;
 import android.database.sqlite.SQLiteDatabase;
 import android.database.sqlite.SQLiteOpenHelper;
 
+import com.gmail.radioserver2.R;
 import com.gmail.radioserver2.data.AbstractData;
 
 import java.sql.SQLException;
@@ -130,7 +131,7 @@ public abstract class DBAdapter<T> implements IDBAdapter<T> {
         }
     }
 
-    protected SQLiteDatabase getDB() {
+    public SQLiteDatabase getDB() {
         return db;
     }
 
@@ -151,7 +152,7 @@ public abstract class DBAdapter<T> implements IDBAdapter<T> {
 
     public long insert(T obj) throws Exception {
         if (obj instanceof AbstractData) {
-            AbstractData data = (AbstractData) obj;
+            AbstractData<R> data = (AbstractData<R>) obj;
             data.setCreatedDate(new Date(System.currentTimeMillis()));
             return getDB().insert(getTableName(), null, data.toContentValues());
         } else {
@@ -161,7 +162,7 @@ public abstract class DBAdapter<T> implements IDBAdapter<T> {
 
     public boolean update(T obj) throws Exception {
         if (obj instanceof AbstractData) {
-            AbstractData data = (AbstractData) obj;
+            AbstractData<R> data = (AbstractData<R>) obj;
             return getDB().update(getTableName(), data.toContentValues(),
                     KEY_ROW_ID + "=" + data.getId(), null) > 0;
         } else {
@@ -195,7 +196,7 @@ public abstract class DBAdapter<T> implements IDBAdapter<T> {
 
     public boolean delete(T obj) throws Exception {
         if (obj instanceof AbstractData) {
-            return delete(((AbstractData) obj).getId());
+            return delete(((AbstractData<R>) obj).getId());
         }
         return false;
     }
