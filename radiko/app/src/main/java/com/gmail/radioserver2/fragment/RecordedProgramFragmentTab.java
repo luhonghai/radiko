@@ -10,6 +10,7 @@ import android.os.Bundle;
 import android.os.Handler;
 import android.os.IBinder;
 import android.os.RemoteException;
+import android.util.SparseArray;
 import android.view.LayoutInflater;
 import android.view.View;
 import android.view.ViewGroup;
@@ -27,6 +28,7 @@ import com.gmail.radioserver2.data.sqlite.ext.RecordedProgramDBAdapter;
 import com.gmail.radioserver2.service.IMediaPlaybackService;
 import com.gmail.radioserver2.service.MediaPlaybackService;
 import com.gmail.radioserver2.service.MusicUtils;
+import com.gmail.radioserver2.utils.AndroidUtil;
 import com.gmail.radioserver2.utils.Constants;
 import com.gmail.radioserver2.utils.SimpleAppLog;
 import com.gmail.radioserver2.view.swipelistview.BaseSwipeListViewListener;
@@ -64,7 +66,7 @@ public class RecordedProgramFragmentTab extends FragmentTab implements OnListIte
     private int openItem = -1;
     private int lastOpenedItem = -1;
     private int lastClosedItem = -1;
-
+    private View btShare;
     private AdView mAdView;
 
     @Override
@@ -103,6 +105,8 @@ public class RecordedProgramFragmentTab extends FragmentTab implements OnListIte
         txtSearch = (EditText) v.findViewById(R.id.txtSearch);
         btnSearch = (Button) v.findViewById(R.id.btnSearch);
         btnSearch.setOnClickListener(this);
+        btShare = v.findViewById(R.id.btShare);
+        btShare.setOnClickListener(this);
         loadData();
         getActivity().registerReceiver(mReceive, new IntentFilter(Constants.INTENT_FILTER_FRAGMENT_ACTION));
         return v;
@@ -141,6 +145,12 @@ public class RecordedProgramFragmentTab extends FragmentTab implements OnListIte
             }
             if (programs == null) {
                 programs = new ArrayList<>();
+            }
+            if (programs.size() > 0) {
+                objects = new RecordedProgram[programs.size()];
+                programs.toArray(objects);
+            } else {
+                objects = new RecordedProgram[]{};
             }
             RecordProgramAdapter adapter = new RecordProgramAdapter(getActivity());
             listView.setAdapter(adapter);
@@ -264,8 +274,16 @@ public class RecordedProgramFragmentTab extends FragmentTab implements OnListIte
     }
 
     @Override
-    public void onSelectIndex(int index) {
-
+    public void onSelectItems(SparseArray<RecordedProgram> items) {
+        if (items.size() > 0) {
+            if (!btShare.isShown()) {
+                btShare.setVisibility(View.VISIBLE);
+            }
+        } else {
+            if (btShare.isShown()) {
+                btShare.setVisibility(View.INVISIBLE);
+            }
+        }
     }
 
     @Override
@@ -273,6 +291,12 @@ public class RecordedProgramFragmentTab extends FragmentTab implements OnListIte
         switch (v.getId()) {
             case R.id.btnSearch:
                 loadData();
+                break;
+            case R.id.btShare:
+                RecordProgramAdapter adapter = (RecordProgramAdapter) listView.getAdapter();
+                if (adapter.getSelected().size() > 0) {
+                    AndroidUtil.shareProgram(getActivity(), adapter.getSelected());
+                }
                 break;
         }
     }

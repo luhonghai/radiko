@@ -152,7 +152,7 @@ public abstract class DBAdapter<T> implements IDBAdapter<T> {
 
     public long insert(T obj) throws Exception {
         if (obj instanceof AbstractData) {
-            AbstractData<R> data = (AbstractData<R>) obj;
+            AbstractData<T> data = (AbstractData<T>) obj;
             data.setCreatedDate(new Date(System.currentTimeMillis()));
             return getDB().insert(getTableName(), null, data.toContentValues());
         } else {
@@ -162,7 +162,7 @@ public abstract class DBAdapter<T> implements IDBAdapter<T> {
 
     public boolean update(T obj) throws Exception {
         if (obj instanceof AbstractData) {
-            AbstractData<R> data = (AbstractData<R>) obj;
+            AbstractData<T> data = (AbstractData<T>) obj;
             return getDB().update(getTableName(), data.toContentValues(),
                     KEY_ROW_ID + "=" + data.getId(), null) > 0;
         } else {
@@ -196,7 +196,7 @@ public abstract class DBAdapter<T> implements IDBAdapter<T> {
 
     public boolean delete(T obj) throws Exception {
         if (obj instanceof AbstractData) {
-            return delete(((AbstractData<R>) obj).getId());
+            return delete(((AbstractData<T>) obj).getId());
         }
         return false;
     }

@@ -37,7 +37,7 @@ import java.util.Date;
 import java.util.Locale;
 import java.util.concurrent.LinkedBlockingQueue;
 
-public class RecordBackgroundService extends Service implements OnRecordStateChangeListenner, ServiceConnection {
+public class RecordBackgroundService extends Service implements OnRecordStateChangeListener, ServiceConnection {
     private boolean isRecording = false;
     private final int MAX_FILE_SIZE = 2 * 1024 * 1024;
     public static final int PLAYBACK_SERVICE_STATUS = 1;

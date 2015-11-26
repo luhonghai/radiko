@@ -8,7 +8,7 @@ import java.util.Date;
 /**
  * Created by luhonghai on 25/02/2015.
  */
-public abstract class AbstractData<R> implements Indexable {
+public abstract class AbstractData<T> implements Indexable {
 
     private long id;
 

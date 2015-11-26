@@ -6,47 +6,47 @@
 
     <LinearLayout
         android:id="@+id/back"
-        android:tag="back"
-        android:layout_height="match_parent"
         android:layout_width="match_parent"
-        android:gravity="end">
+        android:layout_height="match_parent"
+        android:gravity="end"
+        android:tag="back">
 
         <Button
             android:id="@+id/btnDelete"
             android:layout_width="@dimen/button_action_size"
             android:layout_height="@dimen/button_action_size"
-            android:text="@string/button_delete"
             android:background="@color/red_delete"
-            android:paddingTop="@dimen/tabs_padding"
             android:paddingBottom="@dimen/tabs_padding"
-            android:textColor="@android:color/white"
-            android:textAppearance="?android:attr/textAppearanceButton" />
+            android:paddingTop="@dimen/tabs_padding"
+            android:text="@string/button_delete"
+            android:textAppearance="?android:attr/textAppearanceButton"
+            android:textColor="@android:color/white" />
     </LinearLayout>
 
     <LinearLayout
-        android:orientation="horizontal"
         android:id="@+id/front"
-        android:tag="front"
-        android:layout_height="match_parent"
         android:layout_width="match_parent"
-        android:background="@android:color/white">
+        android:layout_height="match_parent"
+        android:background="@android:color/white"
+        android:orientation="horizontal"
+        android:tag="front">
 
         <CheckBox
+            android:id="@+id/cbxSelectLib"
             android:layout_width="@dimen/button_action_size"
             android:layout_height="@dimen/button_action_size"
-            android:id="@+id/cbxSelectLib"
             android:layout_gravity="center_vertical" />
 
         <TextView
             android:id="@+id/txtTitle"
             android:layout_width="0dp"
             android:layout_height="match_parent"
-            android:gravity="center_vertical"
             android:layout_marginLeft="@dimen/default_top_margin"
             android:layout_marginStart="@dimen/default_top_margin"
             android:layout_weight="1"
-            android:textAppearance="?android:attr/textAppearanceMedium"
-            android:text="@string/default_channel_name" />
+            android:gravity="center_vertical"
+            android:text="@string/default_channel_name"
+            android:textAppearance="?android:attr/textAppearanceMedium" />
 
     </LinearLayout>
 

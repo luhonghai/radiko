@@ -1,9 +1,9 @@
 <?xml version="1.0" encoding="utf-8"?>
 <LinearLayout xmlns:android="http://schemas.android.com/apk/res/android"
-    android:orientation="vertical"
     android:layout_width="match_parent"
     android:layout_height="match_parent"
-    android:background="@color/default_background_color">
+    android:background="@color/default_background_color"
+    android:orientation="vertical">
 
     <RelativeLayout
         android:layout_width="match_parent"
@@ -22,19 +22,19 @@
                 android:layout_width="0dp"
                 android:layout_height="match_parent"
                 android:layout_weight="1"
-                android:padding="6dp"
+                android:background="@android:color/white"
                 android:hint="@string/hint_search_library"
-                android:textAppearance="?android:attr/textAppearanceSmall"
-                android:background="@android:color/white" />
+                android:padding="6dp"
+                android:textAppearance="?android:attr/textAppearanceSmall" />
 
             <Button
                 android:id="@id/btnSearch"
                 android:layout_width="wrap_content"
                 android:layout_height="wrap_content"
+                android:background="@color/default_button_color"
                 android:text="@string/button_search"
                 android:textAppearance="?android:attr/textAppearanceButton"
-                android:textColor="@android:color/white"
-                android:background="@color/default_button_color" />
+                android:textColor="@android:color/white" />
         </LinearLayout>
     </RelativeLayout>
 
@@ -46,12 +46,40 @@
         <TextView
             android:layout_width="wrap_content"
             android:layout_height="36dp"
-            android:textAppearance="?android:attr/textAppearanceButton"
-            android:padding="6dp"
-            android:gravity="center_horizontal|center_vertical"
-            android:textColor="@android:color/white"
             android:background="@color/default_button_color"
-            android:text="@string/label_library_list" />
+            android:gravity="center_horizontal|center_vertical"
+            android:padding="6dp"
+            android:text="@string/label_library_list"
+            android:textAppearance="?android:attr/textAppearanceButton"
+            android:textColor="@android:color/white" />
+
+        <LinearLayout
+            android:id="@+id/btShare"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:layout_alignParentRight="true"
+            android:layout_marginLeft="@dimen/default_screen_padding"
+            android:layout_marginStart="@dimen/default_screen_padding"
+            android:background="@drawable/gray_state_button"
+            android:gravity="center_vertical"
+            android:orientation="horizontal"
+            android:padding="@dimen/default_screen_padding"
+            android:visibility="gone">
+
+            <ImageView
+                android:layout_width="30dp"
+                android:layout_height="30dp"
+                android:src="@drawable/ic_action_share" />
+
+            <TextView
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:layout_marginLeft="@dimen/default_screen_padding"
+                android:layout_marginStart="@dimen/default_screen_padding"
+                android:gravity="center"
+                android:text="@string/button_share_facebook"
+                android:textColor="@color/text_dark_theme" />
+        </LinearLayout>
     </RelativeLayout>
 
     <RelativeLayout
@@ -60,14 +88,14 @@
         android:layout_weight="1">
 
         <com.gmail.radioserver2.view.swipelistview.SwipeListView xmlns:swipe="http://schemas.android.com/apk/res-auto"
-            android:background="@android:color/white"
             android:id="@+id/list_library"
-            android:listSelector="@color/default_background_color"
             android:layout_width="match_parent"
             android:layout_height="match_parent"
-            swipe:swipeFrontView="@+id/front"
-            swipe:swipeBackView="@+id/back"
+            android:background="@android:color/white"
+            android:listSelector="@color/default_background_color"
             swipe:swipeActionLeft="reveal"
+            swipe:swipeBackView="@+id/back"
+            swipe:swipeFrontView="@+id/front"
             swipe:swipeMode="left"
             swipe:swipeOffsetLeft="290dp" />
     </RelativeLayout>
@@ -75,8 +103,8 @@
     <RelativeLayout
         android:layout_width="match_parent"
         android:layout_height="wrap_content"
-        android:gravity="center_horizontal|center_vertical"
-        android:background="@android:color/white">
+        android:background="@android:color/white"
+        android:gravity="center_horizontal|center_vertical">
 
         <com.google.android.gms.ads.AdView xmlns:ads="http://schemas.android.com/apk/res-auto"
             android:id="@+id/adView"

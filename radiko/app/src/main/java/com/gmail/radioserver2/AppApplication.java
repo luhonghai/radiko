@@ -4,6 +4,7 @@ package com.gmail.radioserver2;
 
 import android.app.Application;
 import android.content.SharedPreferences;
+import android.widget.Toast;
 
 import com.gmail.radioserver2.utils.AppDelegate;
 import com.gmail.radioserver2.utils.Constants;
@@ -44,4 +45,5 @@ public class AppApplication extends Application {
             }
         }
     }
+
 }

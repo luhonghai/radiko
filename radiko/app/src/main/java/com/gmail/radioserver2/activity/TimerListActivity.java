@@ -2,6 +2,7 @@ package com.gmail.radioserver2.activity;
 
 import android.os.Bundle;
 import android.os.Handler;
+import android.util.SparseArray;
 import android.view.View;
 import android.widget.Button;
 
@@ -122,9 +123,10 @@ public class TimerListActivity extends BaseActivity implements View.OnClickListe
 
     }
 
-    @Override
-    public void onSelectIndex(int index) {
 
+    @Override
+    public void onSelectItems(SparseArray<Timer> items) {
+        //passed
     }
 
 

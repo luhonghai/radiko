@@ -54,7 +54,7 @@ public class MediaRecord {
     private int currentTimeout = 1000;
     private final String NEW_LINE = "\n";
     private IMediaPlaybackService mService;
-    private OnRecordStateChangeListenner mStateChangeListenner;
+    private OnRecordStateChangeListener mStateChangeListenner;
     private String mCurrentLink;
     private int mCurrentRetry;
     private int mCurrentRetryCount = 0;
@@ -63,7 +63,7 @@ public class MediaRecord {
     private long failedID = -1;
     private final SimpleDateFormat dateFormat = new SimpleDateFormat("yyyy/MM/dd - HH:mm:ss");
 
-    public MediaRecord(Context context, IMediaPlaybackService mService, Timer timer, final OnRecordStateChangeListenner mStateChangeListenner) {
+    public MediaRecord(Context context, IMediaPlaybackService mService, Timer timer, final OnRecordStateChangeListener mStateChangeListenner) {
         mContext = context;
         selectedTimer = timer;
         this.mStateChangeListenner = mStateChangeListenner;

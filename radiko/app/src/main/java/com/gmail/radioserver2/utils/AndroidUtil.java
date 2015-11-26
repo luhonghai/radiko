@@ -13,6 +13,7 @@ import android.net.Uri;
 import android.os.Build;
 import android.support.annotation.Nullable;
 import android.support.v4.app.ActivityCompat;
+import android.util.SparseArray;
 
 import com.dotohsoft.radio.data.RadioProgram;
 import com.gmail.radioserver2.R;
@@ -41,8 +42,6 @@ import java.security.cert.X509Certificate;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.Locale;
-import java.util.Map;
-import java.util.Set;
 
 import javax.net.ssl.HttpsURLConnection;
 import javax.net.ssl.KeyManagerFactory;
@@ -379,14 +378,14 @@ public class AndroidUtil {
         }
     }};
 
-    public static void shareProgram(Context context, Map<Integer, RecordedProgram> selectedList) {
+    public static void shareProgram(Context context, SparseArray<RecordedProgram> selectedList) {
         Intent sharingIntent = new Intent(Intent.ACTION_SEND_MULTIPLE);
         sharingIntent.setType("audio/mpeg");
-        if (selectedList.size() != 0) {
-            Set<Integer> keySet = selectedList.keySet();
+        int size = selectedList.size();
+        if (size != 0) {
             ArrayList<Uri> files = new ArrayList<>();
-            for (Integer pos : keySet) {
-                File file = new File(selectedList.get(pos).getFilePath());
+            for (int i = 0; i < size; i++) {
+                File file = new File(selectedList.valueAt(i).getFilePath());
                 if (file.exists()) {
                     files.add(Uri.fromFile(file));
                 }

@@ -3,6 +3,7 @@ package com.gmail.radioserver2.activity;
 import android.content.Intent;
 import android.os.Bundle;
 import android.os.Handler;
+import android.util.SparseArray;
 import android.view.View;
 import android.widget.Button;
 import android.widget.EditText;
@@ -185,7 +186,7 @@ public class LibraryPickerActivity extends BaseActivity implements View.OnClickL
     }
 
     @Override
-    public void onSelectIndex(int index) {
-
+    public void onSelectItems(SparseArray<Library> items) {
+        //passed
     }
 }

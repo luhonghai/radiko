@@ -45,7 +45,8 @@ public class RecordedProgramDBAdapter extends DBAdapter<RecordedProgram> {
             + ", rp." + KEY_CREATED_DATE
             + " from (" + TABLE_RECORDED_PROGRAM + " as rp " +
             "left join " + TABLE_RECORDED_PROGRAM_LIBRARY + " as rpl "
-            + "on rp." + KEY_ROW_ID + "=rpl." + KEY_PRIMARY_MAPPING + ") where rpl." + KEY_PRIMARY_MAPPING + " is null";
+            + "on rp." + KEY_ROW_ID + "=rpl." + KEY_PRIMARY_MAPPING + ")" +
+            " where rpl." + KEY_PRIMARY_MAPPING + " is null";
 
     public RecordedProgramDBAdapter(Context ctx) {
         super(ctx);

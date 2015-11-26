@@ -6,6 +6,7 @@ import android.content.Intent;
 import android.content.IntentFilter;
 import android.os.Bundle;
 import android.os.Handler;
+import android.util.SparseArray;
 import android.view.LayoutInflater;
 import android.view.View;
 import android.view.ViewGroup;
@@ -146,8 +147,8 @@ public class ChannelFragmentTab extends FragmentTab implements OnListItemActionL
     }
 
     @Override
-    public void onSelectIndex(int index) {
-
+    public void onSelectItems(SparseArray<Channel> items) {
+        //passed
     }
 
     private final BroadcastReceiver mHandleAction = new BroadcastReceiver() {

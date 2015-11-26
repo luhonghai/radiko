@@ -1,5 +1,7 @@
 package com.gmail.radioserver2.adapter;
 
+import android.util.SparseArray;
+
 import java.util.Map;
 
 /**
@@ -13,5 +15,5 @@ public interface OnListItemActionListener<T> {
 
     public void onEditItem(T obj);
 
-    public void onSelectIndex(int index);
+    void onSelectItems(SparseArray<T> items);
 }
