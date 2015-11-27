@@ -391,7 +391,7 @@ public class AndroidUtil {
                 }
             }
             sharingIntent.putParcelableArrayListExtra(Intent.EXTRA_STREAM, files);
-            context.startActivity(Intent.createChooser(sharingIntent, "Choose a program"));
+            context.startActivity(Intent.createChooser(sharingIntent, context.getString(R.string.choose_program)));
         }
     }
 }

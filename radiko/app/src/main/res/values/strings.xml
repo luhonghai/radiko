@@ -44,8 +44,8 @@
     <string name="label_volume">デフォルト音量</string>
     <string name="volume_too_low">デフォルト音量が設定されています。音量を上げてみてください。</string>
     <string name="loading">ロード中 &#8230;</string>
-    <string name="choose_program">Choose a program</string>
-    <string name="button_share_facebook">送る</string>
+    <string name="choose_program">シェア方法を選んで下さい</string>
+    <string name="button_share_facebook">シェア</string>
     <string name="default_program_objId">1665349930372113</string>
     <string name="label_login_with_facebook">Facebook にログイン</string>
     <string name="app_id" translatable="false">884488071628837</string>
