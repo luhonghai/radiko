@@ -37,10 +37,10 @@ import java.util.concurrent.Callable;
 
 import wseemann.media.FFmpegMediaPlayer;
 
-public class MediaRecordRunable implements Callable<Boolean> {
+public class MediaRecordRunnable implements Callable<Boolean> {
 
     private static final long MIN_RECORDING_LENGTH = 5 * 1000;
-    private static final int MAX_FILE_SIZE = 2 * 1024 * 1024;
+    private static final int MAX_FILE_SIZE = 2097152; //2 * 1024 * 1024
     private static final String NEW_LINE = "\n";
 
     private Context mContext;
@@ -65,7 +65,7 @@ public class MediaRecordRunable implements Callable<Boolean> {
     private final SimpleDateFormat dateFormat = new SimpleDateFormat("yyyy/MM/dd - HH:mm:ss");
 
     @SuppressWarnings("ResultOfMethodCallIgnored")
-    public MediaRecordRunable(Context context, IMediaPlaybackService mService, Timer timer, OnRecordStateChangeListener mStateChangeListener) {
+    public MediaRecordRunnable(Context context, IMediaPlaybackService mService, Timer timer, OnRecordStateChangeListener mStateChangeListener) {
         mIsStop = false;
         mContext = context;
         mSelectedTimer = timer;
@@ -92,7 +92,7 @@ public class MediaRecordRunable implements Callable<Boolean> {
 
     @Override
     public Boolean call() throws Exception {
-        SimpleAppLog.debug("RECORD: start excute");
+        SimpleAppLog.debug("RECORD: start execute");
         if (mSelectedTimer != null) {
             final String channelSrc = mSelectedTimer.getChannelKey();
             if (channelSrc != null && channelSrc.length() > 0) {
@@ -121,6 +121,7 @@ public class MediaRecordRunable implements Callable<Boolean> {
     }
 
     private void releaseResource() {
+        mRetryHandler.removeCallbacks(retryRunnable);
         mContext = null;
         mCompleteHandler = null;
         mCurrentChannelLink = null;
@@ -129,7 +130,6 @@ public class MediaRecordRunable implements Callable<Boolean> {
         mChannel = null;
         mRecorder = null;
         mRetryHandler = null;
-        mStateChangeListener = null;
         mService = null;
     }
 
@@ -274,7 +274,9 @@ public class MediaRecordRunable implements Callable<Boolean> {
                 SimpleAppLog.error("Recoding could not be completed");
                 return;
             }
-            if (selectedChannel == null) return;
+            if (selectedChannel == null) {
+                return;
+            }
 
             final File mp3File = new File(filePath);
             if (mp3File.exists()) {
@@ -294,16 +296,16 @@ public class MediaRecordRunable implements Callable<Boolean> {
                         if (recordedProgram != null) {
                             long endTime = System.currentTimeMillis();
                             if (mRadioProgram != null) {
-                                mChannel.setCurrentProgram(AndroidUtil.getMaxTimedProgram(recordedProgram.getStartTime().getTime(), endTime, MediaRecordRunable.this.mRadioProgram.getPrograms()));
+                                selectedChannel.setCurrentProgram(AndroidUtil.getMaxTimedProgram(recordedProgram.getStartTime().getTime(), endTime, MediaRecordRunnable.this.mRadioProgram.getPrograms()));
                             }
-                            if (mChannel.getCurrentProgram() != null) {
-                                recordedProgram.setName(mChannel.getCurrentProgram().getTitle());
+                            if (selectedChannel.getCurrentProgram() != null) {
+                                recordedProgram.setName(selectedChannel.getCurrentProgram().getTitle());
                             } else {
                                 recordedProgram.setName("");
                             }
                             Gson gson = new Gson();
-                            recordedProgram.setChannelKey(gson.toJson(mChannel));
-                            File newFile = new File(mp3File.getParent(), mChannel.getRecordedName() + "-" + recordedProgram.getStartTime().getTime() + ".mp3");
+                            recordedProgram.setChannelKey(gson.toJson(selectedChannel));
+                            File newFile = new File(mp3File.getParent(), selectedChannel.getRecordedName() + "-" + recordedProgram.getStartTime().getTime() + ".mp3");
                             if (mp3File.renameTo(newFile)) {
                                 recordedProgram.setFilePath(newFile.getAbsolutePath());
                             }
@@ -338,14 +340,16 @@ public class MediaRecordRunable implements Callable<Boolean> {
             calFinish.set(Calendar.HOUR_OF_DAY, mSelectedTimer.getFinishHour());
             calFinish.set(Calendar.MINUTE, mSelectedTimer.getFinishMinute());
             calFinish.set(Calendar.SECOND, 0);
-            mCompleteHandler.post(new Runnable() {
-                @Override
-                public void run() {
-                    Intent intent = new Intent(Constants.INTENT_FILTER_FRAGMENT_ACTION);
-                    intent.putExtra(Constants.FRAGMENT_ACTION_TYPE, Constants.ACTION_RELOAD_RECORDED_PROGRAM);
-                    mContext.sendBroadcast(intent);
-                }
-            });
+            if (mCompleteHandler != null) {
+                mCompleteHandler.post(new Runnable() {
+                    @Override
+                    public void run() {
+                        Intent intent = new Intent(Constants.INTENT_FILTER_FRAGMENT_ACTION);
+                        intent.putExtra(Constants.FRAGMENT_ACTION_TYPE, Constants.ACTION_RELOAD_RECORDED_PROGRAM);
+                        mContext.sendBroadcast(intent);
+                    }
+                });
+            }
         }
 
         @Override
@@ -388,7 +392,7 @@ public class MediaRecordRunable implements Callable<Boolean> {
             }
             FFmpegMediaPlayer.mRetryPivot = mCurrentRetry;
             SimpleAppLog.debug("RECORD " + mCurrentTimeout);
-            if (mCurrentRetry <= 5) {
+            if (mCurrentRetry <= 5 && mRetryHandler != null) {
                 mRetryHandler.postDelayed(retryRunnable, mCurrentTimeout);
             } else {
                 mIsStop = true;
@@ -438,7 +442,7 @@ public class MediaRecordRunable implements Callable<Boolean> {
                 mRecorder.setOnPreparedListener(new FFmpegMediaPlayer.OnPreparedListener() {
                     @Override
                     public void onPrepared(FFmpegMediaPlayer mp) {
-                        SimpleAppLog.info("Start mRecorder");
+                        SimpleAppLog.info("Start Recorder");
                         writeLogFile("Timer recording: prepare successful, start record");
                         mp.start();
                     }
@@ -480,8 +484,15 @@ public class MediaRecordRunable implements Callable<Boolean> {
             RecordedProgram recordedProgram = dbAdapter.toObject(dbAdapter.get(recordID));
             if (recordedProgram != null) {
                 recordedProgram.setEndTime(new Date(endTime));
-                if (mChannel.getCurrentProgram() != null) {
-                    recordedProgram.setName(mChannel.getCurrentProgram().getTitle() + " (失敗)");
+                String channelKey = recordedProgram.getChannelKey();
+                if (channelKey.length() != 0) {
+                    Gson gson = new Gson();
+                    Channel channel = gson.fromJson(channelKey, Channel.class);
+                    if (channel.getCurrentProgram() != null) {
+                        recordedProgram.setName(channel.getCurrentProgram().getTitle() + " (失敗)");
+                    } else {
+                        recordedProgram.setName("(失敗)");
+                    }
                 } else {
                     recordedProgram.setName("(失敗)");
                 }
@@ -534,11 +545,16 @@ public class MediaRecordRunable implements Callable<Boolean> {
             } else {
                 mStateChangeListener.refresh(true);
                 try {
-                    mRetryHandler.removeCallbacks(retryRunnable);
+                    if (mRetryHandler != null) {
+                        mRetryHandler.removeCallbacks(retryRunnable);
+                    }
                 } catch (Exception e) {
                     e.printStackTrace();
                 }
+                mStateChangeListener = null;
             }
+        } else {
+            SimpleAppLog.debug("Handler went away");
         }
     }
 

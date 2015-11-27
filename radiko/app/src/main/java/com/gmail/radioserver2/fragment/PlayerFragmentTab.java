@@ -945,12 +945,13 @@ public class PlayerFragmentTab extends FragmentTab implements ServiceConnection,
             // move it smoothly
             int width = seekBarPlayer.getWidth();
             if (width == 0) width = 320;
-            long smoothrefreshtime = mDuration / width;
+            long smoothRefreshTime = mDuration / width;
 
-            if (smoothrefreshtime > remaining) return remaining;
-            if (smoothrefreshtime < 20) return 20;
-            return smoothrefreshtime;
+            if (smoothRefreshTime > remaining) return remaining;
+            if (smoothRefreshTime < 20) return 20;
+            return smoothRefreshTime;
         } catch (RemoteException ex) {
+        //
         }
         return 500;
     }
