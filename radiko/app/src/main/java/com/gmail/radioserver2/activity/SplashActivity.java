@@ -6,8 +6,6 @@ import android.os.Bundle;
 import android.support.annotation.NonNull;
 import android.widget.Toast;
 
-import com.facebook.FacebookSdk;
-
 import static com.gmail.radioserver2.utils.AppDelegate.hasPermission;
 import static com.gmail.radioserver2.utils.AppDelegate.hasPermissions;
 import static com.gmail.radioserver2.utils.AppDelegate.isGrantedAll;
@@ -24,7 +22,7 @@ public class SplashActivity extends BaseActivity {
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
-        FacebookSdk.sdkInitialize(getApplicationContext());
+//        FacebookSdk.sdkInitialize(getApplicationContext());
         if (!hasPermissions(this, permission.ACCESS_NETWORK_STATE, permission.ACCESS_WIFI_STATE, permission.INTERNET)) {
             requestPermission(this, REQUEST_INTERNET_PERMISSION,
                     permission.ACCESS_NETWORK_STATE, permission.ACCESS_WIFI_STATE, permission.INTERNET);

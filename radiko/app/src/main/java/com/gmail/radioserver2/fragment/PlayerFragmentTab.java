@@ -876,6 +876,8 @@ public class PlayerFragmentTab extends FragmentTab implements ServiceConnection,
                 }
             } catch (RemoteException e) {
                 e.printStackTrace();
+            } catch (NullPointerException e) {
+                e.printStackTrace();
             }
 
         }
@@ -951,7 +953,7 @@ public class PlayerFragmentTab extends FragmentTab implements ServiceConnection,
             if (smoothRefreshTime < 20) return 20;
             return smoothRefreshTime;
         } catch (RemoteException ex) {
-        //
+            //
         }
         return 500;
     }

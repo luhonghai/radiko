@@ -104,16 +104,14 @@ public class RadikoDialogFragment extends DialogFragment implements View.OnClick
                                 }
                             }
                         }
-                    } else {
-                        Log.d("login", "login failed");
-                        try {
-                            Toast.makeText(getActivity(), R.string.login_radiko_failed, Toast.LENGTH_LONG).show();
-                        } catch (Resources.NotFoundException e) {
-                            e.printStackTrace();
-                        } catch (NullPointerException e) {
-                            e.printStackTrace();
-                        }
+                        return;
                     }
+                }
+                Log.d("login", "login failed");
+                try {
+                    Toast.makeText(getActivity(), R.string.login_radiko_failed, Toast.LENGTH_LONG).show();
+                } catch (Resources.NotFoundException | NullPointerException e) {
+                    e.printStackTrace();
                 }
                 btClose.setEnabled(true);
             }

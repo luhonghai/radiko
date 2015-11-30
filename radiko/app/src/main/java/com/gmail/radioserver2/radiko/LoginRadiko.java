@@ -79,7 +79,7 @@ public class LoginRadiko {
                 String strRes = IOUtils.toString(httpURLConnection.getInputStream());
                 FileHelper fileHelper = new FileHelper(context);
                 File logFile = new File(fileHelper.getRecordedProgramFolder(), "record_log.txt");
-                sendLogInResult(strRes, readLast1000Line(logFile), isLogin ? 1 : 0);
+//                sendLogInResult(strRes, readLast1000Line(logFile), isLogin ? 1 : 0);
                 return isLogin;
             } catch (IOException e) {
                 e.printStackTrace();

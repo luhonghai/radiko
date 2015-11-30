@@ -11,9 +11,6 @@ import android.widget.Spinner;
 import android.widget.Switch;
 import android.widget.TextView;
 
-import com.facebook.AccessToken;
-import com.facebook.Profile;
-import com.facebook.ProfileTracker;
 import com.gmail.radioserver2.R;
 import com.gmail.radioserver2.activity.MainActivity;
 import com.gmail.radioserver2.data.Channel;
@@ -55,7 +52,7 @@ public class SettingFragmentTab extends FragmentTab implements View.OnClickListe
 
     private Switch switchRegion;
 
-    private TextView btLoginFacebook;
+//    private TextView btLoginFacebook;
 
     @Override
     public View onCreateView(LayoutInflater inflater, ViewGroup container, Bundle savedInstanceState) {
@@ -84,36 +81,36 @@ public class SettingFragmentTab extends FragmentTab implements View.OnClickListe
 //        v.findViewById(R.id.btCheckLogin).setOnClickListener(this);
         initSeekbar();
         loadData();
-        btLoginFacebook = (TextView) v.findViewById(R.id.btLoginFacebook);
-        btLoginFacebook.setOnClickListener(this);
-        profileTracker = new ProfileTracker() {
-            @Override
-            protected void onCurrentProfileChanged(Profile profile, Profile profile1) {
-                if (profile1 != null) {
-                    btLoginFacebook.setText(profile1.getName());
-                } else {
-                    btLoginFacebook.setText(getActivity().getString(R.string.label_login_with_facebook));
-                }
-            }
-        };
-        AccessToken token = AccessToken.getCurrentAccessToken();
-        if (token != null) {
-            Profile profile = Profile.getCurrentProfile();
-            if (profile != null) {
-                btLoginFacebook.setText(profile.getName());
-            } else {
-                btLoginFacebook.setText(getActivity().getString(R.string.label_login_with_facebook));
-            }
-        }
-        profileTracker.startTracking();
+//        btLoginFacebook = (TextView) v.findViewById(R.id.btLoginFacebook);
+//        btLoginFacebook.setOnClickListener(this);
+//        profileTracker = new ProfileTracker() {
+//            @Override
+//            protected void onCurrentProfileChanged(Profile profile, Profile profile1) {
+//                if (profile1 != null) {
+//                    btLoginFacebook.setText(profile1.getName());
+//                } else {
+//                    btLoginFacebook.setText(getActivity().getString(R.string.label_login_with_facebook));
+//                }
+//            }
+//        };
+//        AccessToken token = AccessToken.getCurrentAccessToken();
+//        if (token != null) {
+//            Profile profile = Profile.getCurrentProfile();
+//            if (profile != null) {
+//                btLoginFacebook.setText(profile.getName());
+//            } else {
+//                btLoginFacebook.setText(getActivity().getString(R.string.label_login_with_facebook));
+//            }
+//        }
+//        profileTracker.startTracking();
         return v;
     }
 
-    private ProfileTracker profileTracker;
+//    private ProfileTracker profileTracker;
 
     @Override
     public void onDestroy() {
-        profileTracker.stopTracking();
+//        profileTracker.stopTracking();
         super.onDestroy();
     }
 
@@ -235,12 +232,12 @@ public class SettingFragmentTab extends FragmentTab implements View.OnClickListe
                 intent.putExtra(Constants.PARAMETER_SELECTED_TAB_ID, Constants.TAB_HOME_ID);
                 getActivity().sendBroadcast(intent);
                 break;
-            case R.id.btLoginFacebook:
-                Intent intent1 = new Intent(Constants.INTENT_FILTER_FRAGMENT_ACTION);
-                intent1.putExtra(Constants.FRAGMENT_ACTION_TYPE, Constants.ACTION_LOGIN_FACEBOOK);
-                getActivity().sendBroadcast(intent1);
-                break;
-            case R.id.btCheckLogin: {
+//            case R.id.btLoginFacebook:
+//                Intent intent1 = new Intent(Constants.INTENT_FILTER_FRAGMENT_ACTION);
+//                intent1.putExtra(Constants.FRAGMENT_ACTION_TYPE, Constants.ACTION_LOGIN_FACEBOOK);
+//                getActivity().sendBroadcast(intent1);
+//                break;
+//            case R.id.btCheckLogin: {
 //                final Setting setting = new Setting(getContext());
 //                setting.load();
 //                if (setting.isPremium()) {
@@ -312,8 +309,8 @@ public class SettingFragmentTab extends FragmentTab implements View.OnClickListe
 //                        }
 //                    }.execute();
 //                }
-            }
-            break;
+//            }
+//            break;
         }
     }
 

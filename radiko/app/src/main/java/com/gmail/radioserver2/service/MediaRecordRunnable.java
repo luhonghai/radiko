@@ -124,9 +124,6 @@ public class MediaRecordRunnable implements Callable<Boolean> {
     private void releaseResource() {
         mRetryHandler.removeCallbacks(retryRunnable);
         mContext = null;
-        mCurrentChannelLink = null;
-        mLogFile = null;
-        mRecorder = null;
         mService = null;
     }
 
@@ -254,7 +251,9 @@ public class MediaRecordRunnable implements Callable<Boolean> {
                                         }
                                     }
                                 }
-                                startRecording(mCurrentChannelLink);
+                                if (!mIsStop) {
+                                    startRecording(mCurrentChannelLink);
+                                }
                             }
                         } catch (Exception e) {
                             mIsStop = true;
@@ -405,7 +404,7 @@ public class MediaRecordRunnable implements Callable<Boolean> {
     };
 
     private boolean validateChannelProgram(RadioProgram radioProgram) {
-        if (radioProgram != null) {
+        if (radioProgram != null && !mIsStop) {
             List<RadioProgram.Program> programList = radioProgram.getPrograms();
             if (programList != null && programList.size() > 0) {
                 for (RadioProgram.Program program : programList) {

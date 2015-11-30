@@ -1,18 +1,15 @@
 package com.gmail.radioserver2.activity;
 
 import android.app.ActivityManager;
-import android.app.AlertDialog;
 import android.content.BroadcastReceiver;
 import android.content.ComponentName;
 import android.content.Context;
-import android.content.DialogInterface;
 import android.content.Intent;
 import android.content.IntentFilter;
 import android.content.ServiceConnection;
 import android.content.SharedPreferences;
 import android.location.Location;
 import android.media.AudioManager;
-import android.net.Uri;
 import android.os.AsyncTask;
 import android.os.Bundle;
 import android.os.Handler;
@@ -26,20 +23,8 @@ import android.view.LayoutInflater;
 import android.view.View;
 import android.widget.TabHost;
 import android.widget.TextView;
-import android.widget.Toast;
 
 import com.crashlytics.android.Crashlytics;
-import com.facebook.AccessToken;
-import com.facebook.CallbackManager;
-import com.facebook.FacebookCallback;
-import com.facebook.FacebookException;
-import com.facebook.appevents.AppEventsLogger;
-import com.facebook.login.DefaultAudience;
-import com.facebook.login.LoginManager;
-import com.facebook.login.LoginResult;
-import com.facebook.share.Sharer;
-import com.facebook.share.model.ShareLinkContent;
-import com.facebook.share.widget.ShareDialog;
 import com.gmail.radioserver2.R;
 import com.gmail.radioserver2.data.Channel;
 import com.gmail.radioserver2.data.Library;
@@ -85,7 +70,7 @@ public class MainActivity extends BaseFragmentActivity implements ServiceConnect
 
     private MusicUtils.ServiceToken mServiceToken;
     private AudioManager mAudioManager;
-    private CallbackManager mCallback;
+//    private CallbackManager mCallback;
     private RadikoDialogFragment radikoDialogFragment;
 
     protected void onCreate(Bundle savedInstanceState) {
@@ -93,7 +78,7 @@ public class MainActivity extends BaseFragmentActivity implements ServiceConnect
         Fabric.with(this, new Crashlytics());
         mAudioManager = (AudioManager) getSystemService(AUDIO_SERVICE);
         // Start timer
-        mCallback = CallbackManager.Factory.create();
+//        mCallback = CallbackManager.Factory.create();
         SharedPreferences preferences = getSharedPreferences(Constants.SHARE_PREF, MODE_PRIVATE);
         if (!preferences.getBoolean(Constants.SEND_TO_BACK_GROUND, false)) {
             Intent intent = new Intent(TimerManagerReceiver.ACTION_START_TIMER);
@@ -139,7 +124,7 @@ public class MainActivity extends BaseFragmentActivity implements ServiceConnect
     @Override
     protected void onResume() {
         super.onResume();
-        AppEventsLogger.activateApp(this);
+//        AppEventsLogger.activateApp(this);
         if (mAudioManager != null) {
             int volume = mAudioManager.getStreamVolume(AudioManager.STREAM_MUSIC);
             if (volume >= Math.round(mAudioManager.getStreamMaxVolume(AudioManager.STREAM_MUSIC) * 2f / 5f)) {
@@ -154,7 +139,7 @@ public class MainActivity extends BaseFragmentActivity implements ServiceConnect
     @Override
     protected void onPause() {
         super.onPause();
-        AppEventsLogger.deactivateApp(this);
+//        AppEventsLogger.deactivateApp(this);
         SharedPreferences sharedPreferences = getSharedPreferences(Constants.SHARE_PREF, Context.MODE_PRIVATE);
         SharedPreferences.Editor editor = sharedPreferences.edit();
         if (mService != null) {
@@ -427,7 +412,7 @@ public class MainActivity extends BaseFragmentActivity implements ServiceConnect
      */
     @Override
     protected void onActivityResult(int requestCode, int resultCode, Intent data) {
-        mCallback.onActivityResult(requestCode, resultCode, data);
+//        mCallback.onActivityResult(requestCode, resultCode, data);
         if (mStacks.get(mCurrentTab).size() == 0) {
             return;
         }
@@ -513,92 +498,92 @@ public class MainActivity extends BaseFragmentActivity implements ServiceConnect
                 case Constants.ACTION_RESET_FILTER_RECORDED_PROGRAM:
                     selectedLibrary = null;
                     break;
-                case Constants.ACTION_LOGIN_FACEBOOK:
-                    loginFacebook();
-                    break;
-                case Constants.ACTION_SHARE_FACEBOOK:
-                    shareAppToFacebook();
-                    break;
+//                case Constants.ACTION_LOGIN_FACEBOOK:
+//                    loginFacebook();
+//                    break;
+//                case Constants.ACTION_SHARE_FACEBOOK:
+//                    shareAppToFacebook();
+//                    break;
             }
         }
     };
 
 
-    private ShareDialog mShareDialog;
-
-    private void shareAppToFacebook() {
-        if (mShareDialog == null) {
-            mShareDialog = new ShareDialog(this);
-            mShareDialog.registerCallback(mCallback, new FacebookCallback<Sharer.Result>() {
-                @Override
-                public void onSuccess(Sharer.Result result) {
-                    if (result != null && result.getPostId() != null) {
-                        Toast.makeText(MainActivity.this, getString(R.string.label_share_facebook_success), Toast.LENGTH_SHORT).show();
-                    }
-                }
-
-                @Override
-                public void onCancel() {
-
-                }
-
-                @Override
-                public void onError(FacebookException error) {
-                    Toast.makeText(MainActivity.this, R.string.got_trouble_while_sharing_facebook, Toast.LENGTH_SHORT).show();
-                }
-            });
-        }
-        if (ShareDialog.canShow(ShareLinkContent.class)) {
-            ShareLinkContent linkContent = new ShareLinkContent.Builder()
-                    .setContentTitle("Hello Radio server")
-                    .setContentDescription("Hey, this is my favorite app, It's fun")
-//                    .setContentUrl(Uri.parse("http://radioserver2.jimdo.com/"))
-                    .setContentUrl(Uri.parse("https://play.google.com/store/apps/details?id=com.gmail.radioserver2&hl=ja"))
-                    .setImageUrl(Uri.parse("https://lh3.googleusercontent.com/_eqcn-GDOYiFh5XArd3UrCKL8bRCFlZBttjltj07sFozkipm9sg7kp5CFGjWDgjWn1w=h900"))
-                    .build();
-            mShareDialog.show(linkContent);
-        }
-    }
-
-    private void loginFacebook() {
-        final LoginManager loginManager = LoginManager.getInstance();
-        loginManager.registerCallback(mCallback, new FacebookCallback<LoginResult>() {
-            @Override
-            public void onSuccess(LoginResult loginResult) {
-
-            }
-
-            @Override
-            public void onCancel() {
-
-            }
-
-            @Override
-            public void onError(FacebookException e) {
-
-            }
-        });
-        AccessToken token = AccessToken.getCurrentAccessToken();
-        if (token != null) {
-            AlertDialog.Builder builder = new AlertDialog.Builder(this);
-            builder.setTitle(getString(R.string.warning))
-                    .setMessage(getString(R.string.message_ask_for_logout_fb))
-                    .setPositiveButton(getString(R.string.label_yes), new DialogInterface.OnClickListener() {
-                        @Override
-                        public void onClick(DialogInterface dialogInterface, int i) {
-                            loginManager.logOut();
-                            dialogInterface.dismiss();
-                        }
-                    }).setNegativeButton(getString(R.string.label_no), new DialogInterface.OnClickListener() {
-                @Override
-                public void onClick(DialogInterface dialogInterface, int i) {
-                    dialogInterface.dismiss();
-                }
-            }).create().show();
-        } else {
-            loginManager.setDefaultAudience(DefaultAudience.EVERYONE);
-        }
-    }
+//    private ShareDialog mShareDialog;
+//
+//    private void shareAppToFacebook() {
+//        if (mShareDialog == null) {
+//            mShareDialog = new ShareDialog(this);
+//            mShareDialog.registerCallback(mCallback, new FacebookCallback<Sharer.Result>() {
+//                @Override
+//                public void onSuccess(Sharer.Result result) {
+//                    if (result != null && result.getPostId() != null) {
+//                        Toast.makeText(MainActivity.this, getString(R.string.label_share_facebook_success), Toast.LENGTH_SHORT).show();
+//                    }
+//                }
+//
+//                @Override
+//                public void onCancel() {
+//
+//                }
+//
+//                @Override
+//                public void onError(FacebookException error) {
+//                    Toast.makeText(MainActivity.this, R.string.got_trouble_while_sharing_facebook, Toast.LENGTH_SHORT).show();
+//                }
+//            });
+//        }
+//        if (ShareDialog.canShow(ShareLinkContent.class)) {
+//            ShareLinkContent linkContent = new ShareLinkContent.Builder()
+//                    .setContentTitle("Hello Radio server")
+//                    .setContentDescription("Hey, this is my favorite app, It's fun")
+////                    .setContentUrl(Uri.parse("http://radioserver2.jimdo.com/"))
+//                    .setContentUrl(Uri.parse("https://play.google.com/store/apps/details?id=com.gmail.radioserver2&hl=ja"))
+//                    .setImageUrl(Uri.parse("https://lh3.googleusercontent.com/_eqcn-GDOYiFh5XArd3UrCKL8bRCFlZBttjltj07sFozkipm9sg7kp5CFGjWDgjWn1w=h900"))
+//                    .build();
+//            mShareDialog.show(linkContent);
+//        }
+//    }
+//
+//    private void loginFacebook() {
+//        final LoginManager loginManager = LoginManager.getInstance();
+//        loginManager.registerCallback(mCallback, new FacebookCallback<LoginResult>() {
+//            @Override
+//            public void onSuccess(LoginResult loginResult) {
+//
+//            }
+//
+//            @Override
+//            public void onCancel() {
+//
+//            }
+//
+//            @Override
+//            public void onError(FacebookException e) {
+//
+//            }
+//        });
+//        AccessToken token = AccessToken.getCurrentAccessToken();
+//        if (token != null) {
+//            AlertDialog.Builder builder = new AlertDialog.Builder(this);
+//            builder.setTitle(getString(R.string.warning))
+//                    .setMessage(getString(R.string.message_ask_for_logout_fb))
+//                    .setPositiveButton(getString(R.string.label_yes), new DialogInterface.OnClickListener() {
+//                        @Override
+//                        public void onClick(DialogInterface dialogInterface, int i) {
+//                            loginManager.logOut();
+//                            dialogInterface.dismiss();
+//                        }
+//                    }).setNegativeButton(getString(R.string.label_no), new DialogInterface.OnClickListener() {
+//                @Override
+//                public void onClick(DialogInterface dialogInterface, int i) {
+//                    dialogInterface.dismiss();
+//                }
+//            }).create().show();
+//        } else {
+//            loginManager.setDefaultAudience(DefaultAudience.EVERYONE);
+//        }
+//    }
 
     @Override
     protected void onDestroy() {

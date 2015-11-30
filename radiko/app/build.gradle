@@ -18,7 +18,7 @@ repositories {
 
 def versionMajor = 1
 def versionMinor = 0
-def versionPatch = 16
+def versionPatch = 17
 
 android {
     compileSdkVersion 23
@@ -51,7 +51,7 @@ dependencies {
     compile 'com.google.code.gson:gson:2.4'
     compile 'com.nineoldandroids:library:2.4.0'
     compile 'com.google.android.gms:play-services:7.0.0'
-    compile 'com.facebook.android:facebook-android-sdk:4.1.0'
+//    compile 'com.facebook.android:facebook-android-sdk:4.1.0'
     compile('com.crashlytics.sdk.android:crashlytics:2.5.0@aar') {
         transitive = true;
     }

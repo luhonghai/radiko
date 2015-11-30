@@ -73,7 +73,7 @@ public class RecordBackgroundService extends Service implements OnRecordStateCha
     public int onStartCommand(Intent intent, int flags, int startId) {
         if (intent != null) {
             Bundle bd = intent.getExtras();
-            if (bd != null) {
+            if (bd != null && bd.containsKey(PARAM_TIMER)) {
                 SimpleAppLog.debug("RECORD: start command");
                 if (isConnectInternet()) {
                     String strTimer = bd.getString(PARAM_TIMER);
