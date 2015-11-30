@@ -18,6 +18,7 @@ import com.gmail.radioserver2.data.Timer;
 import com.gmail.radioserver2.data.sqlite.ext.RecordedProgramDBAdapter;
 import com.gmail.radioserver2.radiko.TokenFetcher;
 import com.gmail.radioserver2.utils.AndroidUtil;
+import com.gmail.radioserver2.utils.AppDelegate;
 import com.gmail.radioserver2.utils.Constants;
 import com.gmail.radioserver2.utils.FileHelper;
 import com.gmail.radioserver2.utils.SimpleAppLog;
@@ -39,7 +40,7 @@ import wseemann.media.FFmpegMediaPlayer;
 
 public class MediaRecordRunnable implements Callable<Boolean> {
 
-    private static final long MIN_RECORDING_LENGTH = 5 * 1000;
+    private static final long MIN_RECORDING_LENGTH = 60000; //60 *1000
     private static final int MAX_FILE_SIZE = 2097152; //2 * 1024 * 1024
     private static final String NEW_LINE = "\n";
 
@@ -123,13 +124,9 @@ public class MediaRecordRunnable implements Callable<Boolean> {
     private void releaseResource() {
         mRetryHandler.removeCallbacks(retryRunnable);
         mContext = null;
-        mCompleteHandler = null;
         mCurrentChannelLink = null;
         mLogFile = null;
-        mRadioProgram = null;
-        mChannel = null;
         mRecorder = null;
-        mRetryHandler = null;
         mService = null;
     }
 
@@ -209,60 +206,67 @@ public class MediaRecordRunnable implements Callable<Boolean> {
     }
 
     private void didGetTokenAndStartRecord() {
-        TokenFetcher.getTokenFetcher(mContext, new TokenFetcher.OnTokenListener() {
-            @Override
-            public void onTokenFound(String token, final String rawAreaId) {
-                String url = mChannel.getUrl();
-                if (mService != null) {
-                    try {
-                        if (url.toLowerCase().startsWith("rtmpe://f-radiko.smartstream.ne.jp")) {
-                            url = mService.updateRtmpSuck("S:" + token, url);
+        TokenFetcher.getTokenFetcher(mContext, AppDelegate.getInstance().getCookie(),
+                new TokenFetcher.OnTokenListener() {
+                    @Override
+                    public void onTokenFound(String token, final String rawAreaId) {
+                        try {
+                            if (mChannel != null && !mIsStop) {
+                                String url = mChannel.getUrl();
+                                if (mService != null) {
+                                    try {
+                                        if (url.toLowerCase().startsWith("rtmpe://f-radiko.smartstream.ne.jp")) {
+                                            url = mService.updateRtmpSuck("S:" + token, url);
+                                        }
+                                    } catch (Exception e) {
+                                        SimpleAppLog.error("Could not update token", e);
+                                        writeLogFile("Timer recording: token could not be updated");
+                                    }
+                                }
+                                mCurrentChannelLink = url;
+                                APIRequester requester = new APIRequester(new FileHelper(mContext).getApiCachedFolder());
+                                RadioChannel.Channel rChannel = new RadioChannel.Channel();
+                                rChannel.setName(mChannel.getName());
+                                rChannel.setService(mChannel.getType());
+                                rChannel.setStreamURL(mChannel.getUrl());
+                                rChannel.setServiceChannelId(mChannel.getKey());
+                                rChannel.setRegionID(mChannel.getRegionID());
+                                RadioProgram radioProgram = null;
+                                for (int i = 0; i < 3; i++) {
+                                    writeLogFile("Timer recording: try to fetch program #" + (i + 1));
+                                    try {
+                                        radioProgram = requester.getPrograms(rChannel, AndroidUtil.getAdsId(mContext));
+                                    } catch (IOException e) {
+                                        SimpleAppLog.error("Could not fetch programs", e);
+                                        e.printStackTrace();
+                                    }
+                                    if (validateChannelProgram(radioProgram)) {
+                                        break;
+                                    } else {
+                                        switch (i) {
+                                            case 0:
+                                                requester.addDay(-1);
+                                                break;
+                                            case 1:
+                                                requester.resetDate();
+                                                requester.addDay(1);
+                                                break;
+                                        }
+                                    }
+                                }
+                                startRecording(mCurrentChannelLink);
+                            }
+                        } catch (Exception e) {
+                            mIsStop = true;
                         }
-                    } catch (Exception e) {
-                        SimpleAppLog.error("Could not update token", e);
-                        writeLogFile("Timer recording: token could not be updated");
                     }
-                }
-                mCurrentChannelLink = url;
-                APIRequester requester = new APIRequester(new FileHelper(mContext).getApiCachedFolder());
-                RadioChannel.Channel rChannel = new RadioChannel.Channel();
-                rChannel.setName(mChannel.getName());
-                rChannel.setService(mChannel.getType());
-                rChannel.setStreamURL(mChannel.getUrl());
-                rChannel.setServiceChannelId(mChannel.getKey());
-                rChannel.setRegionID(mChannel.getRegionID());
-                RadioProgram radioProgram = null;
-                for (int i = 0; i < 3; i++) {
-                    writeLogFile("Timer recording: try to fetch program #" + (i + 1));
-                    try {
-                        radioProgram = requester.getPrograms(rChannel, AndroidUtil.getAdsId(mContext));
-                    } catch (IOException e) {
-                        SimpleAppLog.error("Could not fetch programs", e);
-                        e.printStackTrace();
-                    }
-                    if (validateChannelProgram(radioProgram)) {
-                        break;
-                    } else {
-                        switch (i) {
-                            case 0:
-                                requester.addDay(-1);
-                                break;
-                            case 1:
-                                requester.resetDate();
-                                requester.addDay(1);
-                                break;
-                        }
-                    }
-                }
-                startRecording(mCurrentChannelLink);
-            }
 
-            @Override
-            public void onError(String message, Throwable throwable) {
-                writeLogFile("Timer recording: token could not be fetched - end recording");
-                mIsStop = true;
-            }
-        }).fetch();
+                    @Override
+                    public void onError(String message, Throwable throwable) {
+                        writeLogFile("Timer recording: token could not be fetched - end recording");
+                        mIsStop = true;
+                    }
+                }).fetch();
     }
 
 
@@ -547,6 +551,7 @@ public class MediaRecordRunnable implements Callable<Boolean> {
                 try {
                     if (mRetryHandler != null) {
                         mRetryHandler.removeCallbacks(retryRunnable);
+                        mRetryHandler = null;
                     }
                 } catch (Exception e) {
                     e.printStackTrace();

@@ -61,7 +61,7 @@ public class RadikoDialogFragment extends DialogFragment implements View.OnClick
 
     private void didCheckLogin() {
         btClose.setEnabled(false);
-        final LoginRadiko loginRadiko = new LoginRadiko();
+        final LoginRadiko loginRadiko = new LoginRadiko(getActivity());
         new AsyncTask<String, Void, Boolean>() {
             @Override
             protected void onPreExecute() {

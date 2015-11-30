@@ -25,24 +25,9 @@ public class AppApplication extends Application {
         super.onCreate();
         SharedPreferences sharedPreferences = getSharedPreferences(Constants.SHARE_PREF, MODE_PRIVATE);
         AppDelegate.getInstance().setPremium(sharedPreferences.getBoolean(Constants.KEY_PREMIUM, false));
-        String jsonStr = sharedPreferences.getString("Cookie", null);
-        if (jsonStr != null) {
-            CookieManager cookieManager = new CookieManager();
-            CookieHandler.setDefault(cookieManager);
-            Gson gson = new Gson();
-            Type maptype = new TypeToken<List<HttpCookie>>() {
-            }.getType();
-            List<HttpCookie> cookies = gson.fromJson(jsonStr, maptype);
-            for (HttpCookie cookie : cookies) {
-                try {
-                    cookieManager.getCookieStore().add(new URI("https://radiko.jp"), cookie);
-                    if (cookie.hasExpired()) {
-                        AppDelegate.getInstance().setPremium(false);
-                    }
-                } catch (URISyntaxException e) {
-                    e.printStackTrace();
-                }
-            }
+        String cookies = sharedPreferences.getString("Cookie", "");
+        if (cookies.length() != 0) {
+            AppDelegate.getInstance().setCookie(cookies);
         }
     }
 

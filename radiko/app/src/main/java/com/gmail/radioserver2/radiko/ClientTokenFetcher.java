@@ -19,8 +19,11 @@ import jp.radiko.k.k;
  */
 public class ClientTokenFetcher extends TokenFetcher {
 
-    public ClientTokenFetcher(Context context, OnTokenListener onTokenListener) {
+    private String cookies;
+
+    public ClientTokenFetcher(Context context, String cookies, OnTokenListener onTokenListener) {
         super(context, onTokenListener);
+        this.cookies = cookies;
     }
 
     @Override
@@ -62,7 +65,7 @@ public class ClientTokenFetcher extends TokenFetcher {
         String token = "";
         String output = "";
         try {
-            TokenRequester.TokenData tokenData = requester.requestToken(getLatitude(), getLongitude());
+            TokenRequester.TokenData tokenData = requester.requestToken(cookies, getLatitude(), getLongitude());
             if (tokenData != null) {
                 saveToken(tokenData.getToken(), tokenData.getOutput());
                 token = tokenData.getToken();

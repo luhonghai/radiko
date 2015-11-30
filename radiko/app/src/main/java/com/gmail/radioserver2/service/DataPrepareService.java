@@ -73,28 +73,29 @@ public class DataPrepareService {
         // Get tracker.
         final Tracker t = AnalyticHelper.getTracker(context);
         AndroidUtil.updateTokenType(context, location);
-        TokenFetcher tokenFetcher = TokenFetcher.getTokenFetcher(context, new TokenFetcher.OnTokenListener() {
-            @Override
-            public void onTokenFound(String token, String rawAreaId) {
-                SimpleAppLog.info("On token found. Token: " + token + ". Area ID: " + rawAreaId);
-                requestChannels(token, rawAreaId);
-                t.send(new HitBuilders.EventBuilder()
-                        .setCategory(AnalyticHelper.CATEGORY_AREA_ID)
-                        .setAction(rawAreaId)
-                        .build());
-            }
+        TokenFetcher tokenFetcher = TokenFetcher.getTokenFetcher(context, AppDelegate.getInstance().getCookie(),
+                new TokenFetcher.OnTokenListener() {
+                    @Override
+                    public void onTokenFound(String token, String rawAreaId) {
+                        SimpleAppLog.info("On token found. Token: " + token + ". Area ID: " + rawAreaId);
+                        requestChannels(token, rawAreaId);
+                        t.send(new HitBuilders.EventBuilder()
+                                .setCategory(AnalyticHelper.CATEGORY_AREA_ID)
+                                .setAction(rawAreaId)
+                                .build());
+                    }
 
-            @Override
-            public void onError(String message, Throwable throwable) {
-                SimpleAppLog.info("On token error. Message: " + message);
-                SimpleAppLog.error(message, throwable);
-                //requestChannels("");
-                t.send(new HitBuilders.EventBuilder()
-                        .setCategory(AnalyticHelper.CATEGORY_AREA_ID)
-                        .setAction(AnalyticHelper.ACTION_ERROR)
-                        .build());
-            }
-        }, location);
+                    @Override
+                    public void onError(String message, Throwable throwable) {
+                        SimpleAppLog.info("On token error. Message: " + message);
+                        SimpleAppLog.error(message, throwable);
+                        //requestChannels("");
+                        t.send(new HitBuilders.EventBuilder()
+                                .setCategory(AnalyticHelper.CATEGORY_AREA_ID)
+                                .setAction(AnalyticHelper.ACTION_ERROR)
+                                .build());
+                    }
+                }, location);
         tokenFetcher.fetch();
     }
 

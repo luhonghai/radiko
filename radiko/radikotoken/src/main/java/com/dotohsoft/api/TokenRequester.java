@@ -1,5 +1,8 @@
 package com.dotohsoft.api;
 
+import com.google.gson.Gson;
+import com.google.gson.reflect.TypeToken;
+
 import org.apache.commons.codec.binary.Base64;
 import org.apache.commons.io.IOUtils;
 
@@ -8,6 +11,9 @@ import java.io.File;
 import java.io.FileInputStream;
 import java.io.IOException;
 import java.io.InputStream;
+import java.lang.reflect.Type;
+import java.net.CookieHandler;
+import java.net.CookieManager;
 import java.net.HttpURLConnection;
 import java.net.MalformedURLException;
 import java.net.URL;
@@ -18,6 +24,9 @@ import java.security.NoSuchAlgorithmException;
 import java.security.UnrecoverableKeyException;
 import java.security.cert.CertificateException;
 import java.security.cert.X509Certificate;
+import java.util.ArrayList;
+import java.util.List;
+import java.util.Map;
 
 import javax.net.ssl.HttpsURLConnection;
 import javax.net.ssl.KeyManagerFactory;
@@ -89,25 +98,32 @@ public class TokenRequester {
     }
 
 
-    public TokenData requestToken() throws IOException {
-        return requestToken(-1, -1);
+    public TokenData requestToken(String cookies) throws IOException {
+        return requestToken(cookies, -1, -1);
     }
 
-    public TokenData requestToken(double lat, double lon) throws IOException {
+    public TokenData requestToken(String cookies, double lat, double lon) throws IOException {
         HttpURLConnection httpURLConnection = getNewHttpConnection("https://radiko.jp/v2/api/auth1_fms");
+        Gson gson = new Gson();
+        List<String> cookieList = new ArrayList<>();
+        if (cookies.length() != 0) {
+            Type maptype = new TypeToken<List<String>>() {
+            }.getType();
+            cookieList = gson.fromJson(cookies, maptype);
+        }
         if (httpURLConnection != null) {
             httpURLConnection.setRequestMethod("POST");
-            httpURLConnection.setRequestProperty("pragma", "no-cache");
-            httpURLConnection.setRequestProperty("X-Radiko-App", RADIKO_APP);
-            httpURLConnection.setRequestProperty("X-Radiko-App-Version", RADIKO_APP_VERSION);
-            httpURLConnection.setRequestProperty("X-Radiko-User", RADIKO_USER);
-            httpURLConnection.setRequestProperty("X-Radiko-Device", RADIKO_DEVICE);
-            DataOutputStream wr = new DataOutputStream(httpURLConnection.getOutputStream());
+            for (String s : cookieList) {
+                httpURLConnection.addRequestProperty("Cookie", s);
+            }
+            httpURLConnection.addRequestProperty("pragma", "no-cache");
+            httpURLConnection.addRequestProperty("X-Radiko-App", RADIKO_APP);
+            httpURLConnection.addRequestProperty("X-Radiko-App-Version", RADIKO_APP_VERSION);
+            httpURLConnection.addRequestProperty("X-Radiko-User", RADIKO_USER);
+            httpURLConnection.addRequestProperty("X-Radiko-Device", RADIKO_DEVICE);
             String urlParameters = "\r\n";
+            IOUtils.write(urlParameters, httpURLConnection.getOutputStream());
             httpURLConnection.connect();
-            wr.writeBytes(urlParameters);
-            wr.flush();
-            wr.close();
             String authToken = getHeaderValue(httpURLConnection, "x-radiko-authtoken").trim();
             String keyOffset = getHeaderValue(httpURLConnection, "x-radiko-keyoffset").trim();
             String keyLength = getHeaderValue(httpURLConnection, "x-radiko-keylength").trim();
@@ -126,21 +142,21 @@ public class TokenRequester {
                 if (partialKey.length() > 0) {
                     httpURLConnection = getNewHttpConnection("https://radiko.jp/v2/api/auth2_fms");
                     httpURLConnection.setRequestMethod("POST");
-                    httpURLConnection.setRequestProperty("pragma", "no-cache");
-                    httpURLConnection.setRequestProperty("X-Radiko-App", RADIKO_APP);
-                    httpURLConnection.setRequestProperty("X-Radiko-App-Version", RADIKO_APP_VERSION);
-                    httpURLConnection.setRequestProperty("X-Radiko-User", RADIKO_USER);
-                    httpURLConnection.setRequestProperty("X-Radiko-Device", RADIKO_DEVICE);
-                    httpURLConnection.setRequestProperty("X-Radiko-Authtoken", authToken);
-                    httpURLConnection.setRequestProperty("X-Radiko-Partialkey", partialKey);
+                    for (String s : cookieList) {
+                        httpURLConnection.addRequestProperty("Cookie", s);
+                    }
+                    httpURLConnection.addRequestProperty("pragma", "no-cache");
+                    httpURLConnection.addRequestProperty("X-Radiko-App", RADIKO_APP);
+                    httpURLConnection.addRequestProperty("X-Radiko-App-Version", RADIKO_APP_VERSION);
+                    httpURLConnection.addRequestProperty("X-Radiko-User", RADIKO_USER);
+                    httpURLConnection.addRequestProperty("X-Radiko-Device", RADIKO_DEVICE);
+                    httpURLConnection.addRequestProperty("X-Radiko-Authtoken", authToken);
+                    httpURLConnection.addRequestProperty("X-Radiko-Partialkey", partialKey);
                     if (lon != -1 && lat != -1) {
                         httpURLConnection.setRequestProperty("X-Radiko-Location", lat + "," + lon + ",gps");
                     }
+                    IOUtils.write(urlParameters, httpURLConnection.getOutputStream());
                     httpURLConnection.connect();
-                    wr = new DataOutputStream(httpURLConnection.getOutputStream());
-                    wr.writeBytes(urlParameters);
-                    wr.flush();
-                    wr.close();
                     InputStream is = null;
                     try {
                         is = httpURLConnection.getInputStream();
@@ -162,12 +178,7 @@ public class TokenRequester {
                     } catch (Exception ex) {
                         requesterListener.onError("Could not get response", ex);
                     } finally {
-                        if (is != null) {
-                            try {
-                                is.close();
-                            } catch (Exception e) {//}
-                            }
-                        }
+                        httpURLConnection.disconnect();
                     }
                 }
             }
@@ -215,7 +226,6 @@ public class TokenRequester {
                     httpURLConnection.setRequestProperty("Accept-Encoding", "identity");
                     return httpURLConnection;
                 }
-
                 KeyStore trustStore = KeyStore.getInstance(KeyStore.getDefaultType());
                 trustStore.load(null, null);
                 String algorithm = KeyManagerFactory.getDefaultAlgorithm();

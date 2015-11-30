@@ -67,6 +67,7 @@ import com.gmail.radioserver2.provider.Media;
 import com.gmail.radioserver2.radiko.TokenFetcher;
 import com.gmail.radioserver2.receiver.MediaButtonIntentReceiver;
 import com.gmail.radioserver2.utils.AndroidUtil;
+import com.gmail.radioserver2.utils.AppDelegate;
 import com.gmail.radioserver2.utils.Constants;
 import com.gmail.radioserver2.utils.FileHelper;
 import com.gmail.radioserver2.utils.InetHelper;
@@ -399,20 +400,21 @@ public class MediaPlaybackService extends Service {
         final String playUrl = currentChannel.getUrl();
         if (playUrl.toLowerCase().startsWith("rtmpe://f-radiko.smartstream.ne.jp") && mRTMPSuck != null) {
             if (token == null || token.length() == 0) {
-                TokenFetcher tokenFetcher = TokenFetcher.getTokenFetcher(getApplicationContext(), new TokenFetcher.OnTokenListener() {
-                    @Override
-                    public void onTokenFound(String token, String rawAreaId) {
-                        currentAreaId = rawAreaId;
-                        SimpleAppLog.info("Found token " + token + ". Area: " + rawAreaId);
-                        openRadikoPlayUrl("S:" + token, playUrl);
-                    }
+                TokenFetcher tokenFetcher = TokenFetcher.getTokenFetcher(getApplicationContext(), AppDelegate.getInstance().getCookie(),
+                        new TokenFetcher.OnTokenListener() {
+                            @Override
+                            public void onTokenFound(String token, String rawAreaId) {
+                                currentAreaId = rawAreaId;
+                                SimpleAppLog.info("Found token " + token + ". Area: " + rawAreaId);
+                                openRadikoPlayUrl("S:" + token, playUrl);
+                            }
 
-                    @Override
-                    public void onError(String message, Throwable throwable) {
-                        SimpleAppLog.error(message, throwable);
-                        isStreaming = false;
-                    }
-                });
+                            @Override
+                            public void onError(String message, Throwable throwable) {
+                                SimpleAppLog.error(message, throwable);
+                                isStreaming = false;
+                            }
+                        });
                 tokenFetcher.fetch();
             } else {
                 if (!token.startsWith("S:")) {
@@ -874,7 +876,7 @@ public class MediaPlaybackService extends Service {
 
         mStreamingPlayer = new MultiPlayer();
         //mStreamingPlayer.setHandler(mMediaplayerHandler);
-        TokenFetcher tokenFetcher = TokenFetcher.getTokenFetcher(getApplicationContext(), onTokenListener);
+        TokenFetcher tokenFetcher = TokenFetcher.getTokenFetcher(getApplicationContext(), AppDelegate.getInstance().getCookie(), onTokenListener);
         tokenFetcher.fetch();
 
         reloadQueue();

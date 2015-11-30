@@ -161,30 +161,30 @@ public abstract class TokenFetcher {
             onTokenListener.onError(message, throwable);
     }
 
-    public static TokenFetcher getTokenFetcher(Context context, OnTokenListener onTokenListener) {
+    public static TokenFetcher getTokenFetcher(Context context, String cookies, OnTokenListener onTokenListener) {
         Location location = AndroidUtil.getLastBestLocation(context);
-        return getTokenFetcher(context, onTokenListener, location);
+        return getTokenFetcher(context, cookies, onTokenListener, location);
     }
 
-    public static TokenFetcher getTokenFetcher(Context context, OnTokenListener onTokenListener,
+    public static TokenFetcher getTokenFetcher(Context context, String cookies, OnTokenListener onTokenListener,
                                                Location location) {
         if (location == null) {
             location = AndroidUtil.getLastBestLocation(context);
         }
         if (location != null) {
-            return getTokenFetcher(context, onTokenListener, location.getLatitude(), location.getLongitude());
+            return getTokenFetcher(context, cookies, onTokenListener, location.getLatitude(), location.getLongitude());
         } else {
-            return getTokenFetcher(context, onTokenListener, -1, -1);
+            return getTokenFetcher(context, cookies, onTokenListener, -1, -1);
         }
     }
 
-    public static TokenFetcher getTokenFetcher(Context context, OnTokenListener onTokenListener, double latitude, double longitude) {
+    public static TokenFetcher getTokenFetcher(Context context, String cookies, OnTokenListener onTokenListener, double latitude, double longitude) {
         Setting setting = new Setting(context);
         setting.load();
         TokenFetcher tokenFetcher;
         if (setting.getTokenType() == Setting.TOKEN_TYPE_CLIENT) {
             SimpleAppLog.info("Use client token");
-            tokenFetcher = new ClientTokenFetcher(context, onTokenListener);
+            tokenFetcher = new ClientTokenFetcher(context, cookies, onTokenListener);
         } else {
             SimpleAppLog.info("Use server token");
             tokenFetcher = new ServerTokenFetcher(context, onTokenListener);
